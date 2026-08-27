@@ -178,6 +178,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
 const SUPABASE_URL_HARDCODED = 'YOUR_SUPABASE_PROJECT_URL';
 const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 
+// A visible build marker — shown small in the corner of the loading/setup
+// screens. Purely a debugging aid: if you ever see a blank page and aren't
+// sure whether you're looking at a fresh copy of this file or an old one
+// (e.g. one that got corrupted by a rich-text editor and just renamed),
+// compare this string against what's mentioned in the chat. If the page is
+// blank enough that you can't even see this stamp, the file most likely
+// isn't the one you think it is — try a completely fresh download instead
+// of reusing/renaming any previously-edited copy.
+const APP_BUILD = 'rk-supabase-build-2026-08-27c';
+
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
 // that error on screen instead of leaving a silent blank/black page. This
@@ -191,6 +201,7 @@ window.addEventListener('error', function(e){
       + '<h3 style="color:#ff4d4d; margin-top:0;">Something went wrong loading the game</h3>'
       + '<p style="opacity:0.85; font-size:13px; word-break:break-word;">' + msg + '</p>'
       + '<p style="opacity:0.6; font-size:12px;">Press F12 to see the full error in your browser console. If you hand-edited this file, try re-downloading a fresh copy instead of editing it — see the setup form / DEPLOYMENT_GUIDE.md.</p>'
+      + '<p style="opacity:0.3; font-size:10px; font-family:monospace;">' + APP_BUILD + '</p>'
       + '</div>';
   }
 });
@@ -430,16 +441,25 @@ function readSupabaseConfig(){
 // render()/boot() at the bottom — the page would just stay blank/black
 // with no error shown. Wrapping this in try/catch turns that into a clear
 // on-screen "couldn't connect" message instead.
-let supabase = null;
+// NOTE: our own client instance is intentionally named "sbClient", NOT
+// "supabase" — the Supabase library itself defines a global called
+// `supabase` (that's what `window.supabase.createClient` is), and a plain
+// `let supabase = ...` in this script collides with that as a hard
+// SyntaxError ("Identifier 'supabase' has already been declared"), which
+// silently prevents the ENTIRE script from running (a parse error, not a
+// catchable runtime exception — no try/catch or error handler can help
+// with this one, which is why it looked like a totally blank page with
+// nothing, not even our own error-reporting UI).
+let sbClient = null;
 let supabaseInitError = null;
 let resolvedSupabaseConfig = readSupabaseConfig();
 function connectSupabase(cfg){
-  supabase = null; supabaseInitError = null;
+  sbClient = null; supabaseInitError = null;
   if (!cfg || typeof window.supabase === 'undefined') return;
   try{
-    supabase = window.supabase.createClient(cfg.url, cfg.key);
+    sbClient = window.supabase.createClient(cfg.url, cfg.key);
   } catch(e){
-    supabase = null;
+    sbClient = null;
     supabaseInitError = (e && e.message) ? e.message : String(e);
     console.error('Supabase client failed to initialize:', e);
   }
@@ -487,7 +507,7 @@ async function safeGet(key, shared, attempts){
   const k = fullKey(key, shared);
   for (let i = 0; i < attempts; i++){
     try{
-      const { data, error } = await supabase.from('kv_store').select('value').eq('key', k).maybeSingle();
+      const { data, error } = await sbClient.from('kv_store').select('value').eq('key', k).maybeSingle();
       if (error) throw error;
       return data ? data.value : null; // no row = genuinely missing, no retry needed
     } catch(e){
@@ -502,7 +522,7 @@ async function safeSet(key, value, shared, attempts){
   let lastErr = null;
   for (let i = 0; i < attempts; i++){
     try{
-      const { error } = await supabase.from('kv_store').upsert({ key: k, value, updated_at: new Date().toISOString() });
+      const { error } = await sbClient.from('kv_store').upsert({ key: k, value, updated_at: new Date().toISOString() });
       if (error) throw error;
       return true;
     } catch(e){ lastErr = e; }
@@ -554,13 +574,21 @@ let onboardName = '';
 let onboardFaction = null;
 
 async function boot(){
-  if (!supabase){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
+  if (!sbClient){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
   profile = await safeGet('profile', false);
   if (!profile){ bootPhase = 'onboarding'; render(); return; }
   await enterWorld();
 }
 let setupUrlInput = '';
 let setupKeyInput = '';
+// A surgical DOM update (not a full render()) so typing doesn't steal focus
+// out of the input on every keystroke — full re-renders replace the whole
+// #root innerHTML, which would kick focus out of whatever you were typing
+// into after a single character.
+function updateSetupButtonState(){
+  const btn = document.getElementById('setup-connect-btn');
+  if (btn) btn.disabled = !(setupUrlInput.trim() && setupKeyInput.trim());
+}
 function submitSetupForm(){
   const url = (setupUrlInput || '').trim();
   const key = (setupKeyInput || '').trim();
@@ -773,8 +801,8 @@ async function enterWorld(){
 ========================================================= */
 let realtimeChannel = null;
 function startRealtime(){
-  if (!supabase || realtimeChannel) return;
-  realtimeChannel = supabase
+  if (!sbClient || realtimeChannel) return;
+  realtimeChannel = sbClient
     .channel('kv-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'kv_store' }, handleRealtimeChange)
     .subscribe();
@@ -1777,10 +1805,11 @@ function render(){
         Paste the two values from your Supabase project's <b>Settings → API</b> page. This is saved in your browser and only needs doing once — see DEPLOYMENT_GUIDE.md if you haven't created a free Supabase project yet.
       </div>
       <div class="muted" style="margin-bottom:4px; font-size:12px;">Project URL</div>
-      <input class="name-input" placeholder="https://xxxx.supabase.co" value="${setupUrlInput}" oninput="setupUrlInput=this.value" />
+      <input class="name-input" placeholder="https://xxxx.supabase.co" value="${setupUrlInput}" oninput="setupUrlInput=this.value; updateSetupButtonState();" />
       <div class="muted" style="margin:10px 0 4px; font-size:12px;">anon public API key</div>
-      <input class="name-input" placeholder="eyJhbGc..." value="${setupKeyInput}" oninput="setupKeyInput=this.value" />
-      <button class="btn btn-primary" style="margin-top:16px;" onclick="submitSetupForm()" ${(!setupUrlInput.trim()||!setupKeyInput.trim())?'disabled':''}>SAVE & CONNECT</button>
+      <input class="name-input" placeholder="eyJhbGc..." value="${setupKeyInput}" oninput="setupKeyInput=this.value; updateSetupButtonState();" />
+      <button id="setup-connect-btn" class="btn btn-primary" style="margin-top:16px;" onclick="submitSetupForm()" ${(!setupUrlInput.trim()||!setupKeyInput.trim())?'disabled':''}>SAVE & CONNECT</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
     </div></div>`;
     return;
   }
@@ -1795,11 +1824,12 @@ function render(){
           : `The Supabase library didn't load (check your internet connection and reload).`}
       </div>
       <button class="btn btn-outline" style="margin-top:16px;" onclick="forgetSupabaseConfig()">RE-ENTER SUPABASE DETAILS</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
     </div></div>`;
     return;
   }
   if (bootPhase === 'loading'){
-    document.getElementById('root').innerHTML = `<div class="loading-wrap">Connecting to the Run Kingdom world…</div>`;
+    document.getElementById('root').innerHTML = `<div class="loading-wrap">Connecting to the Run Kingdom world…<br><span style="font-size:10px; opacity:0.4; font-family:monospace;">${APP_BUILD}</span></div>`;
     return;
   }
   if (bootPhase === 'onboarding'){
