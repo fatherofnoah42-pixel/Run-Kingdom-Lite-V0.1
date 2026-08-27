@@ -120,7 +120,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
 .badge-surge{background:var(--surge-dim); color:var(--surge);}
 .badge-bloom{background:var(--bloom-dim); color:var(--bloom);}
 .badge-neutral{background:var(--panel-3); color:var(--text-dim);}
-.debug-drawer{position:fixed; inset:0 0 0 auto; width:88%; max-width:400px; background:var(--panel); z-index:60;
+.debug-drawer{position:fixed; top:0; bottom:0;
+  /* Anchored to the RIGHT EDGE OF THE GAME CONTENT (#root, centered, max-width 480px),
+     not to the physical browser window edge. On a wide desktop window the game itself
+     is a narrow centered column with a lot of empty space on both sides — anchoring
+     to the raw viewport edge (the old `inset:0 0 0 auto`) made the drawer slide in far
+     off to the side, outside where anyone would actually be looking, which looked
+     exactly like "clicking the gear icon does nothing". max() clamps back to the
+     ordinary right-aligned mobile behavior once the viewport is narrower than #root. */
+  right:max(0px, calc(50% - 240px));
+  width:88%; max-width:400px; background:var(--panel); z-index:60;
   border-left:1px solid var(--border); padding:18px; overflow-y:auto; animation:slideIn 0.2s ease;}
 @keyframes slideIn{from{transform:translateX(20px); opacity:0;} to{transform:translateX(0); opacity:1;}}
 .debug-backdrop{position:fixed; inset:0; background:rgba(6,8,11,0.6); z-index:59;}
@@ -186,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-supabase-build-2026-08-27c';
+const APP_BUILD = 'rk-supabase-build-2026-08-27d';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
