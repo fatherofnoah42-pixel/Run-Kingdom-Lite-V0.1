@@ -132,7 +132,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
   width:88%; max-width:400px; background:var(--panel); z-index:60;
   border-left:1px solid var(--border); padding:18px; overflow-y:auto; animation:slideIn 0.2s ease;}
 @keyframes slideIn{from{transform:translateX(20px); opacity:0;} to{transform:translateX(0); opacity:1;}}
-.debug-backdrop{position:fixed; inset:0; background:rgba(6,8,11,0.6); z-index:59;}
+.debug-backdrop{position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:59;}
 .debug-section{margin-bottom:16px;}
 .debug-section h4{font-family:'Chakra Petch',sans-serif; font-size:11px; letter-spacing:1.5px; color:var(--gold);
   margin:0 0 8px; text-transform:uppercase;}
@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-supabase-build-2026-08-27d';
+const APP_BUILD = 'rk-supabase-build-2026-08-28a';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -267,6 +267,7 @@ const TERRITORY_NAMES = {
   G: 'Genesis', H: 'Degen Hollow', I: 'The Wasteland',
 };
 const territoryLabel = (t) => TERRITORY_NAMES[t] || t;
+const rallyOutcomeLabel = (outcome) => outcome === 'captured' ? '✅ CAPTURED' : outcome === 'held' ? '🛡️ HELD' : '❌ LOST';
 const ADJ = {
   A:['B','D'], B:['A','C','E'], C:['B','F'],
   D:['A','E','G'], E:['B','D','F','H'], F:['C','E','I'],
@@ -420,19 +421,47 @@ function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 // ---- Resolve Supabase config: saved in this browser > embedded in an
 // invite link's URL params (first visit) > the optional hardcoded constants
 // above. This is what lets deployment work with zero file editing.
-function readSupabaseConfig(){
+// ---- Resolve config from an invite link, if this is a first visit via one ----
+// All of sb_url/sb_key/room are read from ONE combined pass over the URL, and
+// the cleanup (removing them from the visible address) happens exactly once
+// at the end — reading them in separate functions with separate
+// history.replaceState() calls would have the first call wipe out params the
+// second call still needed to see.
+//
+// These live in the URL FRAGMENT (after '#'), not the query string (after
+// '?'). A browser never sends the fragment portion of a URL to the server in
+// the actual HTTP request — so putting the anon key there means it can't
+// show up in server access logs, CDN logs, or Referer headers the way a
+// query-string value could. (It's still visible in the browser's own local
+// history, which is unavoidable for any link-embedded credential — but that's
+// a much smaller exposure surface than every hop of server-side logging.)
+function consumeInviteLinkParams(){
   try{
-    const params = new URLSearchParams(location.search);
+    const raw = location.hash ? location.hash.slice(1) : '';
+    if (!raw) return;
+    const params = new URLSearchParams(raw);
     const urlFromLink = params.get('sb_url');
     const keyFromLink = params.get('sb_key');
+    const roomFromLink = params.get('room');
+    let consumedAnything = false;
     if (urlFromLink && keyFromLink){
       localStorage.setItem('rk_supabase_url', urlFromLink);
       localStorage.setItem('rk_supabase_key', keyFromLink);
-      // Tidy the address bar so the key doesn't linger visibly there.
-      history.replaceState({}, '', location.pathname + location.hash);
+      consumedAnything = true;
+    }
+    if (roomFromLink){
+      saveRoomCode(roomFromLink.toUpperCase());
+      consumedAnything = true;
+    }
+    if (consumedAnything){
+      // Tidy the address bar so nothing sensitive lingers there visibly.
+      history.replaceState({}, '', location.pathname + location.search);
     }
   } catch(e){ /* URLSearchParams/history not available in some contexts — ignore */ }
+}
+consumeInviteLinkParams();
 
+function readSupabaseConfig(){
   const savedUrl = localStorage.getItem('rk_supabase_url');
   const savedKey = localStorage.getItem('rk_supabase_key');
   if (savedUrl && savedKey) return { url: savedUrl, key: savedKey };
@@ -478,11 +507,17 @@ connectSupabase(resolvedSupabaseConfig);
 function buildInviteLink(){
   if (!resolvedSupabaseConfig) return null;
   const base = location.origin + location.pathname;
-  return `${base}?sb_url=${encodeURIComponent(resolvedSupabaseConfig.url)}&sb_key=${encodeURIComponent(resolvedSupabaseConfig.key)}`;
+  const parts = [`sb_url=${encodeURIComponent(resolvedSupabaseConfig.url)}`, `sb_key=${encodeURIComponent(resolvedSupabaseConfig.key)}`];
+  if (roomCode) parts.push(`room=${encodeURIComponent(roomCode)}`);
+  return `${base}#${parts.join('&')}`;
 }
 function forgetSupabaseConfig(){
   localStorage.removeItem('rk_supabase_url');
   localStorage.removeItem('rk_supabase_key');
+  location.reload();
+}
+function forgetRoomCode(){
+  localStorage.removeItem('rk_room_code');
   location.reload();
 }
 
@@ -501,6 +536,24 @@ function getLocalPlayerId(){
   return id;
 }
 const LOCAL_PLAYER_ID = getLocalPlayerId();
+
+// ---- Room code ----
+// Without this, every single person who connects a game to the same
+// Supabase project lands in the exact same shared world — there was no way
+// to run more than one concurrent game (different teams, repeated test
+// sessions, etc.) on one project. A room code is just an extra prefix on
+// every shared key, so different rooms are fully independent worlds even
+// though they all live in the same `kv_store` table.
+function getSavedRoomCode(){ return localStorage.getItem('rk_room_code') || null; }
+function saveRoomCode(code){ localStorage.setItem('rk_room_code', code); }
+function generateRoomCode(){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 — avoids ambiguous characters when read aloud or typed
+  let code = '';
+  for (let i = 0; i < 5; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return code;
+}
+let roomCode = getSavedRoomCode();
+function worldKey(){ return `room:${roomCode}:world`; }
 function fullKey(key, shared){ return shared ? key : `personal:${LOCAL_PLAYER_ID}:${key}`; }
 
 // Storage reads/writes occasionally hit a transient network or backend
@@ -540,7 +593,7 @@ async function safeSet(key, value, shared, attempts){
   console.warn('storage write did not persist after retries (will retry on next action/sync):', k, lastErr);
   return null;
 }
-function dayKey(runId, suffix, day){ return `${runId}-${suffix}-${day}`; }
+function dayKey(runId, suffix, day){ return `room:${roomCode}:${runId}-${suffix}-${day}`; }
 
 /* =========================================================
    RUNTIME STATE (client-side cache, mirrors shared/personal storage)
@@ -584,9 +637,36 @@ let onboardFaction = null;
 
 async function boot(){
   if (!sbClient){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
-  profile = await safeGet('profile', false);
+  if (!roomCode){ bootPhase = 'room_form'; render(); return; }
+  const p = await safeGet('profile', false);
+  // STORAGE_RETRY_LATER is a truthy string, not a real profile object — treating
+  // it as "we have a profile" would silently skip onboarding and later crash
+  // anywhere profile.name/profile.faction gets read. Retry a few times before
+  // falling back to onboarding, same as we already do for 'world' in enterWorld().
+  if (p === STORAGE_RETRY_LATER){
+    let retried = p;
+    for (let i = 0; i < 3 && retried === STORAGE_RETRY_LATER; i++){ await sleep(600); retried = await safeGet('profile', false); }
+    profile = (retried && retried !== STORAGE_RETRY_LATER) ? retried : null;
+  } else {
+    profile = p;
+  }
   if (!profile){ bootPhase = 'onboarding'; render(); return; }
   await enterWorld();
+}
+let joinRoomInput = '';
+function submitCreateRoom(){
+  roomCode = generateRoomCode();
+  saveRoomCode(roomCode);
+  bootPhase = 'loading'; render();
+  boot();
+}
+function submitJoinRoom(){
+  const code = (joinRoomInput || '').trim().toUpperCase();
+  if (!code) return;
+  roomCode = code;
+  saveRoomCode(roomCode);
+  bootPhase = 'loading'; render();
+  boot();
 }
 let setupUrlInput = '';
 let setupKeyInput = '';
@@ -597,6 +677,10 @@ let setupKeyInput = '';
 function updateSetupButtonState(){
   const btn = document.getElementById('setup-connect-btn');
   if (btn) btn.disabled = !(setupUrlInput.trim() && setupKeyInput.trim());
+}
+function updateJoinRoomButtonState(){
+  const btn = document.getElementById('join-room-btn');
+  if (btn) btn.disabled = !joinRoomInput.trim();
 }
 function submitSetupForm(){
   const url = (setupUrlInput || '').trim();
@@ -647,7 +731,7 @@ async function ensureBattlesDoc(day){
   // see settleCurrentDay — so this is normally a no-op, saving a write.)
   if (JSON.stringify(updatedRepHistory) !== JSON.stringify(world.repHistory)){
     world = { ...world, repHistory: updatedRepHistory };
-    await safeSet('world', world, true);
+    await safeSet(worldKey(), world, true);
   }
   return doc;
 }
@@ -693,7 +777,7 @@ async function ensureMyState(day){
   return doc;
 }
 async function ensureProgress(){
-  const key = `${world.runId}-progress`;
+  const key = `room:${roomCode}:${world.runId}-progress`;
   let doc = await safeGet(key, false);
   if (doc && doc !== STORAGE_RETRY_LATER) return doc;
   if (doc === STORAGE_RETRY_LATER){
@@ -718,15 +802,15 @@ async function donateGMT(amount){
   if (!progress || !world || amount <= 0 || amount > progress.gmtBalance) return;
   progress.gmtBalance = round2(progress.gmtBalance - amount);
   progress.totalDonated = round2((progress.totalDonated||0) + amount);
-  await safeSet(`${world.runId}-progress`, progress, false);
+  await safeSet(`room:${roomCode}:${world.runId}-progress`, progress, false);
 
-  const fresh = await safeGet('world', true);
+  const fresh = await safeGet(worldKey(), true);
   const base = (fresh && fresh !== STORAGE_RETRY_LATER) ? fresh : world;
   const prizeAdd = Math.round(amount * CONFIG.gmtSplit.prize);
   const burnAdd = Math.round(amount * CONFIG.gmtSplit.burn);
   const protoAdd = amount - prizeAdd - burnAdd; // remainder, so the three parts always sum exactly to the donation
   const updated = { ...base, prizePool: base.prizePool + prizeAdd, gmtBurned: base.gmtBurned + burnAdd, protocolRevenue: base.protocolRevenue + protoAdd };
-  const saved = await safeSet('world', updated, true);
+  const saved = await safeSet(worldKey(), updated, true);
   if (saved) world = updated;
   render();
 }
@@ -744,22 +828,25 @@ let roster = null;
 let lastHeartbeatAt = 0;
 
 async function joinRoster(){
-  const key = `${world.runId}-roster`;
+  const key = `room:${roomCode}:${world.runId}-roster`;
   const fresh = await safeGet(key, true);
   const base = (fresh && fresh !== STORAGE_RETRY_LATER) ? fresh : (roster || {});
-  base[profile.name] = { faction: profile.faction, lastSeen: Date.now() };
+  // Keyed by LOCAL_PLAYER_ID, NOT by display name — two different people can
+  // (and did, in testing) pick the same name, which would silently merge
+  // them into one roster entry if name were the key.
+  base[LOCAL_PLAYER_ID] = { name: profile.name, faction: profile.faction, lastSeen: Date.now() };
   const saved = await safeSet(key, base, true);
   if (saved) { roster = base; lastHeartbeatAt = Date.now(); }
 }
 async function refreshRoster(){
-  const key = `${world.runId}-roster`;
+  const key = `room:${roomCode}:${world.runId}-roster`;
   const fresh = await safeGet(key, true);
   if (fresh && fresh !== STORAGE_RETRY_LATER) roster = fresh;
   // Heartbeat: only write if it's actually been a while, and only touch our
   // own entry (read-modify-write against whatever we just fetched).
   if (Date.now() - lastHeartbeatAt > CONFIG.heartbeatMs){
     const base = roster ? {...roster} : {};
-    base[profile.name] = { faction: profile.faction, lastSeen: Date.now() };
+    base[LOCAL_PLAYER_ID] = { name: profile.name, faction: profile.faction, lastSeen: Date.now() };
     const saved = await safeSet(key, base, true);
     if (saved){ roster = base; lastHeartbeatAt = Date.now(); }
   }
@@ -767,7 +854,7 @@ async function refreshRoster(){
 function rosterStats(){
   if (!roster) return { total: 0, online: 0, byFaction: {cinder:0,surge:0,bloom:0}, onlineByFaction: {cinder:0,surge:0,bloom:0}, entries: [] };
   const now = Date.now();
-  const entries = Object.entries(roster).map(([name, r]) => ({ name, faction: r.faction, online: (now - r.lastSeen) <= CONFIG.onlineWindowMs }));
+  const entries = Object.entries(roster).map(([id, r]) => ({ id, name: r.name || id, faction: r.faction, online: (now - r.lastSeen) <= CONFIG.onlineWindowMs }));
   const byFaction = {cinder:0,surge:0,bloom:0}, onlineByFaction = {cinder:0,surge:0,bloom:0};
   let online = 0;
   entries.forEach(e => {
@@ -779,14 +866,14 @@ function rosterStats(){
 }
 
 async function enterWorld(){
-  world = await safeGet('world', true);
+  world = await safeGet(worldKey(), true);
   // If this was just a transient read failure, wait and re-check before
   // concluding the world doesn't exist — otherwise we'd spin up a duplicate world.
-  for (let i = 0; i < 3 && world === STORAGE_RETRY_LATER; i++){ await sleep(700); world = await safeGet('world', true); }
+  for (let i = 0; i < 3 && world === STORAGE_RETRY_LATER; i++){ await sleep(700); world = await safeGet(worldKey(), true); }
   if (!world || world === STORAGE_RETRY_LATER){
     world = makeInitialWorld();
-    await safeSet('world', world, true);
-    const check = await safeGet('world', true);
+    await safeSet(worldKey(), world, true);
+    const check = await safeGet(worldKey(), true);
     if (check && check !== STORAGE_RETRY_LATER) world = check;
   }
   await syncAll();
@@ -821,18 +908,20 @@ function handleRealtimeChange(payload){
   if (!row || !row.key || !world) return;
   const key = row.key;
   const value = payload.new ? payload.new.value : null;
-  // Only react to keys relevant to the season we're currently in — ignore
-  // everyone else's personal keys and any leftover data from old runIds.
-  if (key === 'world'){
+  const roomPrefix = `room:${roomCode}:`;
+  if (!key.startsWith(roomPrefix)) return; // ignore other rooms entirely
+  if (key === worldKey()){
     if (value) { world = value; render(); }
     return;
   }
-  if (!key.startsWith(world.runId + '-')) return;
+  // Only react to keys relevant to the season we're currently in — ignore
+  // everyone else's personal keys and any leftover data from old runIds.
+  if (!key.startsWith(roomPrefix + world.runId + '-')) return;
   if (key === dayKey(world.runId, 'activity', world.currentDay)){
     if (value) { activityDoc = value; render(); }
   } else if (key === dayKey(world.runId, 'battles', world.currentDay)){
     if (value) { battlesDoc = value; render(); }
-  } else if (key === `${world.runId}-roster`){
+  } else if (key === `room:${roomCode}:${world.runId}-roster`){
     if (value) { roster = value; render(); }
   } else if (key.startsWith(dayKey(world.runId, 'settlement', ''))){
     // A new day just got settled somewhere else — re-sync everything (new
@@ -847,7 +936,7 @@ let settlementFetchedForDay = null; // reportDay we last fetched settlementDoc f
 let progressLoaded = false;
 
 async function syncAll(){
-  const fresh = await safeGet('world', true);
+  const fresh = await safeGet(worldKey(), true);
   if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
   const day = world.currentDay;
 
@@ -907,6 +996,14 @@ async function reconcileProgress(){
   let changed = false;
   for (let d = progress.lastCountedDay+1; d <= doneUpTo; d++){
     const m = await safeGet(dayKey(world.runId, 'mystate', d), false);
+    if (m === STORAGE_RETRY_LATER){
+      // Don't know yet whether day d counted — stop here rather than guessing.
+      // Advancing lastCountedDay past an unconfirmed day would permanently
+      // lose that day's participation credit if it turns out we WERE locked
+      // in; leaving it unadvanced just means we retry this same day (and any
+      // after it) on the next reconcile pass instead.
+      break;
+    }
     if (m && m.locked){
       progress.participationDays += 1;
       progress.seasonContributionPower = round2(progress.seasonContributionPower + Object.values(m.deployedPower||{}).reduce((a,b)=>a+b,0));
@@ -915,7 +1012,7 @@ async function reconcileProgress(){
     progress.lastCountedDay = d;
     changed = true;
   }
-  if (changed) await safeSet(`${world.runId}-progress`, progress, false);
+  if (changed) await safeSet(`room:${roomCode}:${world.runId}-progress`, progress, false);
 }
 
 /* =========================================================
@@ -931,11 +1028,11 @@ async function enterFogManually(){
   if (inFlightFogToggle || !world || world.phase !== 'battles') return;
   inFlightFogToggle = true;
   try{
-    const fresh = await safeGet('world', true);
+    const fresh = await safeGet(worldKey(), true);
     if (!fresh || fresh === STORAGE_RETRY_LATER) return;
     if (fresh.phase === 'battles'){
       fresh.phase = 'fog';
-      await safeSet('world', fresh, true);
+      await safeSet(worldKey(), fresh, true);
     }
     world = fresh;
   } finally { inFlightFogToggle = false; render(); }
@@ -945,7 +1042,7 @@ async function resolveDayManually(){
   if (world.phase === 'seasonEnd') return;
   inFlightResolve = true;
   try{
-    const fresh = await safeGet('world', true);
+    const fresh = await safeGet(worldKey(), true);
     if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
     if (world.phase === 'seasonEnd') return;
     await settleCurrentDay();
@@ -984,8 +1081,13 @@ async function settleCurrentDay(){
       const r = aDoc.rally[f];
       if (r && (r.main === t || r.secondary === t)){
         rallyResults[f] = rallyResults[f] || {};
-        const captured = winner === f;
-        if (r.main === t) rallyResults[f].main = { t, captured }; else rallyResults[f].secondary = { t, captured };
+        // Distinguish "captured it from someone else" vs "successfully held
+        // territory that was already ours" vs "lost it" — these previously
+        // all collapsed into a single captured:true/false flag, so
+        // defending your own Rally target displayed as "CAPTURED" instead
+        // of something like "HELD", which reads backwards.
+        const outcome = winner !== f ? 'lost' : (prevOwner === f ? 'held' : 'captured');
+        if (r.main === t) rallyResults[f].main = { t, outcome }; else rallyResults[f].secondary = { t, outcome };
       }
     });
   });
@@ -1010,7 +1112,7 @@ async function settleCurrentDay(){
 
   const newCommanderRecord = JSON.parse(JSON.stringify(world.commanderRecord));
   Object.entries(rallyResults).forEach(([f,rr]) => {
-    if (rr.main){ if (rr.main.captured) newCommanderRecord[f].wins++; else newCommanderRecord[f].losses++; }
+    if (rr.main){ if (rr.main.outcome !== 'lost') newCommanderRecord[f].wins++; else newCommanderRecord[f].losses++; }
   });
 
   sDoc = { results, vpGained, rallyResults, commanderNames: aDoc.commander, settledAt: Date.now(), ownershipAfter: newOwnership };
@@ -1039,7 +1141,7 @@ async function settleCurrentDay(){
     currentDay: nextDay,
     phase: seasonDone ? 'seasonEnd' : 'battles',
   };
-  await safeSet('world', world, true);
+  await safeSet(worldKey(), world, true);
   if (nextBattlesDoc){
     // Write the next day's battles doc now, under its final key, so the
     // upcoming ensureBattlesDoc() call in syncAll() finds it already there
@@ -1052,7 +1154,7 @@ async function settleCurrentDay(){
   if (!seasonDone){ await syncAll(); } else { computeSeasonResult(); }
 }
 async function advanceAfterExternalSettlement(){
-  const fresh = await safeGet('world', true);
+  const fresh = await safeGet(worldKey(), true);
   if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
   await syncAll();
   if (world.phase === 'seasonEnd') computeSeasonResult();
@@ -1060,7 +1162,16 @@ async function advanceAfterExternalSettlement(){
 
 const RANK_TITLES = { 1: 'Champion', 2: 'Runner-Up', 3: 'Second Runner-Up' };
 function computeSeasonResult(){
-  const standings = FACTIONS.map(f => ({ f, vp: world.vp[f] })).sort((a,b)=>b.vp-a.vp);
+  // Tie rule: VP first; if still tied, the faction currently holding more
+  // territory ranks higher (reflects actual board control); if STILL tied
+  // (fully even VP and territory count), fall back to a fixed alphabetical
+  // order by faction id — deterministic and the same for every player,
+  // rather than silently depending on the order FACTIONS happens to be
+  // declared in (which is what a naive vp-only sort effectively did before).
+  const territoryCount = (f) => TERRITORIES.filter(t => world.ownership[t] === f).length;
+  const standings = FACTIONS
+    .map(f => ({ f, vp: world.vp[f], territories: territoryCount(f) }))
+    .sort((a,b) => (b.vp - a.vp) || (b.territories - a.territories) || a.f.localeCompare(b.f));
   const ranks = {}; standings.forEach((s,i)=>ranks[s.f]=i+1);
   const myRank = ranks[profile.faction];
   const share = CONFIG.rewardDistribution[myRank] || 0;
@@ -1099,7 +1210,8 @@ async function deployPower(mainT, secT, splitPct){
   // once that write succeeds, to avoid "looks deployed on my screen but no
   // one else can see it" inconsistency.
   const activityKey = dayKey(world.runId, 'activity', world.currentDay);
-  const fresh = await safeGet(activityKey, true) || activityDoc;
+  let fresh = await safeGet(activityKey, true);
+  if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = activityDoc; // fall back to cache, never to the raw sentinel value
   fresh.deployed[mainT] = fresh.deployed[mainT] || {};
   fresh.deployed[mainT][profile.faction] = round2((fresh.deployed[mainT][profile.faction]||0) + mainPower);
   if (secT){
@@ -1146,7 +1258,16 @@ async function claimCommander(){
     }
     lastSyncError = null;
   }
-  activityDoc = await safeGet(key, true) || fresh;
+  // NOTE ON RACE CONDITIONS: two players clicking "Become Commander" within
+  // the same instant can both read commander[faction] as empty before
+  // either has written, and both then write — whoever's write lands last
+  // wins the storage row. We can't fully prevent that with plain get/set
+  // calls (would need an atomic DB-side compare-and-swap), but reading the
+  // key back right after writing at least makes THIS client accurately
+  // reflect who actually ended up as commander, rather than assuming it won.
+  let confirmed = await safeGet(key, true);
+  if (!confirmed || confirmed === STORAGE_RETRY_LATER) confirmed = fresh;
+  activityDoc = confirmed;
   render();
 }
 async function publishRally(main, sec, split){
@@ -1266,7 +1387,11 @@ function renderBottomNav(){
 function renderMap(){
   const tiles = TERRITORIES.map(t => {
     const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
-    const cap = (t==='A'&&owner==='cinder')||(t==='C'&&owner==='surge')||(t==='G'&&owner==='bloom');
+    // A/C/G are Capitals structurally — that identity doesn't change just
+    // because someone else captured the tile. (Previously this only lit up
+    // while still held by the original owning faction, so the CAP badge
+    // would misleadingly vanish the moment a Capital changed hands.)
+    const cap = (t==='A'||t==='C'||t==='G');
     const bounty = getBountyLevel(world.holdDays[t]||0);
     const flash = flashTiles[t] ? 'flash' : '';
     const ownerClass = owner ? `owner-${owner}` : '';
@@ -1599,8 +1724,8 @@ function screenReport(){
   </div>
   ${s.rallyResults && s.rallyResults[profile.faction] ? `
   <div class="card"><div class="card-title">${m.emoji} ${m.name} RALLY RESULT</div>
-    ${s.rallyResults[profile.faction].main ? `<div>MAIN — ${territoryLabel(s.rallyResults[profile.faction].main.t)} ${s.rallyResults[profile.faction].main.captured ? '✅ CAPTURED' : '❌ LOST'}</div>` : ''}
-    ${s.rallyResults[profile.faction].secondary ? `<div>SUPPORT — ${territoryLabel(s.rallyResults[profile.faction].secondary.t)} ${s.rallyResults[profile.faction].secondary.captured ? '✅ CAPTURED' : '❌ LOST'}</div>` : ''}
+    ${s.rallyResults[profile.faction].main ? `<div>MAIN — ${territoryLabel(s.rallyResults[profile.faction].main.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].main.outcome)}</div>` : ''}
+    ${s.rallyResults[profile.faction].secondary ? `<div>SUPPORT — ${territoryLabel(s.rallyResults[profile.faction].secondary.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].secondary.outcome)}</div>` : ''}
   </div>` : ''}
   <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
 }
@@ -1718,10 +1843,15 @@ function closeModalIfBackdrop(e){ if (e.target.classList.contains('modal-backdro
    DEBUG PANEL (testing/debug tools for the shared multiplayer world)
 ========================================================= */
 function toggleDebug(){ debugOpen = !debugOpen; render(); }
+// Extra safety net: Escape always closes the debug panel, regardless of
+// whether the backdrop click is landing where expected.
+window.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && debugOpen){ debugOpen = false; render(); }
+});
 async function dbgToggleRally(){
-  const fresh = await safeGet('world', true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
+  const fresh = await safeGet(worldKey(), true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
   fresh.rallyEnabled = fresh.rallyEnabled === false ? true : false;
-  await safeSet('world', fresh, true); world = fresh; render();
+  await safeSet(worldKey(), fresh, true); world = fresh; render();
 }
 async function dbgSimulateTeammate(){
   if (!battlesDoc.activeBattles.length) return;
@@ -1744,7 +1874,7 @@ function dbgCopyInviteLink(){
 }
 async function dbgResetSeason(){
   const fresh = makeInitialWorld();
-  await safeSet('world', fresh, true);
+  await safeSet(worldKey(), fresh, true);
   world = fresh;
   seasonResult = null;
   progress = null;
@@ -1796,8 +1926,14 @@ function renderDebug(){
     <div class="debug-section">
       <h4>Supabase Connection</h4>
       <button class="btn btn-outline btn-small" onclick="dbgCopyInviteLink()">Copy Invite Link (pre-configured)</button>
-      <div class="muted" style="margin:8px 0 4px; font-size:11px;">Copies a link with your Supabase details embedded, so colleagues who open it don't have to fill in the setup form themselves.</div>
+      <div class="muted" style="margin:8px 0 4px; font-size:11px;">Copies a link with your Supabase details AND current room embedded, so colleagues who open it land straight in this room without filling in anything.</div>
       <button class="btn btn-outline btn-small" style="margin-top:6px;" onclick="forgetSupabaseConfig()">Forget This Connection</button>
+    </div>
+    <div class="debug-section">
+      <h4>Room</h4>
+      <div class="muted" style="margin-bottom:6px;">Current room code: <span class="mono" style="color:var(--gold); letter-spacing:2px;">${roomCode}</span></div>
+      <div class="muted" style="margin-bottom:8px; font-size:11px;">Share this code (or the invite link above) with anyone you want in THIS game. Different room codes on the same Supabase project never see each other's data.</div>
+      <button class="btn btn-outline btn-small" onclick="forgetRoomCode()">Leave This Room</button>
     </div>
   </div>`;
 }
@@ -1806,6 +1942,42 @@ function renderDebug(){
    ROOT RENDER
 ========================================================= */
 function render(){
+  try{ renderInner(); }
+  catch(e){
+    // A last-resort safety net: if literally anything else in render()
+    // throws (a screen function, a modal, etc.), show that clearly instead
+    // of silently leaving the page frozen and unresponsive to every
+    // subsequent click — which is exactly what an uncaught throw here used
+    // to do, with no visible sign anything had gone wrong.
+    console.error('render() failed:', e);
+    const root = document.getElementById('root');
+    if (root){
+      root.innerHTML = `<div style="padding:24px; color:#e7ecf3; font-family:sans-serif; background:#0a0d12; min-height:100vh; box-sizing:border-box;">
+        <h3 style="color:#ff4d4d; margin-top:0;">Something broke while updating the screen</h3>
+        <p style="opacity:0.85; font-size:13px; word-break:break-word;">${(e && e.message) ? e.message : 'Unknown error'}</p>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="location.reload()">RELOAD</button>
+        <p style="opacity:0.3; font-size:10px; font-family:monospace; margin-top:16px;">${APP_BUILD}</p>
+      </div>`;
+    }
+  }
+}
+function renderInner(){
+  if (bootPhase === 'room_form'){
+    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
+      <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · ROOM</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">Create or join a room</div>
+      <div class="muted" style="line-height:1.6; margin-bottom:16px;">
+        Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.
+      </div>
+      <button class="btn btn-primary" onclick="submitCreateRoom()">CREATE A NEW ROOM</button>
+      <div class="divider"></div>
+      <div class="muted" style="margin-bottom:4px; font-size:12px;">Or enter a room code someone shared with you</div>
+      <input class="name-input" placeholder="e.g. AB3XY" value="${joinRoomInput}" oninput="joinRoomInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="text-transform:uppercase; letter-spacing:2px;" />
+      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>JOIN ROOM</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
+    </div></div>`;
+    return;
+  }
   if (bootPhase === 'setup_form'){
     document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
       <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · FIRST-TIME SETUP</div>
@@ -1861,8 +2033,25 @@ function render(){
     ${renderBottomNav()}
     <div class="fab" onclick="toggleDebug()">⚙️</div>
     ${activeModal ? modalTerritory(activeModal) : ''}
-    ${renderDebug()}
+    ${safeRenderDebug()}
   `;
+}
+// If renderDebug() itself throws for any reason, this stops it from taking
+// the ENTIRE render() call down with it. Without this isolation, a single
+// bad reference inside the debug panel's HTML would silently break every
+// future render() call app-wide the moment debugOpen became true — meaning
+// EVERY button anywhere (Resolve Day, Deploy, the gear icon itself, all of
+// it) would stop visibly responding, since render() throwing partway through
+// leaves the DOM frozen at whatever it looked like before the click, with
+// no error shown. This was almost certainly the real cause behind "nothing
+// works anymore after touching the gear icon".
+function safeRenderDebug(){
+  try{ return renderDebug(); }
+  catch(e){
+    console.error('renderDebug() failed — closing the debug panel so the rest of the app keeps working:', e);
+    debugOpen = false;
+    return '';
+  }
 }
 
 /* =========================================================
