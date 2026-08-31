@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.3-url-normalize-2026-08-31';
+const APP_BUILD = 'rk-v0.2.4-frontier-coverage-2026-08-31';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -399,18 +399,37 @@ function selectActiveBattles(day, ownership, holdDays, repHistory){
   });
   const rng = rngFor('battles', day);
   let picked = weightedPickWithoutReplacement(weighted, Math.min(CONFIG.maxActiveBattlesPerDay, weighted.length), rng);
-  const coveredFactions = new Set();
-  picked.forEach(p => getEligibleFactions(p.t, ownership).forEach(f => coveredFactions.add(f)));
-  const missing = FACTIONS.filter(f => !coveredFactions.has(f));
-  if (missing.length){
-    const alt = weighted.filter(w => !picked.find(p=>p.t===w.t))
-      .filter(w => getEligibleFactions(w.t, ownership).some(f => missing.includes(f)))
-      .sort((a,b)=>b.weight-a.weight)[0];
-    if (alt && picked.length){
-      const lowIdx = picked.map((p,i)=>({i, w:p.weight})).sort((a,b)=>a.w-b.w)[0].i;
-      picked[lowIdx] = alt;
-    }
+
+  // "Meaningful participation" means an OFFENSIVE opportunity — a chance to
+  // contest a tile you don't already own. Being merely eligible to defend a
+  // tile you already hold doesn't count as a real choice: if that's the only
+  // thing on offer, you have zero decisions to make that day. Without this
+  // distinction, a faction boxed into a single starting Capital could be
+  // "covered" purely because it can defend that Capital, even when none of
+  // today's picks touch its border — leaving it with nothing to actually do.
+  const offensiveEligible = (f, t) => ownership[t] !== f && getEligibleFactions(t, ownership).includes(f);
+  const coverageOf = (battleList) => {
+    const covered = new Set();
+    battleList.forEach(t => FACTIONS.forEach(f => { if (offensiveEligible(f, t)) covered.add(f); }));
+    return covered;
+  };
+
+  const missing = FACTIONS.filter(f => !coverageOf(picked.map(p=>p.t)).has(f));
+  const protectedIdx = new Set(); // slots already used to fix a faction this call — don't undo them
+  for (const f of missing){
+    if (coverageOf(picked.map(p=>p.t)).has(f)) continue; // an earlier swap may have incidentally covered this one too
+    const alt = weighted
+      .filter(w => !picked.find(p => p.t === w.t))
+      .filter(w => offensiveEligible(f, w.t))
+      .sort((a,b) => b.weight - a.weight)[0];
+    if (!alt || !picked.length) continue;
+    const swappable = picked.map((p,i)=>({i, w:p.weight})).filter(x => !protectedIdx.has(x.i));
+    if (!swappable.length) continue;
+    const lowIdx = swappable.sort((a,b)=>a.w-b.w)[0].i;
+    picked[lowIdx] = alt;
+    protectedIdx.add(lowIdx);
   }
+
   let result = picked.map(p => p.t);
   // FINAL DAY: Kingmaker must be on the board. Without this the 3x decisive
   // battle would simply not happen on most rounds, since battle selection is
@@ -533,7 +552,11 @@ function normalizeSupabaseProjectUrl(raw){
 
   // createClient() expects the PROJECT ORIGIN only. If /rest/v1, /auth/v1,
   // /storage/v1, a query string, hash, or a trailing slash was pasted,
-  // reduce it safely back to https://<project>.supabase.co.
+  // reduce it safely back to https://<project>.supabase.co. This is the fix
+  // for "Invalid path specified in request URL" — that error comes from
+  // Supabase's gateway when the base URL already has a path segment on it
+  // (most commonly /rest/ copied from the wrong field in the dashboard), so
+  // every subsequent request doubles up the path.
   try{
     const u = new URL(s);
     if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
@@ -849,9 +872,9 @@ function updateJoinRoomButtonState(){
 }
 function submitSetupForm(){
   const rawUrl = (setupUrlInput || '').trim();
-  const url = normalizeSupabaseProjectUrl(rawUrl);
   const key = (setupKeyInput || '').trim();
   if (!rawUrl || !key) return;
+  const url = normalizeSupabaseProjectUrl(rawUrl);
   if (!url){
     alert('That Project URL is not valid. Paste the Supabase Project URL, for example: https://abcdefgh.supabase.co');
     return;
