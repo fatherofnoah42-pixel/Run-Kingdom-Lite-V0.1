@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Run Kingdom Lite · Online Multiplayer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- Supabase JS client (free tier) — this is what makes the multiplayer world persist and sync across everyone playing. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#0a0d12; --panel:#12161d; --panel-2:#181e27; --panel-3:#1f2631; --border:#252d3a;
+  --text:#e7ecf3; --text-dim:#8894a6; --text-dim2:#5c6675;
+  --cinder:#ff5a3c; --cinder-dim:#4a2318;
+  --surge:#34aeff; --surge-dim:#123048;
+  --bloom:#57d97a; --bloom-dim:#164027;
+  --neutral:#3b4250; --neutral-dim:#1c212a;
+  --gold:#f2c245; --danger:#ff4d4d; --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;}
+.mono{font-family:'Space Mono',monospace;}
+.display{font-family:'Chakra Petch',sans-serif;}
+#root{
+  max-width:480px; margin:0 auto; min-height:100vh;
+  background:radial-gradient(ellipse 600px 300px at 50% -10%, rgba(52,174,255,0.07), transparent), var(--bg);
+  display:flex; flex-direction:column; position:relative;
+  border-left:1px solid var(--border); border-right:1px solid var(--border);
+}
+.topbar{padding:14px 16px 10px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20;
+  background:rgba(10,13,18,0.92); backdrop-filter:blur(6px);}
+.topbar-row{display:flex; justify-content:space-between; align-items:baseline;}
+.season-label{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; letter-spacing:2px; color:var(--text-dim);}
+.day-label{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:13px; letter-spacing:1px; color:var(--gold);}
+.live-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bloom); margin-right:5px; animation:livePulse 1.6s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+.standings-row{display:flex; gap:10px; margin-top:8px;}
+.standing-chip{flex:1; display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:10px;
+  font-family:'Space Mono',monospace; font-size:11px; border:1px solid var(--border); background:var(--panel);}
+.standing-chip.me{box-shadow:0 0 0 1px currentColor inset;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block; margin-right:6px;}
+.content{flex:1; padding:16px 16px 100px; overflow-y:auto;}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px;}
+.card-title{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; letter-spacing:2px; color:var(--text-dim);
+  margin:0 0 10px; text-transform:uppercase;}
+.big-num{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:30px;}
+.prize-box{background:linear-gradient(135deg, rgba(242,194,69,0.12), rgba(242,194,69,0.02)); border:1px solid rgba(242,194,69,0.35);
+  border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;}
+.prize-label{font-family:'Chakra Petch',sans-serif; font-size:11px; letter-spacing:2px; color:var(--gold); font-weight:700;}
+.prize-num{font-family:'Space Mono',monospace; font-size:24px; font-weight:700; color:var(--gold); margin-top:2px;}
+.map-wrap{position:relative; margin:6px auto 4px; width:270px;}
+.map-grid{display:grid; grid-template-columns:repeat(3,84px); grid-template-rows:repeat(3,84px); gap:9px; position:relative; z-index:2;}
+.tile{border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+  position:relative; border:2px solid var(--neutral-dim); background:var(--neutral-dim);
+  transition:background 0.6s ease, border-color 0.6s ease, transform 0.25s ease; color:var(--text);}
+.tile:active{transform:scale(0.95);}
+.tile .tid{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:15px;}
+.tile .tname{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:10.5px; line-height:1.15; text-align:center; padding:0 4px; margin-top:2px;}
+.tile .tvp{font-family:'Space Mono',monospace; font-size:10px; opacity:0.75; margin-top:2px;}
+.tile.owner-cinder{background:linear-gradient(145deg, var(--cinder-dim), #2c140d); border-color:var(--cinder);}
+.tile.owner-surge{background:linear-gradient(145deg, var(--surge-dim), #0d2032); border-color:var(--surge);}
+.tile.owner-bloom{background:linear-gradient(145deg, var(--bloom-dim), #0e2718); border-color:var(--bloom);}
+.tile .cap{position:absolute; top:4px; right:6px; font-size:9px; opacity:0.6; font-family:'Space Mono',monospace;}
+.tile .bounty-pip{position:absolute; bottom:4px; left:6px; font-size:9px; font-family:'Space Mono',monospace; color:var(--gold);}
+.tile.flash{animation:flashCap 0.9s ease;}
+@keyframes flashCap{0%{transform:scale(1);} 35%{transform:scale(1.14); filter:brightness(1.8);} 100%{transform:scale(1); filter:brightness(1);}}
+.tile.active-battle{animation:pulseBattle 1.3s ease-in-out infinite;}
+@keyframes pulseBattle{
+  0%,100%{box-shadow:0 0 0 2px rgba(242,194,69,0.3), 0 0 12px rgba(242,194,69,0.25); border-color:var(--gold);}
+  50%{box-shadow:0 0 0 5px rgba(242,194,69,0.6), 0 0 26px rgba(242,194,69,0.65); border-color:#fff3cf;}
+}
+.btn{font-family:'Chakra Petch',sans-serif; font-weight:700; letter-spacing:0.5px; font-size:14px; border-radius:11px;
+  border:none; padding:13px 18px; cursor:pointer; width:100%; transition:transform 0.15s ease, filter 0.15s ease;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--gold); color:#171200;}
+.btn-primary:disabled{background:#40403a; color:#7c7c72; cursor:not-allowed;}
+.btn-outline{background:transparent; border:1px solid var(--border); color:var(--text);}
+.btn-outline.selected{border-color:var(--gold); color:var(--gold); background:rgba(242,194,69,0.08);}
+.btn-small{font-size:12px; padding:9px 12px; width:auto;}
+.btn-row{display:flex; gap:8px;}
+.btn-row .btn{flex:1;}
+.bottomnav{position:sticky; bottom:0; z-index:20; display:flex; border-top:1px solid var(--border);
+  background:rgba(10,13,18,0.96); backdrop-filter:blur(6px);}
+.navitem{flex:1; text-align:center; padding:10px 4px 12px; cursor:pointer; color:var(--text-dim2);
+  font-family:'Chakra Petch',sans-serif; font-size:10px; letter-spacing:1px; font-weight:700; border-top:2px solid transparent;}
+.navitem .navicon{font-size:18px; display:block; margin-bottom:2px;}
+.navitem.active{color:var(--gold); border-top-color:var(--gold);}
+.pill{display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-family:'Space Mono',monospace;
+  font-size:11px; font-weight:700; border:1px solid var(--border);}
+.pill.leading{color:#1c3d1f; background:var(--bloom);}
+.pill.close{color:#3d3512; background:var(--gold);}
+.pill.behind{color:var(--text-dim); background:var(--panel-3); border-color:var(--border);}
+.row-between{display:flex; justify-content:space-between; align-items:center;}
+.muted{color:var(--text-dim); font-size:13px;}
+.divider{height:1px; background:var(--border); margin:12px 0;}
+input[type=range]{-webkit-appearance:none; width:100%; height:6px; border-radius:4px; background:var(--panel-3); outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:var(--gold);
+  border:3px solid #171200; cursor:pointer; box-shadow:0 0 0 4px rgba(242,194,69,0.18);}
+.fog-banner{background:linear-gradient(135deg, rgba(52,174,255,0.1), rgba(87,217,122,0.05)); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px; text-align:center; margin-bottom:14px;}
+.fog-banner .fogtitle{font-family:'Chakra Petch',sans-serif; font-weight:700; letter-spacing:2px; color:var(--surge); font-size:13px;}
+.fog-timer{font-family:'Space Mono',monospace; font-size:26px; font-weight:700; margin-top:6px;}
+.modal-backdrop{position:fixed; inset:0; background:rgba(6,8,11,0.75); z-index:50; display:flex; align-items:flex-end;
+  justify-content:center; backdrop-filter:blur(3px);}
+.modal-sheet{width:100%; max-width:480px; background:var(--panel); border-top-left-radius:22px; border-top-right-radius:22px;
+  border:1px solid var(--border); border-bottom:none; padding:20px 18px 26px; max-height:88vh; overflow-y:auto; animation:sheetUp 0.25s ease;}
+@keyframes sheetUp{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.modal-handle{width:36px; height:4px; background:var(--border); border-radius:3px; margin:0 auto 14px;}
+.split-opt{border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; cursor:pointer;
+  font-family:'Space Mono',monospace; font-size:13px;}
+.split-opt.selected{border-color:var(--gold); color:var(--gold); background:rgba(242,194,69,0.08);}
+.terr-select{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border);
+  border-radius:10px; margin-bottom:8px; cursor:pointer;}
+.terr-select.selected{border-color:var(--gold);}
+.terr-select.disabled{opacity:0.35; cursor:not-allowed;}
+.badge-owner{font-size:10px; padding:2px 7px; border-radius:20px; font-family:'Space Mono',monospace;}
+.badge-cinder{background:var(--cinder-dim); color:var(--cinder);}
+.badge-surge{background:var(--surge-dim); color:var(--surge);}
+.badge-bloom{background:var(--bloom-dim); color:var(--bloom);}
+.badge-neutral{background:var(--panel-3); color:var(--text-dim);}
+.debug-drawer{position:fixed; top:0; bottom:0;
+  /* Anchored to the RIGHT EDGE OF THE GAME CONTENT (#root, centered, max-width 480px),
+     not to the physical browser window edge. On a wide desktop window the game itself
+     is a narrow centered column with a lot of empty space on both sides — anchoring
+     to the raw viewport edge (the old `inset:0 0 0 auto`) made the drawer slide in far
+     off to the side, outside where anyone would actually be looking, which looked
+     exactly like "clicking the gear icon does nothing". max() clamps back to the
+     ordinary right-aligned mobile behavior once the viewport is narrower than #root. */
+  right:max(0px, calc(50% - 240px));
+  width:88%; max-width:400px; background:var(--panel); z-index:60;
+  border-left:1px solid var(--border); padding:18px; overflow-y:auto; animation:slideIn 0.2s ease;}
+@keyframes slideIn{from{transform:translateX(20px); opacity:0;} to{transform:translateX(0); opacity:1;}}
+.debug-backdrop{position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:59;}
+.debug-section{margin-bottom:16px;}
+.debug-section h4{font-family:'Chakra Petch',sans-serif; font-size:11px; letter-spacing:1.5px; color:var(--gold);
+  margin:0 0 8px; text-transform:uppercase;}
+.debug-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+.fab{position:fixed; bottom:78px; right:calc(50% - 240px + 16px); z-index:30; width:44px; height:44px; border-radius:50%;
+  background:var(--panel-3); border:1px solid var(--border); color:var(--text-dim); display:flex; align-items:center;
+  justify-content:center; cursor:pointer; font-size:16px;}
+@media (max-width:520px){ .fab{right:16px;} }
+.energy-readout{text-align:center; padding:14px 0;}
+.chip-small{font-size:10px; padding:3px 8px; border-radius:20px; background:var(--panel-3); color:var(--text-dim); font-family:'Space Mono',monospace;}
+.rally-card{border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px;}
+.gst-tier{border:1px solid var(--border); border-radius:9px; padding:8px; text-align:center; font-family:'Space Mono',monospace; font-size:12px; cursor:pointer;}
+.gst-tier.selected{border-color:var(--gold); color:var(--gold); background:rgba(242,194,69,0.08);}
+.empty-note{color:var(--text-dim2); font-size:12px; text-align:center; padding:10px;}
+.elim-banner{background:linear-gradient(135deg, rgba(255,90,60,0.14), rgba(255,90,60,0.02)); border:1px solid rgba(255,90,60,0.4);
+  border-radius:var(--radius); padding:14px; margin-bottom:14px; text-align:center;}
+.elim-banner .et{font-family:'Chakra Petch',sans-serif; font-weight:700; letter-spacing:1px; color:var(--cinder); font-size:13px;}
+.onboard-wrap{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px;}
+.onboard-card{width:100%; max-width:400px; background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:24px;}
+.team-pick{display:flex; flex-direction:column; gap:10px; margin:14px 0;}
+.team-opt{display:flex; align-items:center; gap:10px; padding:14px; border:2px solid var(--border); border-radius:12px; cursor:pointer;}
+.team-opt.selected{border-color:var(--gold); background:rgba(242,194,69,0.06);}
+.team-opt .swatch{width:20px; height:20px; border-radius:50%;}
+.name-input{width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--panel-3);
+  color:var(--text); font-family:'Inter',sans-serif; font-size:14px; margin-top:8px;}
+.loading-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-family:'Chakra Petch',sans-serif;}
+.sync-error{background:rgba(255,77,77,0.12); border:1px solid rgba(255,77,77,0.4); border-radius:12px; padding:12px 14px;
+  margin-bottom:14px; font-size:13px;}
+.sync-error .se-title{color:var(--danger); font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; letter-spacing:1px; margin-bottom:4px;}
+.sync-error .se-row{display:flex; gap:8px; margin-top:8px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* =========================================================
+   SUPABASE CONFIG
+   You do NOT need to edit this file to set this up — that's on purpose.
+   Editing HTML source with a rich-text editor (e.g. macOS TextEdit's
+   default "rich text" mode, not its plain-text mode) is a common way to
+   silently corrupt a file — smart quotes, stripped tags, etc. — with no
+   error message at all, just a blank page. So instead: deploy this file
+   completely unmodified, then open it and paste your Supabase Project URL
+   and anon public key into the on-screen setup form the first time it
+   loads. That gets saved safely in your browser (no file editing, ever).
+
+   The two constants below are only an OPTIONAL advanced shortcut, for
+   someone comfortable editing code who wants every visitor pre-configured
+   without seeing the setup form. Leave them as-is if you're not sure.
+========================================================= */
+const SUPABASE_URL_HARDCODED = 'YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
+
+// A visible build marker — shown small in the corner of the loading/setup
+// screens. Purely a debugging aid: if you ever see a blank page and aren't
+// sure whether you're looking at a fresh copy of this file or an old one
+// (e.g. one that got corrupted by a rich-text editor and just renamed),
+// compare this string against what's mentioned in the chat. If the page is
+// blank enough that you can't even see this stamp, the file most likely
+// isn't the one you think it is — try a completely fresh download instead
+// of reusing/renaming any previously-edited copy.
+const APP_BUILD = 'rk-v0.2-build-2026-08-28b';
+
+// Safety net: if ANY unexpected error happens while the script is first
+// loading — before the game has managed to render anything at all — show
+// that error on screen instead of leaving a silent blank/black page. This
+// is registered as early as possible, before any of the riskier setup code
+// below (like connecting to Supabase) runs.
+window.addEventListener('error', function(e){
+  const root = document.getElementById('root');
+  if (root && !root.innerHTML.trim()){
+    const msg = (e && e.message) ? e.message : 'Unknown error';
+    root.innerHTML = '<div style="padding:24px; color:#e7ecf3; font-family:sans-serif; background:#0a0d12; min-height:100vh; box-sizing:border-box;">'
+      + '<h3 style="color:#ff4d4d; margin-top:0;">Something went wrong loading the game</h3>'
+      + '<p style="opacity:0.85; font-size:13px; word-break:break-word;">' + msg + '</p>'
+      + '<p style="opacity:0.6; font-size:12px;">Press F12 to see the full error in your browser console. If you hand-edited this file, try re-downloading a fresh copy instead of editing it — see the setup form / DEPLOYMENT_GUIDE.md.</p>'
+      + '<p style="opacity:0.3; font-size:10px; font-family:monospace;">' + APP_BUILD + '</p>'
+      + '</div>';
+  }
+});
+
+/* =========================================================
+   RUN KINGDOM · CONFIG
+========================================================= */
+const CONFIG = {
+  seed: 88172,
+  // ---- Season / Round structure ----
+  // A SEASON is a 6-week container whose only job is to keep faction
+  // assignment stable — factions are assigned once at season start and never
+  // reshuffled for all 6 weeks, so team identity actually accumulates.
+  // A ROUND is one week (7 days) and is the real competitive unit: it has its
+  // own map, VP, prize pool, winner and rewards (this is what used to be
+  // called a "season" before the structure was split in two).
+  roundDays: 7,
+  roundsPerSeason: 6,
+  // Battle resolution is manual (any player can trigger it via the Resolve
+  // Day button) rather than on a real-time countdown — this avoids many
+  // clients' timers racing to hit the same deadline simultaneously, which
+  // was contributing to storage rate-limit errors under multiplayer load.
+  // Realtime (Postgres websocket push) is the primary sync mechanism now —
+  // this poll is only a safety net for a missed realtime message, so it can
+  // run much less often than it did in the Claude-artifact/polling-only version.
+  pollMs: 20000,             // base polling interval (jitter added per-client below)
+  heartbeatMs: 45000,        // how often we refresh our own "last seen" in the roster
+  onlineWindowMs: 100000,    // someone counts as "online now" if seen within this window
+  energy: { min: 0, max: 90, step: 0.2 }, // slider UI range; the power curve itself has no upper cap (see energyToPower)
+  splitPresets: [[100,0],[75,25],[50,50]],
+  maxActiveBattlesPerDay: 3,
+  vpBase: { normal: 1, center: 2 },
+  // Smoothed for a 7-day round: gentle 1.0 -> 2.0x ramp instead of big 1/2/3/4x jumps.
+  vpMultiplier: (day) => day <= 2 ? 1.0 : day <= 4 ? 1.25 : day <= 6 ? 1.5 : 2.0,
+  // ---- Final-day structural comeback point ----
+  // On the last day of a round, Kingmaker (E) is worth 3x and is FORCED to be
+  // an active battle. This is a transparent, published rule (shown from day 1)
+  // rather than a hidden balancing nudge — it creates one genuine "all in"
+  // decisive fight instead of secretly boosting whoever is losing.
+  finalDayKingmakerMultiplier: 3,
+  bountyThresholds: [
+    { min: 2, max: 3, level: 1, bonus: 1,   mult: 1.15 },
+    { min: 4, max: 5, level: 2, bonus: 1.5, mult: 1.3 },
+    { min: 6, max: 999, level: 3, bonus: 2, mult: 1.5 },
+  ],
+  gstTiers: [0, 5, 10, 15, 20],
+  // 90% prize / 4% burn / 6% protocol — total rake down to 10% (was 20%), so
+  // the game reads as an entertainment spend rather than a losing investment.
+  gmtSplit: { prize: 0.90, burn: 0.04, protocol: 0.06 },
+  // Flattened from 55/30/15 so the last-place faction (who already lost) isn't
+  // also hit with the harshest economic loss — that combination is the single
+  // most likely reason for a player to quit outright.
+  rewardDistribution: { 1: 0.50, 2: 0.32, 3: 0.18 },
+  poolSplit: { participation: 0.40, contribution: 0.60 },
+  participationThreshold: 4, // days within a round
+  startingPrizePool: 4200,
+  seasonEntryFeeGMT: 5,
+  startingWalletGMT: 10000,
+  // ---- Commander ----
+  commanderTopPercent: 0.20,      // must be in your faction's top 20% by last-7-day energy to stand
+  commanderMaxConsecutiveRounds: 2,
+  commanderMessageMaxChars: 80,
+};
+
+const FACTIONS = ['cinder','surge','bloom'];
+const FACTION_META = {
+  cinder: { name: 'Red Running Team', short: 'Red Team', emoji: '🔴', color: 'var(--cinder)' },
+  surge:  { name: 'Blue Running Team', short: 'Blue Team', emoji: '🔵', color: 'var(--surge)' },
+  bloom:  { name: 'Green Running Team', short: 'Green Team', emoji: '🟢', color: 'var(--bloom)' },
+};
+const TERRITORIES = ['A','B','C','D','E','F','G','H','I'];
+const TERRITORY_NAMES = {
+  A: 'Gilgamesh', B: 'Black Cat', C: 'Gas City',
+  D: 'Satoshi Gate', E: '👑 Kingmaker', F: 'Moonbase',
+  G: 'Genesis', H: 'Degen Hollow', I: 'The Wasteland',
+};
+const territoryLabel = (t) => TERRITORY_NAMES[t] || t;
+const rallyOutcomeLabel = (outcome) => outcome === 'captured' ? '✅ CAPTURED' : outcome === 'held' ? '🛡️ HELD' : '❌ LOST';
+const ADJ = {
+  A:['B','D'], B:['A','C','E'], C:['B','F'],
+  D:['A','E','G'], E:['B','D','F','H'], F:['C','E','I'],
+  G:['D','H'], H:['E','G','I'], I:['F','H'],
+};
+const POS = { A:[0,0],B:[1,0],C:[2,0], D:[0,1],E:[1,1],F:[2,1], G:[0,2],H:[1,2],I:[2,2] };
+const baseVPof = (t) => t === 'E' ? CONFIG.vpBase.center : CONFIG.vpBase.normal;
+
+/* =========================================================
+   PURE GAME LOGIC (deterministic — safe under concurrent writers)
+========================================================= */
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function round2(n){ return Math.round(n*100)/100; }
+
+function energyToPower(energy){
+  // Only the lower bound is clamped — negative energy makes no sense. There's
+  // deliberately no upper clamp: if a real day's Energy sync ever reports
+  // more than the slider's 90 max (e.g. an unusually long run), we keep
+  // applying the same 75-90 tier rate (1 Power per 6 Energy) rather than
+  // freezing the reward at the Energy=90 value.
+  const e = Math.max(CONFIG.energy.min, energy);
+  let p;
+  if (e <= 20) p = e/2;
+  else if (e <= 40) p = 10 + (e-20)/3;
+  else if (e <= 60) p = 16.6667 + (e-40)/4;
+  else if (e <= 75) p = 21.6667 + (e-60)/5;
+  else p = 24.6667 + (e-75)/6;
+  return round2(p);
+}
+function applyGSTBoost(power, pct){ if (power <= 0) return 0; return round2(power * (1 + pct/100)); }
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashSeed(str){
+  let h = 1779033703 ^ str.length;
+  for (let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return (h ^ h >>> 16) >>> 0;
+}
+function rngFor(...parts){ return mulberry32(hashSeed(parts.join('|') + '|' + CONFIG.seed)); }
+
+function factionOwnsAny(f, ownership){ return TERRITORIES.some(t => ownership[t] === f); }
+
+function isFrontline(t, ownership){
+  const owner = ownership[t]; const neighbors = ADJ[t];
+  if (!owner) return neighbors.some(n => ownership[n]);
+  return neighbors.some(n => ownership[n] && ownership[n] !== owner);
+}
+function getEligibleFrontlines(ownership){ return TERRITORIES.filter(t => isFrontline(t, ownership)); }
+function getEligibleFactions(t, ownership){
+  const owner = ownership[t]; const set = new Set();
+  if (owner) set.add(owner);
+  ADJ[t].forEach(n => { if (ownership[n]) set.add(ownership[n]); });
+  return [...set];
+}
+// Rule 3: if a faction owns zero territories, it may attack any of today's open battles (adjacency not required)
+function effectiveEligibleFactions(t, ownership, activeBattles, day){
+  const set = new Set(getEligibleFactions(t, ownership));
+  if (activeBattles.includes(t)){
+    FACTIONS.forEach(f => { if (!factionOwnsAny(f, ownership)) set.add(f); });
+  }
+  // FINAL DAY KINGMAKER: every faction can commit to E regardless of
+  // adjacency. Without this, forcing E open on the last day could produce a
+  // battle almost nobody is allowed to join (E may not border their land),
+  // which would quietly defeat the whole point of the decisive showdown.
+  if (t === 'E' && isFinalDay(day) && activeBattles.includes('E')){
+    FACTIONS.forEach(f => set.add(f));
+  }
+  return [...set];
+}
+function getBountyLevel(holdDays){
+  for (const b of CONFIG.bountyThresholds) if (holdDays >= b.min && holdDays <= b.max) return b.level;
+  return 0;
+}
+function bountyMultiplier(level){ return level === 0 ? 1.0 : CONFIG.bountyThresholds[level-1].mult; }
+function bountyBonusVP(level){ return level === 0 ? 0 : CONFIG.bountyThresholds[level-1].bonus; }
+
+function weightedPickWithoutReplacement(items, n, rng){
+  const pool = items.map(i => ({...i})); const picked = [];
+  while (picked.length < n && pool.length){
+    const total = pool.reduce((s,i)=>s+i.weight,0);
+    let r = rng() * total; let idx = 0;
+    for (; idx < pool.length; idx++){ r -= pool[idx].weight; if (r <= 0) break; }
+    idx = Math.min(idx, pool.length-1);
+    picked.push(pool[idx]); pool.splice(idx,1);
+  }
+  return picked;
+}
+function selectActiveBattles(day, ownership, holdDays, repHistory){
+  const candidates = getEligibleFrontlines(ownership);
+  if (!candidates.length) return [];
+  const weighted = candidates.map(t => {
+    const level = getBountyLevel(holdDays[t] || 0);
+    const bMult = bountyMultiplier(level);
+    const h = repHistory[t] || [];
+    const last = h[h.length-1], prev = h[h.length-2];
+    let rep = 1.0; if (last && prev) rep = 0.15; else if (last) rep = 0.5;
+    return { t, weight: 1 * bMult * rep };
+  });
+  const rng = rngFor('battles', day);
+  let picked = weightedPickWithoutReplacement(weighted, Math.min(CONFIG.maxActiveBattlesPerDay, weighted.length), rng);
+  const coveredFactions = new Set();
+  picked.forEach(p => getEligibleFactions(p.t, ownership).forEach(f => coveredFactions.add(f)));
+  const missing = FACTIONS.filter(f => !coveredFactions.has(f));
+  if (missing.length){
+    const alt = weighted.filter(w => !picked.find(p=>p.t===w.t))
+      .filter(w => getEligibleFactions(w.t, ownership).some(f => missing.includes(f)))
+      .sort((a,b)=>b.weight-a.weight)[0];
+    if (alt && picked.length){
+      const lowIdx = picked.map((p,i)=>({i, w:p.weight})).sort((a,b)=>a.w-b.w)[0].i;
+      picked[lowIdx] = alt;
+    }
+  }
+  let result = picked.map(p => p.t);
+  // FINAL DAY: Kingmaker must be on the board. Without this the 3x decisive
+  // battle would simply not happen on most rounds, since battle selection is
+  // weighted-random and E is not guaranteed to be drawn. E is always eligible
+  // on the final day even if it isn't currently a frontline, so the advertised
+  // "final day showdown" rule is never a no-op.
+  if (isFinalDay(day) && !result.includes('E')){
+    if (result.length >= CONFIG.maxActiveBattlesPerDay) result[result.length - 1] = 'E';
+    else result.push('E');
+  }
+  return result;
+}
+function generateBaselinePower(day, territory, faction){
+  const rng = rngFor('power', day, territory, faction);
+  return Math.round(3200 + rng() * 8600); // background power from other NPC runners
+}
+function calculateBattleStatus(powerMap){
+  const entries = Object.entries(powerMap);
+  if (!entries.length) return {};
+  const max = Math.max(...entries.map(e=>e[1])); const out = {};
+  entries.forEach(([f,p]) => { out[f] = p===max ? 'LEADING' : (p >= max*0.9 ? 'CLOSE' : 'BEHIND'); });
+  return out;
+}
+function resolveBattle(powerMap, currentOwner){
+  const entries = Object.entries(powerMap);
+  if (!entries.length) return { winner: currentOwner, tie: false };
+  const max = Math.max(...entries.map(e=>e[1]));
+  const top = entries.filter(([,p]) => p === max).map(([f]) => f);
+  if (top.length > 1) return { winner: currentOwner, tie: true };
+  return { winner: top[0], tie: false };
+}
+function isFinalDay(day){ return day >= CONFIG.roundDays; }
+// True once the round's 7 days are fully settled — covers BOTH 'roundEnd'
+// (rounds 1-5, next round still to come) and 'seasonEnd' (after round 6).
+function roundIsOver(){ return world && (world.phase === 'roundEnd' || world.phase === 'seasonEnd'); }
+// On the final day, Kingmaker (E) is worth finalDayKingmakerMultiplier x its
+// base value. Kept as a standalone helper so both VP scoring and the UI
+// (which advertises this from day 1) read from exactly the same rule.
+function vpValueOf(t, day){
+  const base = baseVPof(t);
+  if (t === 'E' && isFinalDay(day)) return base * CONFIG.finalDayKingmakerMultiplier;
+  return base;
+}
+function calculateDailyVP(ownership, day){
+  const mult = CONFIG.vpMultiplier(day); const totals = { cinder:0, surge:0, bloom:0 };
+  TERRITORIES.forEach(t => { const o = ownership[t]; if (o) totals[o] += vpValueOf(t, day); });
+  FACTIONS.forEach(f => totals[f] = totals[f]*mult);
+  return totals;
+}
+
+/* =========================================================
+   STORAGE HELPERS (shared = cross-player world / personal = this browser only)
+========================================================= */
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+// ---- Supabase client ----
+// All game data lives in one simple table: kv_store(key text primary key,
+// value jsonb, updated_at timestamptz). See schema.sql for the exact setup.
+// This mirrors the same get/set-by-key model the rest of the game already
+// expects, so none of the game logic below had to change — only this layer.
+//
+// ---- Resolve Supabase config: saved in this browser > embedded in an
+// invite link's URL params (first visit) > the optional hardcoded constants
+// above. This is what lets deployment work with zero file editing.
+// ---- Resolve config from an invite link, if this is a first visit via one ----
+// All of sb_url/sb_key/room are read from ONE combined pass over the URL, and
+// the cleanup (removing them from the visible address) happens exactly once
+// at the end — reading them in separate functions with separate
+// history.replaceState() calls would have the first call wipe out params the
+// second call still needed to see.
+//
+// These live in the URL FRAGMENT (after '#'), not the query string (after
+// '?'). A browser never sends the fragment portion of a URL to the server in
+// the actual HTTP request — so putting the anon key there means it can't
+// show up in server access logs, CDN logs, or Referer headers the way a
+// query-string value could. (It's still visible in the browser's own local
+// history, which is unavoidable for any link-embedded credential — but that's
+// a much smaller exposure surface than every hop of server-side logging.)
+function consumeInviteLinkParams(){
+  try{
+    const raw = location.hash ? location.hash.slice(1) : '';
+    if (!raw) return;
+    const params = new URLSearchParams(raw);
+    const urlFromLink = params.get('sb_url');
+    const keyFromLink = params.get('sb_key');
+    const roomFromLink = params.get('room');
+    let consumedAnything = false;
+    if (urlFromLink && keyFromLink){
+      localStorage.setItem('rk_supabase_url', urlFromLink);
+      localStorage.setItem('rk_supabase_key', keyFromLink);
+      consumedAnything = true;
+    }
+    if (roomFromLink){
+      saveRoomCode(roomFromLink.toUpperCase());
+      consumedAnything = true;
+    }
+    if (consumedAnything){
+      // Tidy the address bar so nothing sensitive lingers there visibly.
+      history.replaceState({}, '', location.pathname + location.search);
+    }
+  } catch(e){ /* URLSearchParams/history not available in some contexts — ignore */ }
+}
+consumeInviteLinkParams();
+
+function readSupabaseConfig(){
+  const savedUrl = localStorage.getItem('rk_supabase_url');
+  const savedKey = localStorage.getItem('rk_supabase_key');
+  if (savedUrl && savedKey) return { url: savedUrl, key: savedKey };
+
+  if (SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
+      && !SUPABASE_URL_HARDCODED.startsWith('YOUR_') && !SUPABASE_ANON_KEY_HARDCODED.startsWith('YOUR_')){
+    return { url: SUPABASE_URL_HARDCODED, key: SUPABASE_ANON_KEY_HARDCODED };
+  }
+  return null;
+}
+
+// IMPORTANT: createClient() can throw SYNCHRONOUSLY if the URL/key look
+// malformed. Since this file is a single <script>, an uncaught synchronous
+// throw here would stop the ENTIRE script before it ever reaches
+// render()/boot() at the bottom — the page would just stay blank/black
+// with no error shown. Wrapping this in try/catch turns that into a clear
+// on-screen "couldn't connect" message instead.
+// NOTE: our own client instance is intentionally named "sbClient", NOT
+// "supabase" — the Supabase library itself defines a global called
+// `supabase` (that's what `window.supabase.createClient` is), and a plain
+// `let supabase = ...` in this script collides with that as a hard
+// SyntaxError ("Identifier 'supabase' has already been declared"), which
+// silently prevents the ENTIRE script from running (a parse error, not a
+// catchable runtime exception — no try/catch or error handler can help
+// with this one, which is why it looked like a totally blank page with
+// nothing, not even our own error-reporting UI).
+let sbClient = null;
+let supabaseInitError = null;
+let resolvedSupabaseConfig = readSupabaseConfig();
+function connectSupabase(cfg){
+  sbClient = null; supabaseInitError = null;
+  if (!cfg || typeof window.supabase === 'undefined') return;
+  try{
+    sbClient = window.supabase.createClient(cfg.url, cfg.key);
+  } catch(e){
+    sbClient = null;
+    supabaseInitError = (e && e.message) ? e.message : String(e);
+    console.error('Supabase client failed to initialize:', e);
+  }
+}
+connectSupabase(resolvedSupabaseConfig);
+
+function buildInviteLink(){
+  if (!resolvedSupabaseConfig) return null;
+  const base = location.origin + location.pathname;
+  const parts = [`sb_url=${encodeURIComponent(resolvedSupabaseConfig.url)}`, `sb_key=${encodeURIComponent(resolvedSupabaseConfig.key)}`];
+  if (roomCode) parts.push(`room=${encodeURIComponent(roomCode)}`);
+  return `${base}#${parts.join('&')}`;
+}
+function forgetSupabaseConfig(){
+  localStorage.removeItem('rk_supabase_url');
+  localStorage.removeItem('rk_supabase_key');
+  location.reload();
+}
+function forgetRoomCode(){
+  localStorage.removeItem('rk_room_code');
+  location.reload();
+}
+
+// ---- Local player identity ----
+// This app is a real standalone website now (not a Claude artifact), so a
+// normal browser localStorage id is the right tool for "who is this browser"
+// — it's what scopes "personal" data (your own energy, wallet, progress)
+// separately from the shared world everyone sees. Same browser = same
+// identity across visits; a different browser/device gets a new one.
+function getLocalPlayerId(){
+  let id = localStorage.getItem('rk_player_id');
+  if (!id){
+    id = 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+    localStorage.setItem('rk_player_id', id);
+  }
+  return id;
+}
+const LOCAL_PLAYER_ID = getLocalPlayerId();
+
+// ---- Room code ----
+// Without this, every single person who connects a game to the same
+// Supabase project lands in the exact same shared world — there was no way
+// to run more than one concurrent game (different teams, repeated test
+// sessions, etc.) on one project. A room code is just an extra prefix on
+// every shared key, so different rooms are fully independent worlds even
+// though they all live in the same `kv_store` table.
+function getSavedRoomCode(){ return localStorage.getItem('rk_room_code') || null; }
+function saveRoomCode(code){ localStorage.setItem('rk_room_code', code); }
+function generateRoomCode(){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 — avoids ambiguous characters when read aloud or typed
+  let code = '';
+  for (let i = 0; i < 5; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return code;
+}
+let roomCode = getSavedRoomCode();
+function worldKey(){ return `room:${roomCode}:world`; }
+function fullKey(key, shared){ return shared ? key : `personal:${LOCAL_PLAYER_ID}:${key}`; }
+
+// Storage reads/writes occasionally hit a transient network or backend
+// error, which is very different from "this key genuinely does not exist
+// yet". Misreading a transient error as "missing" could make a caller
+// overwrite real data another player already wrote. So we distinguish the
+// two: only return null once we're sure the key is missing; return
+// STORAGE_RETRY_LATER when unsure, so callers keep their cached copy and
+// try again on the next sync instead of resetting shared state.
+const STORAGE_RETRY_LATER = '__STORAGE_RETRY_LATER__';
+async function safeGet(key, shared, attempts){
+  attempts = attempts || 3;
+  const k = fullKey(key, shared);
+  for (let i = 0; i < attempts; i++){
+    try{
+      const { data, error } = await sbClient.from('kv_store').select('value').eq('key', k).maybeSingle();
+      if (error) throw error;
+      return data ? data.value : null; // no row = genuinely missing, no retry needed
+    } catch(e){
+      if (i === attempts - 1){ console.warn('storage read hit an error, will retry next sync:', k, e); return STORAGE_RETRY_LATER; }
+      await sleep(250 * (i+1));
+    }
+  }
+}
+async function safeSet(key, value, shared, attempts){
+  attempts = attempts || 3;
+  const k = fullKey(key, shared);
+  let lastErr = null;
+  for (let i = 0; i < attempts; i++){
+    try{
+      const { error } = await sbClient.from('kv_store').upsert({ key: k, value, updated_at: new Date().toISOString() });
+      if (error) throw error;
+      return true;
+    } catch(e){ lastErr = e; }
+    if (i < attempts - 1) await sleep(300 * (i+1));
+  }
+  console.warn('storage write did not persist after retries (will retry on next action/sync):', k, lastErr);
+  return null;
+}
+function dayKey(runId, suffix, day){ return `room:${roomCode}:${runId}-${suffix}-${day}`; }
+
+/* =========================================================
+   RUNTIME STATE (client-side cache, mirrors shared/personal storage)
+========================================================= */
+let profile = null;      // {name, faction}  — shared:false, persistent identity
+let world = null;        // shared season world — shared:true
+let battlesDoc = null;    // today's battles (deterministic generation)
+let activityDoc = null;   // today's deploys + rally (shared, accumulative writes)
+let settlementDoc = null; // most recent settlement result (shared, write-once)
+let progress = null;      // this player's ROUND stats — shared:false
+let seasonProgress = null; // wallet + commander streak, SEASON-scoped — shared:false
+let mystate = null;       // this player's per-day energy/deploy state — shared:false
+let roundResult = null;
+let historyDay = null;   // day the player picked to look back at, null = picker not opened yet
+let historyDoc = null;   // fetched settlement doc for historyDay (on-demand, not part of the regular poll)
+let historyLoading = false;
+
+async function viewHistoryDay(day){
+  historyDay = day;
+  historyDoc = null;
+  historyLoading = true;
+  render();
+  const fetched = await safeGet(dayKey(world.runId, 'settlement', day), true);
+  historyDoc = (fetched && fetched !== STORAGE_RETRY_LATER) ? fetched : null;
+  historyLoading = false;
+  render();
+}
+
+let bootPhase = 'loading'; // loading | onboarding | ready
+let uiScreen = 'home';
+let activeModal = null;
+let debugOpen = false;
+let flashTiles = {};
+let inFlightResolve = false, inFlightFogToggle = false;
+let lastSyncError = null; // {message, retry: () => Promise}
+
+/* =========================================================
+   ONBOARDING
+========================================================= */
+let onboardName = '';
+// Faction is assigned by the balancer, never picked — see assignFaction().
+let onboardRecentEnergy = 30;
+
+async function boot(){
+  if (!sbClient){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
+  if (!roomCode){ bootPhase = 'room_form'; render(); return; }
+  const p = await safeGet('profile', false);
+  // STORAGE_RETRY_LATER is a truthy string, not a real profile object — treating
+  // it as "we have a profile" would silently skip onboarding and later crash
+  // anywhere profile.name/profile.faction gets read. Retry a few times before
+  // falling back to onboarding, same as we already do for 'world' in enterWorld().
+  if (p === STORAGE_RETRY_LATER){
+    let retried = p;
+    for (let i = 0; i < 3 && retried === STORAGE_RETRY_LATER; i++){ await sleep(600); retried = await safeGet('profile', false); }
+    profile = (retried && retried !== STORAGE_RETRY_LATER) ? retried : null;
+  } else {
+    profile = p;
+  }
+  if (!profile){ bootPhase = 'onboarding'; render(); return; }
+  await enterWorld();
+}
+let joinRoomInput = '';
+function submitCreateRoom(){
+  roomCode = generateRoomCode();
+  saveRoomCode(roomCode);
+  bootPhase = 'loading'; render();
+  boot();
+}
+function submitJoinRoom(){
+  const code = (joinRoomInput || '').trim().toUpperCase();
+  if (!code) return;
+  roomCode = code;
+  saveRoomCode(roomCode);
+  bootPhase = 'loading'; render();
+  boot();
+}
+let setupUrlInput = '';
+let setupKeyInput = '';
+// A surgical DOM update (not a full render()) so typing doesn't steal focus
+// out of the input on every keystroke — full re-renders replace the whole
+// #root innerHTML, which would kick focus out of whatever you were typing
+// into after a single character.
+function updateSetupButtonState(){
+  const btn = document.getElementById('setup-connect-btn');
+  if (btn) btn.disabled = !(setupUrlInput.trim() && setupKeyInput.trim());
+}
+function updateJoinRoomButtonState(){
+  const btn = document.getElementById('join-room-btn');
+  if (btn) btn.disabled = !joinRoomInput.trim();
+}
+function submitSetupForm(){
+  const url = (setupUrlInput || '').trim();
+  const key = (setupKeyInput || '').trim();
+  if (!url || !key) return;
+  localStorage.setItem('rk_supabase_url', url);
+  localStorage.setItem('rk_supabase_key', key);
+  location.reload(); // simplest, safest way to cleanly re-init everything with the new config
+}
+// Faction is ASSIGNED, never chosen. Self-selection reliably produces a death
+// spiral (everyone piles onto last round's winner → strong gets stronger →
+// weak factions quit). We balance by TOTAL RECENT ENERGY rather than by
+// headcount, because energy is the real input to battle power — three equal
+// headcounts with wildly different energy is not a fair board.
+// Note this is entry-side fairness only; it is NOT the "secretly boost the
+// losing faction" balancing that the design principles rule out.
+function assignFaction(recentEnergy, factionEnergy){
+  const totals = { ...(factionEnergy || { cinder:0, surge:0, bloom:0 }) };
+  let best = FACTIONS[0];
+  FACTIONS.forEach(f => { if ((totals[f] || 0) < (totals[best] || 0)) best = f; });
+  return best;
+}
+async function submitOnboarding(){
+  const name = (onboardName || '').trim() || ('Runner_' + Math.floor(1000+Math.random()*9000));
+  // Pull the freshest season-level energy tallies so two people joining at
+  // nearly the same time don't both get assigned to the same "lightest" faction.
+  // This also CREATES the world if we're the first player in this room —
+  // assignment can't happen without it.
+  let fresh = await ensureWorldLoaded();
+  if (!fresh){
+    lastSyncError = { message: 'Could not reach the game world. Please retry.', retry: () => { lastSyncError = null; submitOnboarding(); } };
+    render(); return;
+  }
+  const recentEnergy = onboardRecentEnergy;
+  const faction = assignFaction(recentEnergy, fresh.factionEnergy);
+  profile = { name, faction, recentEnergy, seasonId: fresh.seasonId };
+  const okProfile = await safeSet('profile', profile, false);
+  if (!okProfile){
+    lastSyncError = { message: 'Could not save your profile. Please retry.', retry: () => { lastSyncError = null; submitOnboarding(); } };
+    render(); return;
+  }
+  // Bank our energy into the season-level tally so the NEXT person to join is
+  // balanced against a picture that already includes us.
+  const updated = { ...fresh, factionEnergy: { ...fresh.factionEnergy, [faction]: round2((fresh.factionEnergy[faction] || 0) + recentEnergy) } };
+  const okWorld = await safeSet(worldKey(), updated, true);
+  if (okWorld) world = updated;
+  bootPhase = 'loading'; render();
+  await enterWorld();
+}
+
+/* =========================================================
+   WORLD LIFECYCLE
+========================================================= */
+function makeInitialWorld(){
+  return {
+    seasonId: 's' + Math.random().toString(36).slice(2,8),
+    round: 1,
+    ...freshRoundState(),
+    // Season-level state (persists across all 6 rounds):
+    // factionEnergy tracks each faction's total recent energy, used to keep
+    // auto-assignment balanced by ENERGY (the real input to power) rather than
+    // by headcount. roundWins tracks the season-long scoreboard.
+    factionEnergy: { cinder:0, surge:0, bloom:0 },
+    roundWins: { cinder:0, surge:0, bloom:0 },
+    rallyEnabled: true, // any player can turn this off from the debug panel — useful while testing with only 1 player per faction, where Rally has no one to coordinate
+  };
+}
+// Everything that resets at the start of each new ROUND (week). Faction
+// assignment deliberately lives OUTSIDE this — it's season-scoped, so team
+// identity survives all 6 rounds instead of being reshuffled weekly.
+function freshRoundState(){
+  const ownership = { A:'cinder', B:null, C:'surge', D:null, E:null, F:null, G:'bloom', H:null, I:null };
+  const holdDays = {}; TERRITORIES.forEach(t => holdDays[t] = ownership[t] ? 1 : 0);
+  return {
+    runId: 'r' + Math.random().toString(36).slice(2,8),
+    currentDay: 1, phase: 'battles',
+    ownership, holdDays, vp: { cinder:0, surge:0, bloom:0 },
+    repHistory: Object.fromEntries(TERRITORIES.map(t=>[t,[]])),
+    prizePool: CONFIG.startingPrizePool, gmtBurned: 0, protocolRevenue: 0,
+    commanderRecord: { cinder:{wins:0,losses:0}, surge:{wins:0,losses:0}, bloom:{wins:0,losses:0} },
+    // Commander is elected per ROUND (7 days), not per day — a one-week term
+    // is what makes the message board and a followership worth anything.
+    commanders: { cinder:null, surge:null, bloom:null },       // { playerId, name, energy, consecutiveRounds }
+    commanderNominees: { cinder:[], surge:[], bloom:[] },      // [{ playerId, name, energy }]
+    commanderMessages: { cinder:null, surge:null, bloom:null },// 80-char broadcast, editable during the round
+  };
+}
+
+async function ensureBattlesDoc(day){
+  const key = dayKey(world.runId, 'battles', day);
+  let doc = await safeGet(key, true);
+  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  // Battle generation is a pure function (same inputs always produce the same
+  // result), so recomputing it here after a transient read failure is safe —
+  // it can't conflict with a copy another player already saved.
+  doc = generateBattlesDocPure(day, world.ownership, world.holdDays, world.repHistory);
+  await safeSet(key, doc, true);
+  const updatedRepHistory = advanceRepHistory(world.repHistory, doc.activeBattles);
+  // Only write 'world' again if repHistory actually needs updating (it may
+  // already have been folded into the settlement write that created this day —
+  // see settleCurrentDay — so this is normally a no-op, saving a write.)
+  if (JSON.stringify(updatedRepHistory) !== JSON.stringify(world.repHistory)){
+    world = { ...world, repHistory: updatedRepHistory };
+    await safeSet(worldKey(), world, true);
+  }
+  return doc;
+}
+function generateBattlesDocPure(day, ownership, holdDays, repHistory){
+  const activeBattles = selectActiveBattles(day, ownership, holdDays, repHistory);
+  const baseline = {};
+  activeBattles.forEach(t => {
+    baseline[t] = {};
+    effectiveEligibleFactions(t, ownership, activeBattles, day).forEach(f => {
+      baseline[t][f] = generateBaselinePower(day, t, f);
+    });
+  });
+  return { activeBattles, baseline };
+}
+function advanceRepHistory(repHistory, activeBattles){
+  const out = {};
+  TERRITORIES.forEach(t => { const arr = (repHistory[t]||[]).slice(); arr.push(activeBattles.includes(t)); out[t] = arr.slice(-2); });
+  return out;
+}
+async function ensureActivityDoc(day){
+  const key = dayKey(world.runId, 'activity', day);
+  let doc = await safeGet(key, true);
+  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  if (doc === STORAGE_RETRY_LATER){
+    // Can't confirm whether another player already wrote deploy/rally data —
+    // never overwrite with a blank doc. Keep whatever's cached in memory (if
+    // any) and re-check on the next sync.
+    return activityDoc || { deployed:{}, rally:{cinder:null,surge:null,bloom:null} };
+  }
+  doc = { deployed:{}, rally:{cinder:null,surge:null,bloom:null} };
+  await safeSet(key, doc, true);
+  return doc;
+}
+async function ensureMyState(day){
+  const key = dayKey(world.runId, 'mystate', day);
+  let doc = await safeGet(key, false);
+  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  if (doc === STORAGE_RETRY_LATER){
+    return mystate || { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, followedRally: null };
+  }
+  doc = { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, followedRally: null };
+  await safeSet(key, doc, false);
+  return doc;
+}
+// ROUND-scoped personal progress: resets every week, because participation
+// and contribution are what each round's prize pool pays out against.
+function roundProgressKey(){ return `room:${roomCode}:${world.runId}-progress`; }
+// SEASON-scoped personal state: the wallet, the entry fee, and the commander
+// term-limit streak all have to survive round rollovers. Keying these by
+// runId (which changes weekly) would silently refund/recharge the entry fee
+// every round and reset the term limit, letting one player hold the commander
+// seat forever.
+function seasonProgressKey(){ return `room:${roomCode}:season-${world.seasonId}-wallet`; }
+
+async function ensureSeasonProgress(){
+  const key = seasonProgressKey();
+  let doc = await safeGet(key, false);
+  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  if (doc === STORAGE_RETRY_LATER){
+    return seasonProgress || { gmtBalance: CONFIG.startingWalletGMT - CONFIG.seasonEntryFeeGMT, totalDonated: 0, paidEntryFee: true, commanderStreak: 0, lastCommanderRound: 0 };
+  }
+  // First time this player is seen in this SEASON — the mocked Season Entry
+  // fee is charged exactly once here, for the whole 6-round season.
+  doc = {
+    gmtBalance: CONFIG.startingWalletGMT - CONFIG.seasonEntryFeeGMT,
+    totalDonated: 0, paidEntryFee: true,
+    commanderStreak: 0, lastCommanderRound: 0,
+  };
+  await safeSet(key, doc, false);
+  return doc;
+}
+async function ensureProgress(){
+  const key = roundProgressKey();
+  let doc = await safeGet(key, false);
+  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  if (doc === STORAGE_RETRY_LATER){
+    return progress || { participationDays: 0, seasonContributionPower: 0, contributionRank: Math.floor(20 + Math.random()*480), lastCountedDay: 0 };
+  }
+  const rankRng = rngFor('rank', profile.name, world.runId);
+  doc = {
+    participationDays: 0, seasonContributionPower: 0,
+    contributionRank: Math.floor(20 + rankRng()*480), lastCountedDay: 0,
+  };
+  await safeSet(key, doc, false);
+  return doc;
+}
+
+async function donateGMT(amount){
+  amount = Math.round(amount);
+  if (!seasonProgress || !world || amount <= 0 || amount > seasonProgress.gmtBalance) return;
+  seasonProgress.gmtBalance = round2(seasonProgress.gmtBalance - amount);
+  seasonProgress.totalDonated = round2((seasonProgress.totalDonated||0) + amount);
+  await safeSet(seasonProgressKey(), seasonProgress, false);
+
+  const fresh = await safeGet(worldKey(), true);
+  const base = (fresh && fresh !== STORAGE_RETRY_LATER) ? fresh : world;
+  const prizeAdd = Math.round(amount * CONFIG.gmtSplit.prize);
+  const burnAdd = Math.round(amount * CONFIG.gmtSplit.burn);
+  const protoAdd = amount - prizeAdd - burnAdd; // remainder, so the three parts always sum exactly to the donation
+  const updated = { ...base, prizePool: base.prizePool + prizeAdd, gmtBurned: base.gmtBurned + burnAdd, protocolRevenue: base.protocolRevenue + protoAdd };
+  const saved = await safeSet(worldKey(), updated, true);
+  if (saved) world = updated;
+  render();
+}
+
+/* =========================================================
+   ROSTER — "who's playing" presence list
+   One shared doc, keyed by player name, holding {faction, lastSeen}. We only
+   write to it: once when you join, and afterward at most once every
+   CONFIG.heartbeatMs (piggybacked on the regular poll, not a separate timer)
+   — so a room full of people doesn't multiply into a write per person per
+   poll. Everyone reads it every poll cycle (one cheap GET) to show a live
+   headcount.
+========================================================= */
+let roster = null;
+let lastHeartbeatAt = 0;
+
+async function joinRoster(){
+  const key = `room:${roomCode}:${world.runId}-roster`;
+  const fresh = await safeGet(key, true);
+  const base = (fresh && fresh !== STORAGE_RETRY_LATER) ? fresh : (roster || {});
+  // Keyed by LOCAL_PLAYER_ID, NOT by display name — two different people can
+  // (and did, in testing) pick the same name, which would silently merge
+  // them into one roster entry if name were the key.
+  base[LOCAL_PLAYER_ID] = { name: profile.name, faction: profile.faction, recentEnergy: profile.recentEnergy || 0, lastSeen: Date.now() };
+  const saved = await safeSet(key, base, true);
+  if (saved) { roster = base; lastHeartbeatAt = Date.now(); }
+}
+async function refreshRoster(){
+  const key = `room:${roomCode}:${world.runId}-roster`;
+  const fresh = await safeGet(key, true);
+  if (fresh && fresh !== STORAGE_RETRY_LATER) roster = fresh;
+  // Heartbeat: only write if it's actually been a while, and only touch our
+  // own entry (read-modify-write against whatever we just fetched).
+  if (Date.now() - lastHeartbeatAt > CONFIG.heartbeatMs){
+    const base = roster ? {...roster} : {};
+    base[LOCAL_PLAYER_ID] = { name: profile.name, faction: profile.faction, recentEnergy: profile.recentEnergy || 0, lastSeen: Date.now() };
+    const saved = await safeSet(key, base, true);
+    if (saved){ roster = base; lastHeartbeatAt = Date.now(); }
+  }
+}
+function rosterStats(){
+  if (!roster) return { total: 0, online: 0, byFaction: {cinder:0,surge:0,bloom:0}, onlineByFaction: {cinder:0,surge:0,bloom:0}, entries: [] };
+  const now = Date.now();
+  const entries = Object.entries(roster).map(([id, r]) => ({ id, name: r.name || id, faction: r.faction, online: (now - r.lastSeen) <= CONFIG.onlineWindowMs }));
+  const byFaction = {cinder:0,surge:0,bloom:0}, onlineByFaction = {cinder:0,surge:0,bloom:0};
+  let online = 0;
+  entries.forEach(e => {
+    if (byFaction[e.faction] !== undefined) byFaction[e.faction]++;
+    if (e.online){ online++; if (onlineByFaction[e.faction] !== undefined) onlineByFaction[e.faction]++; }
+  });
+  entries.sort((a,b) => (b.online - a.online) || a.name.localeCompare(b.name));
+  return { total: entries.length, online, byFaction, onlineByFaction, entries };
+}
+
+// Loads the room's world, creating it if this is the first person in the room.
+// Extracted so ONBOARDING can call it too: faction assignment needs to read
+// the season-level energy tallies, which live on the world — but the world
+// used to be created only after onboarding finished, so the very first player
+// in a fresh room hit "could not reach the game world" and could never join.
+async function ensureWorldLoaded(){
+  let w = await safeGet(worldKey(), true);
+  // If this was just a transient read failure, wait and re-check before
+  // concluding the world doesn't exist — otherwise we'd spin up a duplicate world.
+  for (let i = 0; i < 3 && w === STORAGE_RETRY_LATER; i++){ await sleep(700); w = await safeGet(worldKey(), true); }
+  if (!w || w === STORAGE_RETRY_LATER){
+    w = makeInitialWorld();
+    const ok = await safeSet(worldKey(), w, true);
+    if (!ok) return null;
+    const check = await safeGet(worldKey(), true);
+    if (check && check !== STORAGE_RETRY_LATER) w = check;
+  }
+  world = w;
+  return world;
+}
+async function enterWorld(){
+  const loaded = await ensureWorldLoaded();
+  if (!loaded){
+    lastSyncError = { message: 'Could not reach the game world. Please retry.', retry: () => { lastSyncError = null; enterWorld(); } };
+    bootPhase = 'ready'; render(); return;
+  }
+  await syncAll();
+  await joinRoster(); // announce ourselves once so we show up for others right away
+  bootPhase = 'ready';
+  render();
+  startLoops();
+  startRealtime();
+}
+
+/* =========================================================
+   REALTIME — push updates instead of frequent polling
+   Supabase's free tier includes Postgres realtime (a websocket that tells us
+   the instant any row in kv_store changes). This is what actually makes
+   this version "more stable" than polling a shared store: other players'
+   moves show up within a second or two, and we don't need to hammer the
+   database every few seconds to find out what changed. The regular poll
+   loop (scheduleNextPoll) is kept, just at a much slower cadence, purely as
+   a safety net in case a realtime message is ever missed (e.g. a brief
+   disconnect).
+========================================================= */
+let realtimeChannel = null;
+function startRealtime(){
+  if (!sbClient || realtimeChannel) return;
+  realtimeChannel = sbClient
+    .channel('kv-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'kv_store' }, handleRealtimeChange)
+    .subscribe();
+}
+function handleRealtimeChange(payload){
+  const row = payload.new && payload.new.key ? payload.new : payload.old;
+  if (!row || !row.key || !world) return;
+  const key = row.key;
+  const value = payload.new ? payload.new.value : null;
+  const roomPrefix = `room:${roomCode}:`;
+  if (!key.startsWith(roomPrefix)) return; // ignore other rooms entirely
+  if (key === worldKey()){
+    if (value) { world = value; render(); }
+    return;
+  }
+  // Only react to keys relevant to the season we're currently in — ignore
+  // everyone else's personal keys and any leftover data from old runIds.
+  if (!key.startsWith(roomPrefix + world.runId + '-')) return;
+  if (key === dayKey(world.runId, 'activity', world.currentDay)){
+    if (value) { activityDoc = value; render(); }
+  } else if (key === dayKey(world.runId, 'battles', world.currentDay)){
+    if (value) { battlesDoc = value; render(); }
+  } else if (key === `room:${roomCode}:${world.runId}-roster`){
+    if (value) { roster = value; render(); }
+  } else if (key.startsWith(dayKey(world.runId, 'settlement', ''))){
+    // A new day just got settled somewhere else — re-sync everything (new
+    // day's battles/activity docs, updated world) rather than trying to
+    // patch every field by hand.
+    syncAll().then(render);
+  }
+}
+
+let cachedDocsForDay = null; // day number that battlesDoc/mystate were last loaded for
+let settlementFetchedForDay = null; // reportDay we last fetched settlementDoc for
+let progressLoaded = false;
+
+async function syncAll(){
+  const fresh = await safeGet(worldKey(), true);
+  if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+  const day = world.currentDay;
+
+  // battlesDoc and mystate only change when the day itself changes (both are
+  // written once per day by this client's own actions or the settlement
+  // flow), so there's no need to re-fetch them from storage on every poll —
+  // that was a large, mostly-wasted share of our storage call volume.
+  const dayChanged = cachedDocsForDay !== day;
+  if (dayChanged || !battlesDoc) battlesDoc = await ensureBattlesDoc(day);
+  if (dayChanged || !mystate) mystate = await ensureMyState(day);
+  cachedDocsForDay = day;
+
+  // activityDoc is the one thing other players actively write to throughout
+  // the day, so it's the one worth polling every cycle.
+  activityDoc = await ensureActivityDoc(day);
+
+  const reportDay = roundIsOver() ? day : day - 1;
+  if (reportDay >= 1 && (settlementFetchedForDay !== reportDay || !settlementDoc)){
+    const fetchedSettlement = await safeGet(dayKey(world.runId, 'settlement', reportDay), true);
+    if (fetchedSettlement !== STORAGE_RETRY_LATER){ settlementDoc = fetchedSettlement; settlementFetchedForDay = reportDay; }
+  } else if (reportDay < 1){
+    settlementDoc = null;
+  }
+
+  // progress is only ever written by this account, so we only need to load
+  // it once per session; reconcileProgress() updates the in-memory copy and
+  // persists changes itself, no need to re-GET it every poll.
+  if (!progressLoaded){ progress = await ensureProgress(); seasonProgress = await ensureSeasonProgress(); progressLoaded = true; }
+
+  await refreshRoster();
+  await electCommanderIfNeeded();
+  await autoFallbackRally(day);
+  await reconcileProgress();
+}
+
+async function autoFallbackRally(day){
+  if (world.rallyEnabled === false) return; // Rally turned off for this round
+  if (world.phase !== 'fog') return;
+  let changed = false;
+  for (const f of FACTIONS){
+    if (!activityDoc.rally[f]){
+      const myBattles = battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(f));
+      if (!myBattles.length) continue;
+      const rng = rngFor('rally', day, f);
+      const scored = myBattles.map(t => ({ t, score: vpValueOf(t, day)*2 + bountyMultiplier(getBountyLevel(world.holdDays[t]||0))*3 + rng() }));
+      scored.sort((a,b)=>b.score-a.score);
+      const main = scored[0].t; const secondary = scored[1] ? scored[1].t : null;
+      activityDoc.rally[f] = { main, secondary, split: secondary ? [75,25] : [100,0], auto: true };
+      changed = true;
+    }
+  }
+  if (changed) await safeSet(dayKey(world.runId, 'activity', day), activityDoc, true);
+}
+
+async function reconcileProgress(){
+  const doneUpTo = roundIsOver() ? world.currentDay : world.currentDay - 1;
+  if (doneUpTo <= progress.lastCountedDay) return;
+  let changed = false;
+  for (let d = progress.lastCountedDay+1; d <= doneUpTo; d++){
+    const m = await safeGet(dayKey(world.runId, 'mystate', d), false);
+    if (m === STORAGE_RETRY_LATER){
+      // Don't know yet whether day d counted — stop here rather than guessing.
+      // Advancing lastCountedDay past an unconfirmed day would permanently
+      // lose that day's participation credit if it turns out we WERE locked
+      // in; leaving it unadvanced just means we retry this same day (and any
+      // after it) on the next reconcile pass instead.
+      break;
+    }
+    if (m && m.locked){
+      progress.participationDays += 1;
+      progress.seasonContributionPower = round2(progress.seasonContributionPower + Object.values(m.deployedPower||{}).reduce((a,b)=>a+b,0));
+      changed = true;
+    }
+    progress.lastCountedDay = d;
+    changed = true;
+  }
+  if (changed) await safeSet(roundProgressKey(), progress, false);
+}
+
+/* =========================================================
+   MANUAL PHASE CONTROLS
+   Battle resolution used to run on a real-time countdown, which meant every
+   connected client's timer converged on the exact same deadline — the
+   single biggest source of simultaneous storage writes, and the main
+   trigger behind rate-limit errors under real multiplayer load. Now both
+   entering Fog and resolving the day are explicit actions any player can
+   take, so a write only happens when a person actually clicks something.
+========================================================= */
+async function enterFogManually(){
+  if (inFlightFogToggle || !world || world.phase !== 'battles') return;
+  inFlightFogToggle = true;
+  try{
+    const fresh = await safeGet(worldKey(), true);
+    if (!fresh || fresh === STORAGE_RETRY_LATER) return;
+    if (fresh.phase === 'battles'){
+      fresh.phase = 'fog';
+      await safeSet(worldKey(), fresh, true);
+    }
+    world = fresh;
+  } finally { inFlightFogToggle = false; render(); }
+}
+async function resolveDayManually(){
+  if (inFlightResolve || !world) return;
+  if (roundIsOver()) return;
+  inFlightResolve = true;
+  try{
+    const fresh = await safeGet(worldKey(), true);
+    if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+    if (roundIsOver()) return;
+    await settleCurrentDay();
+  } finally { inFlightResolve = false; render(); }
+}
+
+async function settleCurrentDay(){
+  const day = world.currentDay;
+  const sKey = dayKey(world.runId, 'settlement', day);
+  let sDoc = await safeGet(sKey, true);
+  if (sDoc === STORAGE_RETRY_LATER) return; // Can't confirm whether this day was already settled — skip this cycle, try again next tick
+  if (sDoc){ settlementDoc = sDoc; await advanceAfterExternalSettlement(); return; }
+
+  let bDoc = await safeGet(dayKey(world.runId, 'battles', day), true);
+  if (!bDoc || bDoc === STORAGE_RETRY_LATER) bDoc = battlesDoc;
+  let aDoc = await safeGet(dayKey(world.runId, 'activity', day), true);
+  if (!aDoc || aDoc === STORAGE_RETRY_LATER) aDoc = activityDoc;
+
+  const results = []; const newOwnership = {...world.ownership}; const rallyResults = {};
+  bDoc.activeBattles.forEach(t => {
+    const eff = effectiveEligibleFactions(t, world.ownership, bDoc.activeBattles, day);
+    const powerMap = {};
+    eff.forEach(f => {
+      const base = (bDoc.baseline[t] && bDoc.baseline[t][f]) || 0;
+      const dep = (aDoc.deployed[t] && aDoc.deployed[t][f]) || 0;
+      powerMap[f] = round2(base + dep);
+    });
+    const prevOwner = world.ownership[t];
+    const { winner, tie } = resolveBattle(powerMap, prevOwner);
+    const prevHold = world.holdDays[t] || 0;
+    let bonusVP = 0;
+    if (winner !== prevOwner && winner) bonusVP = bountyBonusVP(getBountyLevel(prevHold));
+    results.push({ t, powerMap, prevOwner, winner, tie, bonusVP });
+    newOwnership[t] = winner;
+    FACTIONS.forEach(f => {
+      const r = aDoc.rally[f];
+      if (r && (r.main === t || r.secondary === t)){
+        rallyResults[f] = rallyResults[f] || {};
+        // Distinguish "captured it from someone else" vs "successfully held
+        // territory that was already ours" vs "lost it" — these previously
+        // all collapsed into a single captured:true/false flag, so
+        // defending your own Rally target displayed as "CAPTURED" instead
+        // of something like "HELD", which reads backwards.
+        const outcome = winner !== f ? 'lost' : (prevOwner === f ? 'held' : 'captured');
+        if (r.main === t) rallyResults[f].main = { t, outcome }; else rallyResults[f].secondary = { t, outcome };
+      }
+    });
+  });
+
+  const newHoldDays = {...world.holdDays};
+  bDoc.activeBattles.forEach(t => {
+    const r = results.find(x=>x.t===t);
+    if (r.winner !== r.prevOwner && r.winner) newHoldDays[t] = 1;
+    else if (r.winner === r.prevOwner && r.winner) newHoldDays[t] = (world.holdDays[t]||0) + 1;
+    else newHoldDays[t] = 0;
+  });
+  TERRITORIES.forEach(t => { if (!bDoc.activeBattles.includes(t) && world.ownership[t]) newHoldDays[t] = (world.holdDays[t]||0) + 1; });
+
+  const vpGained = calculateDailyVP(newOwnership, day);
+  const newVp = {...world.vp};
+  FACTIONS.forEach(f => newVp[f] = round2(newVp[f] + vpGained[f]));
+  results.forEach(r => { if (r.bonusVP > 0 && r.winner) newVp[r.winner] = round2(newVp[r.winner] + r.bonusVP); });
+
+  const rng = rngFor('economy', day);
+  const spend = Math.round(800 + rng()*2600);
+  const prizeAdd = Math.round(spend*CONFIG.gmtSplit.prize), burnAdd = Math.round(spend*CONFIG.gmtSplit.burn), protoAdd = Math.round(spend*CONFIG.gmtSplit.protocol);
+
+  const newCommanderRecord = JSON.parse(JSON.stringify(world.commanderRecord));
+  Object.entries(rallyResults).forEach(([f,rr]) => {
+    if (rr.main){ if (rr.main.outcome !== 'lost') newCommanderRecord[f].wins++; else newCommanderRecord[f].losses++; }
+  });
+
+  sDoc = { results, vpGained, rallyResults, commanders: world.commanders, settledAt: Date.now(), ownershipAfter: newOwnership };
+  await safeSet(sKey, sDoc, true);
+  settlementDoc = sDoc;
+
+  const roundDone = day >= CONFIG.roundDays;
+  const nextDay = roundDone ? day : day + 1;
+
+  // Precompute next day's battles + the resulting repHistory here, and fold
+  // repHistory into the SAME 'world' write below. This avoids a second
+  // 'world' write immediately after this one (which is what was happening
+  // right at the day rollover and made that moment the most write-heavy,
+  // highest-contention point in the whole cycle).
+  let nextBattlesDoc = null;
+  let nextRepHistory = world.repHistory;
+  if (!roundDone){
+    nextBattlesDoc = generateBattlesDocPure(nextDay, newOwnership, newHoldDays, world.repHistory);
+    nextRepHistory = advanceRepHistory(world.repHistory, nextBattlesDoc.activeBattles);
+  }
+
+  // At round end, bank the round winner into the season-long scoreboard.
+  let newRoundWins = world.roundWins;
+  if (roundDone){
+    const winnerFaction = rankFactions(newVp, newOwnership)[0].f;
+    newRoundWins = { ...world.roundWins, [winnerFaction]: (world.roundWins[winnerFaction] || 0) + 1 };
+  }
+  const isLastRound = world.round >= CONFIG.roundsPerSeason;
+
+  world = {
+    ...world, ownership: newOwnership, holdDays: newHoldDays, vp: newVp, repHistory: nextRepHistory,
+    prizePool: world.prizePool + prizeAdd, gmtBurned: world.gmtBurned + burnAdd, protocolRevenue: world.protocolRevenue + protoAdd,
+    commanderRecord: newCommanderRecord,
+    roundWins: newRoundWins,
+    currentDay: nextDay,
+    phase: roundDone ? (isLastRound ? 'seasonEnd' : 'roundEnd') : 'battles',
+  };
+  await safeSet(worldKey(), world, true);
+  if (nextBattlesDoc){
+    // Write the next day's battles doc now, under its final key, so the
+    // upcoming ensureBattlesDoc() call in syncAll() finds it already there
+    // and doesn't need to generate + write it again.
+    await safeSet(dayKey(world.runId, 'battles', nextDay), nextBattlesDoc, true);
+  }
+
+  flashTiles = {}; results.forEach(r => { if (r.winner !== r.prevOwner) flashTiles[r.t] = true; });
+
+  if (!roundDone){ await syncAll(); } else { computeRoundResult(); }
+}
+
+// Starts the next ROUND: fresh map, fresh VP, fresh prize pool, fresh
+// commander election — but the same factions and the same season scoreboard.
+async function startNextRound(){
+  const fresh = await safeGet(worldKey(), true);
+  if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+  if (world.phase !== 'roundEnd') return;
+  world = { ...world, round: world.round + 1, ...freshRoundState() };
+  const ok = await safeSet(worldKey(), world, true);
+  if (!ok){
+    lastSyncError = { message: 'Could not start the next round. Please retry.', retry: () => { lastSyncError = null; startNextRound(); } };
+    render(); return;
+  }
+  roundResult = null;
+  progressLoaded = false; cachedDocsForDay = null; settlementFetchedForDay = null; settlementDoc = null;
+  await syncAll();
+  uiScreen = 'home';
+  render();
+}
+async function advanceAfterExternalSettlement(){
+  const fresh = await safeGet(worldKey(), true);
+  if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+  await syncAll();
+  if (world.phase === 'roundEnd' || world.phase === 'seasonEnd') computeRoundResult();
+}
+
+const RANK_TITLES = { 1: 'Champion', 2: 'Runner-Up', 3: 'Second Runner-Up' };
+// Shared ranking used by both the live standings and round settlement, so the
+// winner banked into roundWins can never disagree with what players saw.
+// Tie rule: VP first; if still tied, the faction currently holding more
+// territory ranks higher (reflects actual board control); if STILL tied
+// (fully even VP and territory count), fall back to a fixed alphabetical
+// order by faction id — deterministic and the same for every player, rather
+// than silently depending on the order FACTIONS happens to be declared in.
+function rankFactions(vp, ownership){
+  const territoryCount = (f) => TERRITORIES.filter(t => ownership[t] === f).length;
+  return FACTIONS
+    .map(f => ({ f, vp: vp[f], territories: territoryCount(f) }))
+    .sort((a,b) => (b.vp - a.vp) || (b.territories - a.territories) || a.f.localeCompare(b.f));
+}
+function computeRoundResult(){
+  const standings = rankFactions(world.vp, world.ownership);
+  const ranks = {}; standings.forEach((s,i)=>ranks[s.f]=i+1);
+  const myRank = ranks[profile.faction];
+  const share = CONFIG.rewardDistribution[myRank] || 0;
+  const factionPool = Math.round(world.prizePool * share);
+  const participationPool = Math.round(factionPool * CONFIG.poolSplit.participation);
+  const contributionPool = factionPool - participationPool;
+  const eligible = progress.participationDays >= CONFIG.participationThreshold;
+  const estReward = eligible
+    ? Math.round(participationPool/850 + contributionPool * (progress.seasonContributionPower / (progress.seasonContributionPower*300 + 40000)))
+    : 0;
+  const rankTitle = RANK_TITLES[myRank] || null;
+  const isSeasonEnd = world.phase === 'seasonEnd';
+  // Non-token rewards are awarded on the SEASON result (all 6 rounds), not
+  // every week — a weekly badge would be worthless. Weekly rounds pay GMT.
+  const seasonStandings = isSeasonEnd
+    ? FACTIONS.map(f => ({ f, wins: world.roundWins[f] || 0 }))
+        .sort((a,b) => (b.wins - a.wins) || a.f.localeCompare(b.f))
+    : null;
+  const seasonRank = seasonStandings ? (seasonStandings.findIndex(s => s.f === profile.faction) + 1) : null;
+  const seasonRankTitle = seasonRank ? RANK_TITLES[seasonRank] : null;
+  roundResult = {
+    standings, myRank, factionPool, estReward, eligible, rankTitle,
+    isSeasonEnd, seasonStandings, seasonRank,
+    badge: (isSeasonEnd && eligible && seasonRankTitle) ? `${FACTION_META[profile.faction].name} S01 ${seasonRankTitle} Badge` : null,
+    stepnVip: isSeasonEnd && eligible && !!seasonRankTitle,
+    sneakerDesign: (isSeasonEnd && eligible && seasonRankTitle) ? seasonRankTitle : null,
+  };
+}
+
+/* =========================================================
+   PLAYER ACTIONS
+========================================================= */
+function computeAvailablePower(){ return applyGSTBoost(energyToPower(mystate.energyToday), mystate.gstBoostPercent); }
+function totalDeployedMine(){ return Object.values(mystate.deployedPower).reduce((a,b)=>a+b,0); }
+function remainingPower(){ return round2(computeAvailablePower() - totalDeployedMine()); }
+function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownership); }
+
+async function deployPower(mainT, secT, splitPct){
+  if (mystate.locked) return;
+  const avail = remainingPower();
+  const [mp, sp] = splitPct;
+  const mainPower = round2(avail * mp/100);
+  const secPower = secT ? round2(avail * sp/100) : 0;
+
+  // Try writing to shared battle data first; only lock deployment locally
+  // once that write succeeds, to avoid "looks deployed on my screen but no
+  // one else can see it" inconsistency.
+  const activityKey = dayKey(world.runId, 'activity', world.currentDay);
+  let fresh = await safeGet(activityKey, true);
+  if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = activityDoc; // fall back to cache, never to the raw sentinel value
+  fresh.deployed[mainT] = fresh.deployed[mainT] || {};
+  fresh.deployed[mainT][profile.faction] = round2((fresh.deployed[mainT][profile.faction]||0) + mainPower);
+  if (secT){
+    fresh.deployed[secT] = fresh.deployed[secT] || {};
+    fresh.deployed[secT][profile.faction] = round2((fresh.deployed[secT][profile.faction]||0) + secPower);
+  }
+  const sharedOk = await safeSet(activityKey, fresh, true);
+  if (!sharedOk){
+    lastSyncError = { message: 'Your deployment did not sync to the shared battle. Please retry (your energy and choices are not lost).', retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct); } };
+    render();
+    return;
+  }
+  activityDoc = fresh;
+
+  mystate.deployedPower[mainT] = round2((mystate.deployedPower[mainT]||0) + mainPower);
+  if (secT) mystate.deployedPower[secT] = round2((mystate.deployedPower[secT]||0) + secPower);
+  mystate.locked = true;
+  const personalOk = await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
+  if (!personalOk){
+    lastSyncError = { message: 'Your deployment counted toward the battle, but your personal record failed to save. It will retry automatically.', retry: () => { lastSyncError = null; safeSet(dayKey(world.runId,'mystate',world.currentDay), mystate, false).then(render); } };
+  } else {
+    lastSyncError = null;
+  }
+  uiScreen = 'home';
+  render();
+}
+async function followRally(){
+  if (mystate.locked) return;
+  const r = activityDoc.rally[profile.faction];
+  if (!r) return;
+  mystate.followedRally = true;
+  await deployPower(r.main, r.secondary, r.split);
+}
+/* =========================================================
+   COMMANDER — nominate, elect, broadcast
+   Term is one ROUND (7 days), not one day. A one-day term resets trust every
+   morning: the commander pays no price for a bad call and nobody has a reason
+   to remember them, which makes both the message board and any followership
+   worthless. A week-long term lets a commander build a record.
+   Selection is self-nomination + objective energy ranking (no voting) —
+   voting between strangers with zero social graph is noise, and being drafted
+   at random produces commanders who never wanted the job.
+========================================================= */
+function commanderEnergyThreshold(){
+  // Must be in the top N% of your faction by recent energy to stand. Uses the
+  // roster (everyone currently in this room) as the population.
+  const mine = Object.values(roster || {}).filter(r => r.faction === profile.faction && typeof r.recentEnergy === 'number');
+  if (!mine.length) return 0;
+  const sorted = mine.map(r => r.recentEnergy).sort((a,b) => b - a);
+  const idx = Math.max(0, Math.ceil(sorted.length * CONFIG.commanderTopPercent) - 1);
+  return sorted[idx];
+}
+function isEligibleToNominate(){
+  if (!world || !profile) return false;
+  const c = (world.commanders || {})[profile.faction];
+  if (c && c.playerId === LOCAL_PLAYER_ID) return false; // already commander
+  // Term limit: can't serve more than N consecutive rounds, so the single
+  // biggest runner in a faction can't hold the seat forever and freeze
+  // everyone else out.
+  const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
+  if (streak >= CONFIG.commanderMaxConsecutiveRounds) return false;
+  const myEnergy = (profile.recentEnergy || 0);
+  return myEnergy >= commanderEnergyThreshold();
+}
+function myNomination(){
+  const list = (world.commanderNominees || {})[profile.faction] || [];
+  return list.find(n => n.playerId === LOCAL_PLAYER_ID) || null;
+}
+async function nominateSelf(){
+  if (!isEligibleToNominate()) return;
+  let fresh = await safeGet(worldKey(), true);
+  if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = world;
+  const list = (fresh.commanderNominees[profile.faction] || []).filter(n => n.playerId !== LOCAL_PLAYER_ID);
+  list.push({ playerId: LOCAL_PLAYER_ID, name: profile.name, energy: profile.recentEnergy || 0 });
+  const updated = { ...fresh, commanderNominees: { ...fresh.commanderNominees, [profile.faction]: list } };
+  const ok = await safeSet(worldKey(), updated, true);
+  if (!ok){
+    lastSyncError = { message: 'Your nomination did not sync. Please retry.', retry: () => { lastSyncError = null; nominateSelf(); } };
+    render(); return;
+  }
+  world = updated; lastSyncError = null;
+  await electCommanderIfNeeded();
+  render();
+}
+// Highest recent energy among those who actually put their hand up wins.
+// Deterministic, so every client computes the same winner from the same data.
+function pickCommanderFrom(nominees){
+  if (!nominees || !nominees.length) return null;
+  const sorted = [...nominees].sort((a,b) => (b.energy - a.energy) || a.playerId.localeCompare(b.playerId));
+  return sorted[0];
+}
+async function electCommanderIfNeeded(){
+  if (!world) return;
+  let fresh = await safeGet(worldKey(), true);
+  if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = world;
+  let changed = false;
+  const commanders = { ...fresh.commanders };
+  FACTIONS.forEach(f => {
+    if (commanders[f]) return;
+    const winner = pickCommanderFrom(fresh.commanderNominees[f]);
+    if (winner){ commanders[f] = { ...winner, electedRound: fresh.round }; changed = true; }
+  });
+  if (!changed) return;
+  const updated = { ...fresh, commanders };
+  const ok = await safeSet(worldKey(), updated, true);
+  if (ok) world = updated;
+  // Track our own consecutive-round streak locally, for the term limit.
+  const mine = commanders[profile.faction];
+  if (mine && mine.playerId === LOCAL_PLAYER_ID && seasonProgress && seasonProgress.lastCommanderRound !== fresh.round){
+    seasonProgress.commanderStreak = ((seasonProgress.lastCommanderRound === fresh.round - 1) ? (seasonProgress.commanderStreak || 0) : 0) + 1;
+    seasonProgress.lastCommanderRound = fresh.round;
+    await safeSet(seasonProgressKey(), seasonProgress, false);
+  }
+}
+function iAmCommander(){
+  const c = world && (world.commanders || {})[profile.faction];
+  return !!(c && c.playerId === LOCAL_PLAYER_ID);
+}
+async function publishCommanderMessage(text){
+  if (!iAmCommander()) return;
+  const msg = (text || '').slice(0, CONFIG.commanderMessageMaxChars);
+  let fresh = await safeGet(worldKey(), true);
+  if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = world;
+  const updated = { ...fresh, commanderMessages: { ...fresh.commanderMessages, [profile.faction]: { text: msg, day: fresh.currentDay, at: Date.now() } } };
+  const ok = await safeSet(worldKey(), updated, true);
+  if (!ok){
+    lastSyncError = { message: 'Your message did not sync. Please retry.', retry: () => { lastSyncError = null; publishCommanderMessage(msg); } };
+    render(); return;
+  }
+  world = updated; lastSyncError = null; commanderMsgInput = ''; render();
+}
+async function publishRally(main, sec, split){
+  const key = dayKey(world.runId, 'activity', world.currentDay);
+  let fresh = await safeGet(key, true); if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = activityDoc;
+  if (!iAmCommander()) { activityDoc = fresh; render(); return; }
+  if (fresh.rally[profile.faction]) { activityDoc = fresh; render(); return; }
+  fresh.rally[profile.faction] = { main, secondary: sec, split };
+  const ok = await safeSet(key, fresh, true);
+  if (!ok){
+    lastSyncError = { message: 'Your Rally failed to publish. Please retry.', retry: () => { lastSyncError = null; publishRally(main, sec, split); } };
+    render();
+    return;
+  }
+  lastSyncError = null;
+  activityDoc = fresh;
+  render();
+}
+// The energy slider's oninput event fires on every pixel of drag movement —
+// potentially dozens of times per second. Writing to storage on every one of
+// those was the actual cause of hitting the message rate limit. Now input
+// only updates local state + re-renders (no network call) and debounces the
+// real write; a slider "release" (onchange) always flushes immediately so
+// nothing is lost if the tab closes right after.
+let energySaveTimer = null;
+function setEnergy(v){
+  if (mystate.locked) return;
+  mystate.energyToday = parseFloat(v);
+  render();
+  clearTimeout(energySaveTimer);
+  energySaveTimer = setTimeout(persistMyState, 500);
+}
+function commitEnergy(v){
+  if (mystate.locked) return;
+  mystate.energyToday = parseFloat(v);
+  clearTimeout(energySaveTimer);
+  persistMyState();
+  render();
+}
+async function persistMyState(){
+  await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
+}
+async function setGST(pct){
+  if (mystate.locked) return;
+  mystate.gstBoostPercent = pct;
+  await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
+  render();
+}
+
+/* =========================================================
+   RENDER HELPERS
+========================================================= */
+function fmt(n){ return Math.round(n).toLocaleString(); }
+function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+function mmss(sec){ sec = Math.max(0, sec); const m = Math.floor(sec/60).toString().padStart(2,'0'); const s = Math.floor(sec%60).toString().padStart(2,'0'); return `${m}:${s}`; }
+function ownerBadge(owner){
+  if (!owner) return `<span class="badge-owner badge-neutral">NEUTRAL</span>`;
+  const m = FACTION_META[owner]; return `<span class="badge-owner badge-${owner}">${m.emoji} ${m.short}</span>`;
+}
+function statusPill(status){
+  if (!status) return '';
+  const cls = status.toLowerCase();
+  const map = { LEADING:'LEADING', CLOSE:'CLOSE', BEHIND:'BEHIND' };
+  return `<span class="pill ${cls}">${map[status]||status}</span>`;
+}
+
+function renderSyncError(){
+  if (!lastSyncError) return '';
+  return `<div class="sync-error">
+    <div class="se-title">⚠ SYNC FAILED</div>
+    <div class="muted">${lastSyncError.message}</div>
+    <div class="se-row">
+      <button class="btn btn-primary btn-small" onclick="retryLastSync()">RETRY</button>
+      <button class="btn btn-outline btn-small" onclick="dismissSyncError()">DISMISS</button>
+    </div>
+  </div>`;
+}
+function retryLastSync(){ if (lastSyncError && lastSyncError.retry) lastSyncError.retry(); }
+function dismissSyncError(){ lastSyncError = null; render(); }
+
+function renderTopbar(){
+  const standings = FACTIONS.map(f=>({f, vp: world.vp[f]})).sort((a,b)=>b.vp-a.vp);
+  const rs = rosterStats();
+  return `
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="season-label"><span class="live-dot"></span>RUN KINGDOM · SEASON 01</div>
+      <div class="day-label">R${world.round}·D${world.currentDay}/${CONFIG.roundDays}</div>
+    </div>
+    <div class="row-between" style="margin-top:4px;">
+      <div class="muted" style="font-size:11px;">👥 ${rs.online} online</div>
+    </div>
+    <div class="standings-row">
+      ${standings.map(s=>{
+        const m = FACTION_META[s.f]; const isMe = s.f === profile.faction;
+        return `<div class="standing-chip ${isMe?'me':''}" style="${isMe?`color:${m.color}`:''}">
+          <span><span class="dot" style="background:${m.color}"></span>${m.short}</span>
+          <span class="mono">${fmt1(s.vp)}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+function renderBottomNav(){
+  const items = [
+    {id:'home', icon:'🗺️', label:'HOME'},
+    {id:'run', icon:'⚡', label:'RUN'},
+    {id:'deploy', icon:'🎯', label:'DEPLOY'},
+    {id:'rally', icon:'📯', label:'RALLY'},
+    {id:'season', icon:'🏆', label:'SEASON'},
+  ];
+  return `<div class="bottomnav">
+    ${items.map(it => `<div class="navitem ${uiScreen===it.id?'active':''}" onclick="goScreen('${it.id}')">
+      <span class="navicon">${it.icon}</span>${it.label}</div>`).join('')}
+  </div>`;
+}
+function renderMap(){
+  const tiles = TERRITORIES.map(t => {
+    const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
+    // A/C/G are Capitals structurally — that identity doesn't change just
+    // because someone else captured the tile. (Previously this only lit up
+    // while still held by the original owning faction, so the CAP badge
+    // would misleadingly vanish the moment a Capital changed hands.)
+    const cap = (t==='A'||t==='C'||t==='G');
+    const bounty = getBountyLevel(world.holdDays[t]||0);
+    const flash = flashTiles[t] ? 'flash' : '';
+    const ownerClass = owner ? `owner-${owner}` : '';
+    const [gx,gy] = POS[t];
+    return `<div class="tile ${ownerClass} ${isActive?'active-battle':''} ${flash}"
+      style="grid-column:${gx+1}; grid-row:${gy+1};" onclick="openTerritory('${t}')">
+      ${cap ? '<span class="cap">CAP</span>' : ''}
+      <span class="tid" style="font-size:10px; opacity:0.6;">${t}</span>
+      <span class="tname">${territoryLabel(t)}</span>
+      <span class="tvp">${vpValueOf(t, world.currentDay)} VP</span>
+      ${bounty>0 ? `<span class="bounty-pip">🎯${bounty}</span>` : ''}
+    </div>`;
+  }).join('');
+  return `<div class="map-wrap"><div class="map-grid">${tiles}</div></div>`;
+}
+// Read-only mini-map for looking back at a past day's territory ownership —
+// no click handlers, no active-battle pulsing, no bounty pips (those aren't
+// preserved historically), just who owned what after that day's settlement.
+function renderHistoryMap(ownership){
+  const tiles = TERRITORIES.map(t => {
+    const owner = ownership[t];
+    const ownerClass = owner ? `owner-${owner}` : '';
+    const [gx,gy] = POS[t];
+    return `<div class="tile ${ownerClass}" style="grid-column:${gx+1}; grid-row:${gy+1}; cursor:default;">
+      <span class="tid" style="font-size:10px; opacity:0.6;">${t}</span>
+      <span class="tname">${territoryLabel(t)}</span>
+    </div>`;
+  }).join('');
+  return `<div class="map-wrap"><div class="map-grid">${tiles}</div></div>`;
+}
+function phaseBanner(){
+  if (world.phase === 'fog'){
+    return `<div class="fog-banner"><div class="fogtitle">🌫 BATTLE FOG</div>
+      <div class="muted" style="margin-top:4px;">Final troop movements are hidden. You can still deploy remaining power.</div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?'RESOLVING…':'RESOLVE DAY'}</button>
+      </div></div>`;
+  }
+  return `<div class="card" style="text-align:center; padding:12px;">
+    <div class="muted" style="margin-bottom:10px;">Deploy your power, then resolve the day whenever your group is ready.</div>
+    <div class="btn-row">
+      <button class="btn btn-outline btn-small" onclick="enterFogManually()" ${inFlightFogToggle?'disabled':''}>ENTER BATTLE FOG</button>
+      <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?'RESOLVING…':'RESOLVE DAY'}</button>
+    </div>
+  </div>`;
+}
+// Advertised from DAY 1, not sprung as a surprise on day 7 — players only
+// get to plan around the final showdown (securing an adjacent tile, saving
+// energy) if they can see it coming.
+function kingmakerBanner(){
+  const finalDay = CONFIG.roundDays;
+  const isToday = isFinalDay(world.currentDay);
+  const mult = CONFIG.finalDayKingmakerMultiplier;
+  if (isToday){
+    return `<div class="elim-banner" style="border-color:rgba(242,194,69,0.5); background:linear-gradient(135deg, rgba(242,194,69,0.16), rgba(242,194,69,0.02));">
+      <div class="et" style="color:var(--gold);">🔥 FINAL DAY — KINGMAKER ×${mult}</div>
+      <div class="muted" style="margin-top:4px;">${territoryLabel('E')} is worth ${vpValueOf('E', world.currentDay)} VP today and is open to every team, adjacent or not. This is the decider.</div>
+    </div>`;
+  }
+  const daysLeft = finalDay - world.currentDay;
+  return `<div class="card" style="padding:10px 14px; border-color:rgba(242,194,69,0.25);">
+    <div class="muted" style="font-size:12px;">🔥 <b style="color:var(--gold);">Day ${finalDay} showdown:</b> ${territoryLabel('E')} will be worth ×${mult} VP and open to all teams — ${daysLeft} ${daysLeft===1?'day':'days'} away.</div>
+  </div>`;
+}
+function eliminatedBanner(){
+  if (!iAmEliminated()) return '';
+  return `<div class="elim-banner"><div class="et">⚔ LAST STAND COMEBACK</div>
+    <div class="muted" style="margin-top:4px;">Your faction currently holds no territory — you may still attack one of today's open battles (adjacency not required, one target only).</div></div>`;
+}
+
+/* ---------- HOME ---------- */
+function screenHome(){
+  const avail = remainingPower();
+  const rs = rosterStats();
+  return `
+  ${eliminatedBanner()}
+  ${kingmakerBanner()}
+  <div class="card" style="text-align:center; padding:10px 16px;">
+    <span>👥 <b>${rs.online}</b> players online</span>
+  </div>
+  <div class="prize-box row-between">
+    <div><div class="prize-label">🏆 PRIZE POOL</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
+    <div style="text-align:right;" class="muted">Round ${world.round} Fund<br>Growing</div>
+  </div>
+  ${phaseBanner()}
+  ${settlementDoc ? `<div class="card" style="cursor:pointer;" onclick="goScreen('report')">
+    <div class="row-between"><span class="card-title" style="margin:0;">📰 LATEST REPORT</span><span class="muted">View ›</span></div>
+  </div>` : ''}
+  ${(world.currentDay > 1 || roundIsOver()) ? `<div class="card" style="cursor:pointer;" onclick="goScreen('history')">
+    <div class="row-between"><span class="card-title" style="margin:0;">📜 TERRITORY HISTORY</span><span class="muted">View ›</span></div>
+  </div>` : ''}
+  <div class="card">
+    <div class="card-title">TERRITORY MAP (today's open battles keep pulsing)</div>
+    ${renderMap()}
+    <div class="muted" style="text-align:center; margin-top:10px;">Tap a glowing tile to view today's battle.</div>
+  </div>
+  <div class="card row-between">
+    <div><div class="card-title" style="margin-bottom:2px;">YOUR POWER</div><div class="big-num mono">${fmt1(avail)}</div></div>
+    <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${mystate.locked||avail<=0?'disabled':''}>
+      ${mystate.locked ? 'DEPLOYED' : 'DEPLOY'}
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-title">TODAY'S ACTIVE BATTLES</div>
+    ${battlesDoc.activeBattles.map(t => `
+      <div class="terr-select" onclick="openTerritory('${t}')">
+        <div><b class="display">${territoryLabel(t)}</b> <span class="chip-small">${t}</span> &nbsp;${ownerBadge(world.ownership[t])}</div>
+        <div class="muted">${vpValueOf(t, world.currentDay)} VP ${t==='E'&&isFinalDay(world.currentDay)?'🔥':''} ${getBountyLevel(world.holdDays[t]||0)>0?'· 🎯 Bounty':''}</div>
+      </div>`).join('') || `<div class="empty-note">No active battles today.</div>`}
+  </div>`;
+}
+
+/* ---------- TERRITORY MODAL ---------- */
+function modalTerritory(t){
+  const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
+  const bLvl = getBountyLevel(world.holdDays[t]||0);
+  const eligible = effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay);
+  let statusMap = {};
+  if (isActive && world.phase !== 'fog'){
+    const powerMap = {};
+    eligible.forEach(f => {
+      const base = (battlesDoc.baseline[t] && battlesDoc.baseline[t][f]) || 0;
+      const dep = (activityDoc.deployed[t] && activityDoc.deployed[t][f]) || 0;
+      powerMap[f] = round2(base+dep);
+    });
+    statusMap = calculateBattleStatus(powerMap);
+  }
+  return `
+  <div class="modal-backdrop" onclick="closeModalIfBackdrop(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="card-title">BATTLE FOR ${territoryLabel(t)} ${t==='E'?'· HIGH-VALUE TERRITORY':''}</div>
+      <div class="row-between" style="margin-bottom:10px;"><div>VP today: <b>${vpValueOf(t, world.currentDay)}</b>${t==='E'&&isFinalDay(world.currentDay)?` <span class="chip-small" style="color:var(--gold);">FINAL DAY ×${CONFIG.finalDayKingmakerMultiplier}</span>`:''}</div>${ownerBadge(owner)}</div>
+      ${bLvl>0 ? `<div class="muted" style="margin-bottom:10px;">🎯 BOUNTY Lv${bLvl} — held ${world.holdDays[t]} days. Capture reward: +${bountyBonusVP(bLvl)} VP</div>` : ''}
+      <div class="divider"></div>
+      ${isActive ? `
+        <div class="card-title">PARTICIPATING FACTIONS</div>
+        ${eligible.map(f => {
+          const m = FACTION_META[f]; const st = world.phase==='fog' ? null : statusMap[f];
+          const notOwner = !factionOwnsAny(f, world.ownership);
+          return `<div class="row-between" style="padding:6px 0;">
+            <span><span class="dot" style="background:${m.color}"></span>${m.name}${notOwner?' <span class="chip-small">COMEBACK</span>':''}</span>
+            ${world.phase==='fog' ? `<span class="chip-small">HIDDEN</span>` : statusPill(st)}
+          </div>`;
+        }).join('')}
+        <div class="divider"></div>
+        <div class="row-between" style="margin-bottom:12px;"><span class="muted">Status</span><span class="mono">${world.phase==='fog' ? 'FOG — awaiting resolve' : 'OPEN — awaiting resolve'}</span></div>
+        <button class="btn btn-primary" onclick="closeModal(); goScreen('deploy'); prefillDeploy('${t}')" ${mystate.locked?'disabled':''}>
+          ${mystate.locked ? 'POWER ALREADY DEPLOYED' : 'DEPLOY POWER HERE'}
+        </button>
+      ` : `<div class="empty-note">Not an active battle today.</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- RUN ---------- */
+function screenRun(){
+  const base = energyToPower(mystate.energyToday); const boosted = computeAvailablePower();
+  return `
+  <div class="card">
+    <div class="card-title">SIMULATE TODAY'S RUN</div>
+    <div class="energy-readout"><div class="muted">ENERGY TODAY</div><div class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
+    <input type="range" min="${CONFIG.energy.min}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
+      value="${mystate.energyToday}" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)" ${mystate.locked?'disabled':''}>
+    <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>0</span><span>90 Energy</span></div>
+    <div class="divider"></div>
+    <div class="row-between"><span class="muted">Base Power</span><span class="mono">⚡ ${fmt1(base)}</span></div>
+    ${mystate.gstBoostPercent>0 ? `<div class="row-between"><span class="muted">GST Boost</span><span class="mono" style="color:var(--gold)">+${mystate.gstBoostPercent}%</span></div>` : ''}
+    <div class="row-between" style="margin-top:6px;"><span><b>POWER EARNED</b></span><span class="big-num mono" style="font-size:22px;">⚡ ${fmt1(boosted)}</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">BOOST WITH GST (SIMULATED)</div>
+    <div class="muted" style="margin-bottom:8px;">Exercise remains mandatory — GST cannot generate Power from zero.</div>
+    <div class="debug-grid">
+      ${CONFIG.gstTiers.map(pct => `<div class="gst-tier ${mystate.gstBoostPercent===pct?'selected':''}" onclick="setGST(${pct})">${pct===0?'None':'+'+pct+'%'}</div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="row-between"><span class="muted">Power available to deploy</span><span class="mono">${fmt1(remainingPower())}</span></div>
+    <div class="muted" style="margin-top:6px; font-size:12px;">Unused Power expires at settlement.</div>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>GO TO DEPLOY</button>
+  </div>`;
+}
+
+/* ---------- DEPLOY ---------- */
+let deployState = { main: null, secondary: null, splitIdx: 1 };
+function prefillDeploy(t){ deployState.main = t; render(); }
+function screenDeploy(){
+  const avail = remainingPower();
+  if (mystate.locked){
+    return `<div class="card" style="text-align:center;">
+      <div class="card-title">DEPLOYMENT LOCKED</div>
+      <div class="muted">Power cannot be withdrawn after deployment.</div><div class="divider"></div>
+      ${Object.entries(mystate.deployedPower).map(([t,p]) => `<div class="row-between"><span>${territoryLabel(t)}</span><span class="mono">⚡ ${fmt1(p)}</span></div>`).join('')}
+    </div>`;
+  }
+  if (!battlesDoc.activeBattles.length) return `<div class="card"><div class="empty-note">No active battles to deploy to today.</div></div>`;
+
+  const eliminated = iAmEliminated();
+  const battles = eliminated
+    ? battlesDoc.activeBattles
+    : battlesDoc.activeBattles.filter(t => getEligibleFactions(t, world.ownership).includes(profile.faction));
+  if (!battles.length) return `<div class="card"><div class="empty-note">Your faction has no eligible battles today (no adjacent access).</div></div>`;
+
+  const main = deployState.main && battles.includes(deployState.main) ? deployState.main : battles[0];
+  if (eliminated){
+    const mainPower = avail;
+    return `
+    <div class="elim-banner"><div class="et">⚔ LAST STAND COMEBACK</div>
+      <div class="muted" style="margin-top:4px;">Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).</div></div>
+    <div class="card">
+      <div class="card-title">CHOOSE YOUR TARGET</div>
+      ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
+        <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="row-between"><span>Available</span><span class="mono">${fmt1(avail)}</span></div>
+      <div class="row-between"><span>${territoryLabel(main)} (all power)</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
+      <div class="divider"></div>
+      <div class="muted" style="font-size:12px; margin-bottom:10px;">Deployment is final. Power cannot be withdrawn after deployment.</div>
+      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0])" ${avail<=0?'disabled':''}>CONFIRM DEPLOYMENT</button>
+    </div>`;
+  }
+  const secondaryOptions = battles.filter(t=>t!==main);
+  const secondary = deployState.secondary && secondaryOptions.includes(deployState.secondary) ? deployState.secondary : null;
+  const split = CONFIG.splitPresets[deployState.splitIdx];
+  const mainPower = round2(avail*split[0]/100); const secPower = secondary ? round2(avail*split[1]/100) : 0;
+  return `
+  <div class="card"><div class="card-title">MAIN BATTLE</div>
+    ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
+      <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
+  </div>
+  <div class="card"><div class="card-title">OPTIONAL SECONDARY BATTLE</div>
+    <div class="terr-select ${!secondary?'selected':''}" onclick="setDeploySecondary(null)"><div>None — 100% to Main</div></div>
+    ${secondaryOptions.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="setDeploySecondary('${t}')">
+      <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
+  </div>
+  ${secondary ? `<div class="card"><div class="card-title">ALLOCATION SPLIT</div>
+    <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      ${CONFIG.splitPresets.map((p,i) => `<div class="split-opt ${deployState.splitIdx===i?'selected':''}" onclick="setSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
+    </div></div>` : ''}
+  <div class="card"><div class="card-title">RESULT</div>
+    <div class="row-between"><span>Available</span><span class="mono">${fmt1(avail)}</span></div>
+    <div class="row-between"><span>${territoryLabel(main)} (Main)</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
+    ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} (Secondary)</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
+    <div class="divider"></div>
+    <div class="muted" style="font-size:12px; margin-bottom:10px;">Deployment is final. Power cannot be withdrawn after deployment.</div>
+    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])" ${avail<=0?'disabled':''}>CONFIRM DEPLOYMENT</button>
+  </div>`;
+}
+function setDeployMain(t){ deployState.main = t; if(deployState.secondary===t) deployState.secondary=null; render(); }
+function setDeploySecondary(t){ deployState.secondary = t; if(!t) deployState.splitIdx = 0; else if(deployState.splitIdx===0) deployState.splitIdx=1; render(); }
+function setSplit(i){ deployState.splitIdx = i; render(); }
+function confirmDeploy(main, sec, split){ deployPower(main, sec, split); deployState = {main:null, secondary:null, splitIdx:1}; }
+
+/* ---------- RALLY ---------- */
+let rallyPublishState = { main:null, secondary:null, splitIdx:1 };
+let commanderMsgInput = '';
+function screenRally(){
+  if (world.rallyEnabled === false){
+    return `<div class="card" style="text-align:center;">
+      <div class="card-title">RALLY IS OFF</div>
+      <div class="muted">The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.</div>
+    </div>`;
+  }
+  const m = FACTION_META[profile.faction];
+  const commander = (world.commanders || {})[profile.faction];
+  const battles = battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(profile.faction));
+  const msg = (world.commanderMessages || {})[profile.faction];
+
+  // --- No commander elected for this round yet: show the nomination stand ---
+  if (!commander){
+    const nominees = (world.commanderNominees || {})[profile.faction] || [];
+    const mine = myNomination();
+    const eligible = isEligibleToNominate();
+    const threshold = commanderEnergyThreshold();
+    const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
+    return `
+    <div class="card">
+      <div class="card-title">👑 COMMANDER ELECTION — ROUND ${world.round}</div>
+      <div class="muted" style="line-height:1.6;">Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top ${Math.round(CONFIG.commanderTopPercent*100)}% of ${m.name} by recent energy can stand. Highest recent energy among those who stand wins.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">STANDING FOR ELECTION (${nominees.length})</div>
+      ${nominees.length ? nominees.slice().sort((a,b)=>b.energy-a.energy).map(n => `
+        <div class="row-between" style="padding:5px 0;">
+          <span>${n.name}${n.playerId===LOCAL_PLAYER_ID?' (you)':''}</span>
+          <span class="mono">${fmt1(n.energy)} energy</span>
+        </div>`).join('') : `<div class="empty-note">Nobody has stood yet.</div>`}
+      <div class="divider"></div>
+      <div class="muted" style="font-size:12px; margin-bottom:8px;">Your recent energy: <b class="mono">${fmt1(profile.recentEnergy||0)}</b> · Needed to stand: <b class="mono">${fmt1(threshold)}</b></div>
+      ${streak >= CONFIG.commanderMaxConsecutiveRounds ? `<div class="muted" style="font-size:12px; color:var(--gold);">You've served ${streak} rounds in a row — sit this one out (max ${CONFIG.commanderMaxConsecutiveRounds}).</div>` : ''}
+      ${mine ? `<div class="muted" style="text-align:center;">✅ You're standing. The winner is decided once elections resolve.</div>`
+             : `<button class="btn btn-primary" onclick="nominateSelf()" ${!eligible?'disabled':''}>STAND FOR COMMANDER</button>`}
+    </div>`;
+  }
+
+  const isMe = commander.playerId === LOCAL_PLAYER_ID;
+  const rally = activityDoc.rally[profile.faction];
+
+  const commanderCard = `
+  <div class="rally-card" style="border-color:${m.color};">
+    <div class="row-between" style="margin-bottom:6px;">
+      <span class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px;">👑 ${commander.name}${isMe?' (you)':''}</span>
+      <span class="chip-small">ROUND ${world.round}</span>
+    </div>
+    <div class="muted" style="font-size:12px;">Record this round: ${world.commanderRecord[profile.faction].wins}W – ${world.commanderRecord[profile.faction].losses}L</div>
+    ${msg && msg.text ? `<div class="divider"></div><div style="font-size:13px; line-height:1.5;">💬 ${msg.text}</div><div class="muted" style="font-size:11px; margin-top:4px;">— posted day ${msg.day}</div>` : ''}
+  </div>`;
+
+  // --- Commander's own view: message board + rally publishing ---
+  if (isMe){
+    const remaining = CONFIG.commanderMessageMaxChars - commanderMsgInput.length;
+    const msgCard = `
+    <div class="card">
+      <div class="card-title">BROADCAST TO YOUR TEAM</div>
+      <div class="muted" style="font-size:12px; margin-bottom:6px;">One short message your whole team sees. Update it any day of the round.</div>
+      <input id="cmd-msg-input" class="name-input" maxlength="${CONFIG.commanderMessageMaxChars}" placeholder="e.g. Day 3: Blue left Moonbase thin — hit it tomorrow" value="${commanderMsgInput}" oninput="commanderMsgInput=this.value; updateCmdMsgCount();" />
+      <div class="row-between" style="margin-top:6px;">
+        <span class="muted" id="cmd-msg-count" style="font-size:11px;">${remaining} characters left</span>
+        <button class="btn btn-primary btn-small" onclick="publishCommanderMessage(commanderMsgInput)" ${!commanderMsgInput.trim()?'disabled':''}>POST</button>
+      </div>
+    </div>`;
+
+    if (!rally){
+      if (!battles.length) return commanderCard + msgCard + `<div class="card"><div class="empty-note">No eligible battles to rally today.</div></div>`;
+      const main = rallyPublishState.main && battles.includes(rallyPublishState.main) ? rallyPublishState.main : battles[0];
+      const secOpts = battles.filter(t=>t!==main);
+      const secondary = rallyPublishState.secondary && secOpts.includes(rallyPublishState.secondary) ? rallyPublishState.secondary : null;
+      const split = CONFIG.splitPresets[rallyPublishState.splitIdx];
+      return commanderCard + msgCard + `
+      <div class="card"><div class="card-title">TODAY'S RALLY — MAIN TERRITORY</div>
+        ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="rMain('${t}')"><div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
+      </div>
+      <div class="card"><div class="card-title">SECONDARY (OPTIONAL)</div>
+        <div class="terr-select ${!secondary?'selected':''}" onclick="rSec(null)">None</div>
+        ${secOpts.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="rSec('${t}')"><div><b class="display">${territoryLabel(t)}</b></div></div>`).join('')}
+      </div>
+      ${secondary ? `<div class="card"><div class="card-title">SPLIT</div>
+        <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          ${CONFIG.splitPresets.map((p,i)=>`<div class="split-opt ${rallyPublishState.splitIdx===i?'selected':''}" onclick="rSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
+        </div></div>` : ''}
+      <button class="btn btn-primary" onclick="doPublish('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])">PUBLISH RALLY</button>`;
+    }
+    return commanderCard + msgCard + `<div class="card"><div class="empty-note">Today's rally is published and locked.</div></div>`;
+  }
+
+  // --- Normal player's view ---
+  if (!rally){
+    return commanderCard + `<div class="card"><div class="empty-note">${commander.name} hasn't published today's Rally yet — check back shortly.</div></div>`;
+  }
+  return commanderCard + `
+  <div class="rally-card" style="border-color:${m.color};">
+    <div class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px; margin-bottom:8px;">TODAY'S RALLY</div>
+    <div class="row-between"><span class="muted">MAIN</span><span><b>${territoryLabel(rally.main)}</b> — ${rally.split[0]}%</span></div>
+    ${rally.secondary ? `<div class="row-between"><span class="muted">SUPPORT</span><span><b>${territoryLabel(rally.secondary)}</b> — ${rally.split[1]}%</span></div>` : ''}
+    ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">(auto-generated)</div>` : ''}
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="followRally()" ${mystate.locked?'disabled':''}>FOLLOW RALLY</button>
+    <button class="btn btn-outline" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>CUSTOM DEPLOY</button>
+  </div>
+  ${mystate.locked ? `<div class="muted" style="text-align:center; margin-top:10px;">Power already deployed today.</div>` : ''}`;
+}
+// Surgical update so typing in the broadcast box doesn't re-render the whole
+// screen and yank focus out of the input after every character.
+function updateCmdMsgCount(){
+  const el = document.getElementById('cmd-msg-count');
+  if (el) el.textContent = (CONFIG.commanderMessageMaxChars - commanderMsgInput.length) + ' characters left';
+}
+function rMain(t){ rallyPublishState.main=t; if(rallyPublishState.secondary===t) rallyPublishState.secondary=null; render(); }
+function rSec(t){ rallyPublishState.secondary=t; if(!t) rallyPublishState.splitIdx=0; else if(rallyPublishState.splitIdx===0) rallyPublishState.splitIdx=1; render(); }
+function rSplit(i){ rallyPublishState.splitIdx=i; render(); }
+function doPublish(main, sec, split){ publishRally(main, sec, split); rallyPublishState={main:null,secondary:null,splitIdx:1}; }
+
+/* ---------- PLAYERS (who's playing) ---------- */
+/* NOTE: a detailed per-player roster screen (names, per-faction breakdown,
+   online/offline dots) was intentionally removed — the home screen's simple
+   "X players online" headcount is all that's needed. The underlying
+   roster/presence tracking (joinRoster/refreshRoster/rosterStats) is still
+   used to compute that count. */
+
+/* ---------- REPORT (latest battle report) ---------- */
+function screenReport(){
+  if (!settlementDoc) return `<div class="card"><div class="empty-note">No settlement yet.</div></div>`;
+  const s = settlementDoc; const m = FACTION_META[profile.faction];
+  const dayShown = roundIsOver() ? world.currentDay : world.currentDay - 1;
+  return `
+  <div class="card"><div class="card-title">DAY ${dayShown} SETTLEMENT REPORT</div>
+    ${s.results.map(r => {
+      const winnerMeta = r.winner ? FACTION_META[r.winner] : null;
+      return `<div style="margin-bottom:14px;">
+        <div class="row-between"><b class="display">BATTLE FOR ${territoryLabel(r.t)}</b>${r.tie ? '<span class="chip-small">TIE</span>' : ''}</div>
+        ${Object.entries(r.powerMap).sort((a,b)=>b[1]-a[1]).map(([f,p]) => `
+          <div class="row-between" style="padding:3px 0;"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">${fmt(p)}</span></div>`).join('')}
+        <div style="margin-top:6px; font-family:'Chakra Petch',sans-serif; font-weight:700; color:${winnerMeta?winnerMeta.color:'var(--text-dim)'};">
+          ${r.winner ? (r.winner===r.prevOwner ? `${winnerMeta.name.toUpperCase()} HOLDS ${territoryLabel(r.t)}` : `${winnerMeta.name.toUpperCase()} CAPTURES ${territoryLabel(r.t)}`) : `${territoryLabel(r.t)} REMAINS NEUTRAL`}
+          ${r.bonusVP>0 ? ` · 🎯 +${r.bonusVP} VP` : ''}
+        </div>
+      </div>`;
+    }).join('<div class="divider"></div>')}
+  </div>
+  <div class="card"><div class="card-title">VP EARNED THAT DAY</div>
+    ${FACTIONS.map(f => `<div class="row-between"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">+${fmt1(s.vpGained[f])}</span></div>`).join('')}
+  </div>
+  ${s.rallyResults && s.rallyResults[profile.faction] ? `
+  <div class="card"><div class="card-title">${m.emoji} ${m.name} RALLY RESULT</div>
+    ${s.rallyResults[profile.faction].main ? `<div>MAIN — ${territoryLabel(s.rallyResults[profile.faction].main.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].main.outcome)}</div>` : ''}
+    ${s.rallyResults[profile.faction].secondary ? `<div>SUPPORT — ${territoryLabel(s.rallyResults[profile.faction].secondary.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].secondary.outcome)}</div>` : ''}
+  </div>` : ''}
+  <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+}
+
+/* ---------- SEASON ---------- */
+/* ---------- HISTORY (look back at past days' territory ownership) ---------- */
+function screenHistory(){
+  const maxDay = roundIsOver() ? world.currentDay : world.currentDay - 1;
+  if (maxDay < 1){
+    return `<div class="card"><div class="empty-note">No days have been resolved yet — check back after Day 1 is settled.</div></div>
+    <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+  }
+  const days = Array.from({length: maxDay}, (_, i) => i + 1);
+  let mapSection = '';
+  if (historyDay){
+    if (historyLoading){
+      mapSection = `<div class="card"><div class="empty-note">Loading Day ${historyDay}…</div></div>`;
+    } else if (historyDoc && historyDoc.ownershipAfter){
+      mapSection = `<div class="card">
+        <div class="card-title">TERRITORY OWNERSHIP — END OF DAY ${historyDay}</div>
+        ${renderHistoryMap(historyDoc.ownershipAfter)}
+      </div>
+      <div class="card">
+        <div class="card-title">VP EARNED THAT DAY</div>
+        ${FACTIONS.map(f => `<div class="row-between"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">+${fmt1(historyDoc.vpGained[f])}</span></div>`).join('')}
+      </div>`;
+    } else {
+      mapSection = `<div class="card"><div class="empty-note">No record found for Day ${historyDay}.</div></div>`;
+    }
+  }
+  return `
+  <div class="card">
+    <div class="card-title">PICK A DAY</div>
+    <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${days.map(d => `<div class="split-opt ${historyDay===d?'selected':''}" onclick="viewHistoryDay(${d})">Day ${d}</div>`).join('')}
+    </div>
+  </div>
+  ${mapSection}
+  <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+}
+
+function screenSeason(){
+  const pct = (x) => Math.round(x*100);
+  const walletCard = `
+  <div class="card">
+    <div class="card-title">YOUR WALLET (MOCK)</div>
+    <div class="row-between"><span class="muted">GMT Balance</span><span class="mono">${fmt(seasonProgress.gmtBalance)} GMT</span></div>
+    <div class="row-between"><span class="muted">Season Entry Fee Paid</span><span class="mono">-${CONFIG.seasonEntryFeeGMT} GMT</span></div>
+    ${seasonProgress.totalDonated > 0 ? `<div class="row-between"><span class="muted">Donated to War Fund</span><span class="mono">${fmt(seasonProgress.totalDonated)} GMT</span></div>` : ''}
+    <div class="divider"></div>
+    <div class="muted" style="margin-bottom:8px; font-size:12px;">Donate to the War Fund — grows the Prize Pool (split ${pct(CONFIG.gmtSplit.prize)}% prize / ${pct(CONFIG.gmtSplit.burn)}% burn / ${pct(CONFIG.gmtSplit.protocol)}% protocol, same as the daily mock economy).</div>
+    <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${[100,500,1000,5000].map(amt => `<button class="btn btn-outline btn-small" onclick="donateGMT(${amt})" ${amt>seasonProgress.gmtBalance?'disabled':''}>${amt}</button>`).join('')}
+    </div>
+  </div>`;
+
+  const seasonCard = `
+  <div class="card">
+    <div class="card-title">SEASON 01 · ROUND ${world.round} / ${CONFIG.roundsPerSeason}</div>
+    <div class="muted" style="font-size:12px; margin-bottom:8px;">Round wins so far — your team is locked for the whole season.</div>
+    ${FACTIONS.map(f=>{const m=FACTION_META[f]; const me = f===profile.faction;
+      return `<div class="row-between" style="${me?`color:${m.color};`:''}"><span><span class="dot" style="background:${m.color}"></span>${m.name}${me?' (you)':''}</span><span class="mono">${world.roundWins[f]||0} ${(world.roundWins[f]||0)===1?'win':'wins'}</span></div>`;
+    }).join('')}
+  </div>`;
+
+  if (!roundIsOver()){
+    return `${seasonCard}<div class="card"><div class="card-title">ROUND ${world.round} — IN PROGRESS</div>
+      <div class="muted" style="margin-bottom:8px;">Live VP · settles after Day ${CONFIG.roundDays}.</div>
+      ${rankFactions(world.vp, world.ownership).map((s,idx)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${idx+1}. <span class="dot" style="background:${m.color}"></span>${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
+    </div>${walletCard}`;
+  }
+
+  if (!roundResult) computeRoundResult();
+  const r = roundResult; const champ = r.standings[0]; const cm = FACTION_META[champ.f];
+  const seasonChamp = r.seasonStandings ? FACTION_META[r.seasonStandings[0].f] : null;
+
+  return `
+  <div class="card" style="text-align:center;">
+    <div class="card-title">🏁 ROUND ${world.round} WINNER</div>
+    <div class="big-num display" style="color:${cm.color};">${cm.emoji} ${cm.name}</div>
+  </div>
+  <div class="card"><div class="card-title">ROUND ${world.round} STANDINGS</div>
+    ${r.standings.map((s,i)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${i+1}. ${m.emoji} ${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
+  </div>
+  <div class="prize-box"><div class="prize-label">🏆 ROUND PRIZE POOL</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
+  <div class="card"><div class="card-title">YOUR RESULT THIS ROUND</div>
+    <div class="row-between"><span>Team Placing</span><span class="mono">#${r.myRank} — ${r.rankTitle || '-'}</span></div>
+    <div class="row-between"><span>Contribution Rank</span><span class="mono">#${progress.contributionRank}</span></div>
+    <div class="row-between"><span>Participation Days</span><span class="mono">${progress.participationDays} / ${CONFIG.roundDays}</span></div>
+    <div class="row-between"><span>Estimated Reward</span><span class="mono">${r.eligible ? fmt(r.estReward)+' GMT' : 'Not eligible'}</span></div>
+    ${!r.eligible ? `<div class="muted" style="font-size:12px; margin-top:4px;">Requires active participation on ${CONFIG.participationThreshold}+ days.</div>` : ''}
+  </div>
+  ${seasonCard}
+  ${r.isSeasonEnd ? `
+  <div class="card" style="text-align:center;">
+    <div class="card-title">👑 SEASON 01 CHAMPION</div>
+    <div class="big-num display" style="color:${seasonChamp.color};">${seasonChamp.emoji} ${seasonChamp.name}</div>
+    <div class="muted" style="margin-top:4px;">Most round wins across ${CONFIG.roundsPerSeason} rounds</div>
+  </div>
+  ${r.badge ? `<div class="card">
+    <div style="color:var(--gold); margin-bottom:6px;">🎖 SEASON REWARDS UNLOCKED</div>
+    <div class="muted" style="margin-bottom:3px;">🏅 <b style="color:var(--text);">${r.badge}</b></div>
+    <div class="muted" style="margin-bottom:3px;">💎 <b style="color:var(--text);">STEPN VIP — 30 Days</b></div>
+    <div class="muted">👟 <b style="color:var(--text);">Polygon Locked Sneaker — ${r.sneakerDesign} Design</b></div>
+  </div>` : `<div class="card"><div class="empty-note">Season rewards need ${CONFIG.participationThreshold}+ active days in the final round.</div></div>`}
+  ` : `
+  <button class="btn btn-primary" onclick="startNextRound()">START ROUND ${world.round + 1}</button>
+  <div class="muted" style="text-align:center; margin-top:8px; font-size:12px;">New map, new prize pool, new commander election — same teams.</div>
+  `}
+  ${walletCard}`;
+}
+
+/* =========================================================
+   ONBOARDING SCREEN
+========================================================= */
+function renderOnboarding(){
+  return `<div class="onboard-wrap"><div class="onboard-card">
+    <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · SEASON 01</div>
+    <div class="display" style="font-size:20px; font-weight:700; margin-bottom:6px;">Join the Battlefield</div>
+    <div class="muted" style="line-height:1.6;">Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b></div>
+    <div class="muted" style="margin:12px 0 4px; font-size:12px;">Runner name</div>
+    <input class="name-input" placeholder="Leave blank for a random one" value="${onboardName}" oninput="onboardName=this.value" />
+    <div class="muted" style="margin:12px 0 4px; font-size:12px;">Your last-7-day energy (mock STEPN data)</div>
+    <input class="name-input" type="number" min="0" step="0.2" value="${onboardRecentEnergy}" oninput="onboardRecentEnergy=parseFloat(this.value)||0" />
+    <div class="muted" style="margin-top:6px; font-size:11px;">In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.</div>
+    <button class="btn btn-primary" style="margin-top:16px;" onclick="submitOnboarding()">JOIN GAME</button>
+    <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
+  </div></div>`;
+}
+
+/* =========================================================
+   MODALS + NAV
+========================================================= */
+function goScreen(id){ uiScreen = id; activeModal = null; render(); }
+function openTerritory(t){ activeModal = t; render(); }
+function closeModal(){ activeModal = null; render(); }
+function closeModalIfBackdrop(e){ if (e.target.classList.contains('modal-backdrop')) closeModal(); }
+
+/* =========================================================
+   DEBUG PANEL (testing/debug tools for the shared multiplayer world)
+========================================================= */
+function toggleDebug(){ debugOpen = !debugOpen; render(); }
+// Extra safety net: Escape always closes the debug panel, regardless of
+// whether the backdrop click is landing where expected.
+window.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && debugOpen){ debugOpen = false; render(); }
+});
+async function dbgToggleRally(){
+  const fresh = await safeGet(worldKey(), true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
+  fresh.rallyEnabled = fresh.rallyEnabled === false ? true : false;
+  await safeSet(worldKey(), fresh, true); world = fresh; render();
+}
+async function dbgSimulateTeammate(){
+  if (!battlesDoc.activeBattles.length) return;
+  const t = battlesDoc.activeBattles[Math.floor(Math.random()*battlesDoc.activeBattles.length)];
+  const key = dayKey(world.runId, 'activity', world.currentDay);
+  let fresh = await safeGet(key, true); if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = activityDoc;
+  fresh.deployed[t] = fresh.deployed[t] || {};
+  const amount = Math.round(400 + Math.random()*2200);
+  fresh.deployed[t][profile.faction] = round2((fresh.deployed[t][profile.faction]||0) + amount);
+  await safeSet(key, fresh, true); activityDoc = fresh; render();
+}
+function dbgCopyInviteLink(){
+  const link = buildInviteLink();
+  if (!link) return;
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(() => alert('Invite link copied! Send it to colleagues — opening it auto-fills their Supabase connection.'));
+  } else {
+    prompt('Copy this invite link:', link);
+  }
+}
+async function dbgResetSeason(){
+  const fresh = makeInitialWorld();
+  await safeSet(worldKey(), fresh, true);
+  world = fresh;
+  roundResult = null;
+  progress = null;
+  progressLoaded = false; // force a re-fetch under the new runId (was a pre-existing gap — otherwise progress stayed null forever after reset)
+  settlementDoc = null;
+  settlementFetchedForDay = null;
+  cachedDocsForDay = null;
+  roster = null;
+  lastHeartbeatAt = 0;
+  await syncAll();
+  await joinRoster();
+  uiScreen = 'home';
+  render();
+}
+function renderDebug(){
+  if (!debugOpen) return '';
+  return `
+  <div class="debug-backdrop" onclick="toggleDebug()"></div>
+  <div class="debug-drawer">
+    <div class="row-between" style="margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">DEMO DEBUG PANEL</div>
+      <span class="close-x" style="position:static;" onclick="toggleDebug()">✕</span>
+    </div>
+    <div class="debug-section">
+      <h4>My Info</h4>
+      <div class="muted">Name: ${profile.name}</div>
+      <div class="muted">Faction: ${FACTION_META[profile.faction].name}</div>
+      <div class="muted" style="margin:8px 0 4px;">Energy Today: ${fmt1(mystate.energyToday)}</div>
+    </div>
+    <div class="debug-section">
+      <h4>Season State</h4>
+      <div class="muted">Season R${world.round}/${CONFIG.roundsPerSeason} · Day ${world.currentDay}/${CONFIG.roundDays} · Phase: ${({battles:'Battles',fog:'Fog',roundEnd:'Round End',seasonEnd:'Season End'})[world.phase]||world.phase}</div>
+      <div class="muted" style="margin-top:4px; font-size:11px;">Fog and Resolve Day are now on the Home screen — any player can trigger them.</div>
+    </div>
+    <div class="debug-section">
+      <h4>Rally (affects all players)</h4>
+      <div class="muted" style="margin-bottom:6px;">Currently: ${world.rallyEnabled === false ? 'OFF' : 'ON'}. Useful to turn off while testing with only one player per faction.</div>
+      <button class="btn btn-outline btn-small" onclick="dbgToggleRally()">${world.rallyEnabled === false ? 'Turn Rally ON' : 'Turn Rally OFF'}</button>
+    </div>
+    <div class="debug-section">
+      <h4>Simulate Teammate (affects all players)</h4>
+      <div class="muted" style="margin-bottom:6px;">Active: ${battlesDoc.activeBattles.join(', ') || '—'}</div>
+      <button class="btn btn-outline btn-small" onclick="dbgSimulateTeammate()">Simulate a Teammate Deploying</button>
+    </div>
+    <div class="debug-section">
+      <h4>Reset (affects all players)</h4>
+      <button class="btn btn-outline" onclick="dbgResetSeason()">Reset Full Season</button>
+    </div>
+    <div class="debug-section">
+      <h4>Supabase Connection</h4>
+      <button class="btn btn-outline btn-small" onclick="dbgCopyInviteLink()">Copy Invite Link (pre-configured)</button>
+      <div class="muted" style="margin:8px 0 4px; font-size:11px;">Copies a link with your Supabase details AND current room embedded, so colleagues who open it land straight in this room without filling in anything.</div>
+      <button class="btn btn-outline btn-small" style="margin-top:6px;" onclick="forgetSupabaseConfig()">Forget This Connection</button>
+    </div>
+    <div class="debug-section">
+      <h4>Room</h4>
+      <div class="muted" style="margin-bottom:6px;">Current room code: <span class="mono" style="color:var(--gold); letter-spacing:2px;">${roomCode}</span></div>
+      <div class="muted" style="margin-bottom:8px; font-size:11px;">Share this code (or the invite link above) with anyone you want in THIS game. Different room codes on the same Supabase project never see each other's data.</div>
+      <button class="btn btn-outline btn-small" onclick="forgetRoomCode()">Leave This Room</button>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   ROOT RENDER
+========================================================= */
+function render(){
+  try{ renderInner(); }
+  catch(e){
+    // A last-resort safety net: if literally anything else in render()
+    // throws (a screen function, a modal, etc.), show that clearly instead
+    // of silently leaving the page frozen and unresponsive to every
+    // subsequent click — which is exactly what an uncaught throw here used
+    // to do, with no visible sign anything had gone wrong.
+    console.error('render() failed:', e);
+    const root = document.getElementById('root');
+    if (root){
+      root.innerHTML = `<div style="padding:24px; color:#e7ecf3; font-family:sans-serif; background:#0a0d12; min-height:100vh; box-sizing:border-box;">
+        <h3 style="color:#ff4d4d; margin-top:0;">Something broke while updating the screen</h3>
+        <p style="opacity:0.85; font-size:13px; word-break:break-word;">${(e && e.message) ? e.message : 'Unknown error'}</p>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="location.reload()">RELOAD</button>
+        <p style="opacity:0.3; font-size:10px; font-family:monospace; margin-top:16px;">${APP_BUILD}</p>
+      </div>`;
+    }
+  }
+}
+function renderInner(){
+  if (bootPhase === 'room_form'){
+    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
+      <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · ROOM</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">Create or join a room</div>
+      <div class="muted" style="line-height:1.6; margin-bottom:16px;">
+        Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.
+      </div>
+      <button class="btn btn-primary" onclick="submitCreateRoom()">CREATE A NEW ROOM</button>
+      <div class="divider"></div>
+      <div class="muted" style="margin-bottom:4px; font-size:12px;">Or enter a room code someone shared with you</div>
+      <input class="name-input" placeholder="e.g. AB3XY" value="${joinRoomInput}" oninput="joinRoomInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="text-transform:uppercase; letter-spacing:2px;" />
+      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>JOIN ROOM</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
+    </div></div>`;
+    return;
+  }
+  if (bootPhase === 'setup_form'){
+    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
+      <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · FIRST-TIME SETUP</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">Connect to your Supabase project</div>
+      <div class="muted" style="line-height:1.6; margin-bottom:14px;">
+        Paste the two values from your Supabase project's <b>Settings → API</b> page. This is saved in your browser and only needs doing once — see DEPLOYMENT_GUIDE.md if you haven't created a free Supabase project yet.
+      </div>
+      <div class="muted" style="margin-bottom:4px; font-size:12px;">Project URL</div>
+      <input class="name-input" placeholder="https://xxxx.supabase.co" value="${setupUrlInput}" oninput="setupUrlInput=this.value; updateSetupButtonState();" />
+      <div class="muted" style="margin:10px 0 4px; font-size:12px;">anon public API key</div>
+      <input class="name-input" placeholder="eyJhbGc..." value="${setupKeyInput}" oninput="setupKeyInput=this.value; updateSetupButtonState();" />
+      <button id="setup-connect-btn" class="btn btn-primary" style="margin-top:16px;" onclick="submitSetupForm()" ${(!setupUrlInput.trim()||!setupKeyInput.trim())?'disabled':''}>SAVE & CONNECT</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
+    </div></div>`;
+    return;
+  }
+  if (bootPhase === 'config_missing'){
+    const brokenKeys = !!supabaseInitError;
+    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
+      <div class="card-title" style="margin-bottom:8px; color:var(--danger);">SETUP NEEDED</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:10px;">Your Supabase connection isn't working</div>
+      <div class="muted" style="line-height:1.6;">
+        ${brokenKeys
+          ? `Connecting failed with: <br><code style="color:var(--danger); font-size:11px;">${supabaseInitError}</code><br><br>The saved Project URL or anon key looks malformed.`
+          : `The Supabase library didn't load (check your internet connection and reload).`}
+      </div>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="forgetSupabaseConfig()">RE-ENTER SUPABASE DETAILS</button>
+      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
+    </div></div>`;
+    return;
+  }
+  if (bootPhase === 'loading'){
+    document.getElementById('root').innerHTML = `<div class="loading-wrap">Connecting to the Run Kingdom world…<br><span style="font-size:10px; opacity:0.4; font-family:monospace;">${APP_BUILD}</span></div>`;
+    return;
+  }
+  if (bootPhase === 'onboarding'){
+    document.getElementById('root').innerHTML = renderOnboarding();
+    return;
+  }
+  let body = '';
+  if (uiScreen === 'home') body = screenHome();
+  else if (uiScreen === 'run') body = screenRun();
+  else if (uiScreen === 'deploy') body = screenDeploy();
+  else if (uiScreen === 'rally') body = screenRally();
+  else if (uiScreen === 'report') body = screenReport();
+  else if (uiScreen === 'season') body = screenSeason();
+  else if (uiScreen === 'history') body = screenHistory();
+  else body = screenHome();
+
+  document.getElementById('root').innerHTML = `
+    ${renderTopbar()}
+    <div class="content">${renderSyncError()}${body}</div>
+    ${renderBottomNav()}
+    <div class="fab" onclick="toggleDebug()">⚙️</div>
+    ${activeModal ? modalTerritory(activeModal) : ''}
+    ${safeRenderDebug()}
+  `;
+}
+// If renderDebug() itself throws for any reason, this stops it from taking
+// the ENTIRE render() call down with it. Without this isolation, a single
+// bad reference inside the debug panel's HTML would silently break every
+// future render() call app-wide the moment debugOpen became true — meaning
+// EVERY button anywhere (Resolve Day, Deploy, the gear icon itself, all of
+// it) would stop visibly responding, since render() throwing partway through
+// leaves the DOM frozen at whatever it looked like before the click, with
+// no error shown. This was almost certainly the real cause behind "nothing
+// works anymore after touching the gear icon".
+function safeRenderDebug(){
+  try{ return renderDebug(); }
+  catch(e){
+    console.error('renderDebug() failed — closing the debug panel so the rest of the app keeps working:', e);
+    debugOpen = false;
+    return '';
+  }
+}
+
+/* =========================================================
+   LOOPS + INIT
+========================================================= */
+function startLoops(){
+  // No more real-time countdown to track locally — battle resolution is a
+  // manual action now, so we only need the background poll to pick up
+  // other players' moves (deploys, rallies, someone else resolving the day).
+  scheduleNextPoll();
+}
+// Self-rescheduling (rather than setInterval) so a slow sync never overlaps
+// with the next one, plus a random jitter per client so many people opening
+// this at once don't all hit the storage backend in the same instant.
+function scheduleNextPoll(){
+  const jitter = Math.random() * 2000;
+  setTimeout(async () => {
+    try{ await syncAll(); render(); } finally { scheduleNextPoll(); }
+  }, CONFIG.pollMs + jitter);
+}
+render();
+boot();
+</script>
+</body>
+</html>
