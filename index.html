@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.2-preflight-2026-08-31';
+const APP_BUILD = 'rk-v0.2.1-concurrency-2026-08-31';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -711,7 +711,6 @@ let roundResult = null;
 // rollover — the UI shows a brief syncing state instead of mixing a new
 // world with the previous day's battles/deployments.
 let dataStale = false;
-let schemaProblem = null;
 let historyDay = null;   // day the player picked to look back at, null = picker not opened yet
 let historyDoc = null;   // fetched settlement doc for historyDay (on-demand, not part of the regular poll)
 let historyLoading = false;
@@ -742,32 +741,8 @@ let onboardName = '';
 // Faction is assigned by the balancer, never picked — see assignFaction().
 let onboardRecentEnergy = 30;
 
-// Verifies the database has the schema this build requires. Without this the
-// app "connects" fine and then fails on every single read/write, which looked
-// to the user like buttons simply doing nothing. Fails loudly and specifically
-// instead, naming the exact fix.
-async function checkSchema(){
-  try{
-    const { error } = await sbClient.from('kv_store').select('value,version').eq('key', '__preflight__').maybeSingle();
-    if (error){
-      const msg = (error.message || '').toLowerCase();
-      if (msg.includes('version') || error.code === '42703') return { ok:false, why:'missing_version_column' };
-      return { ok:false, why:'unreachable', detail: error.message };
-    }
-  } catch(e){ return { ok:false, why:'unreachable', detail: (e && e.message) || String(e) }; }
-  try{
-    // Harmless probe: the expected version can never match, so this returns
-    // "conflict" without writing anything. It only tells us the function exists.
-    const { error } = await sbClient.rpc('kv_cas', { p_key:'__preflight__', p_value:{}, p_expected_version:-999999 });
-    if (error) return { ok:false, why:'missing_functions', detail: error.message };
-  } catch(e){ return { ok:false, why:'missing_functions', detail: (e && e.message) || String(e) }; }
-  return { ok:true };
-}
-
 async function boot(){
   if (!sbClient){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
-  const schema = await checkSchema();
-  if (!schema.ok){ schemaProblem = schema; bootPhase = 'schema_outdated'; render(); return; }
   if (!roomCode){ bootPhase = 'room_form'; render(); return; }
   const p = await safeGet('profile', false);
   // STORAGE_RETRY_LATER is a truthy string, not a real profile object — treating
@@ -835,14 +810,6 @@ function assignFaction(recentEnergy, factionEnergy){
   return best;
 }
 async function submitOnboarding(){
-  try { await submitOnboardingInner(); }
-  catch(e){
-    console.error('join failed:', e);
-    lastSyncError = { message: 'Could not join: ' + ((e && e.message) ? e.message : String(e)), retry: () => { lastSyncError = null; submitOnboarding(); } };
-    bootPhase = 'onboarding'; render();
-  }
-}
-async function submitOnboardingInner(){
   const name = (onboardName || '').trim() || ('Runner_' + Math.floor(1000+Math.random()*9000));
   // Pull the freshest season-level energy tallies so two people joining at
   // nearly the same time don't both get assigned to the same "lightest" faction.
@@ -850,8 +817,8 @@ async function submitOnboardingInner(){
   // assignment can't happen without it.
   let fresh = await ensureWorldLoaded();
   if (!fresh){
-    lastSyncError = { message: 'Could not reach the game world. If you just updated the game, re-run schema.sql in Supabase (SQL Editor) — the new version needs the version column and the kv_cas/kv_add_deploy/kv_assign_faction functions.', retry: () => { lastSyncError = null; submitOnboarding(); } };
-    bootPhase = 'onboarding'; render(); return;
+    lastSyncError = { message: 'Could not reach the game world. Please retry.', retry: () => { lastSyncError = null; submitOnboarding(); } };
+    render(); return;
   }
   const recentEnergy = onboardRecentEnergy;
   // Pick the lightest faction AND book our energy into it in a single atomic
@@ -870,7 +837,7 @@ async function submitOnboardingInner(){
   const okProfile = await safeSet('profile', profile, false);
   if (!okProfile){
     lastSyncError = { message: 'Could not save your profile. Please retry.', retry: () => { lastSyncError = null; submitOnboarding(); } };
-    bootPhase = 'onboarding'; render(); return;
+    render(); return;
   }
   bootPhase = 'loading'; render();
   await enterWorld();
@@ -2465,28 +2432,6 @@ function render(){
   }
 }
 function renderInner(){
-  if (bootPhase === 'schema_outdated'){
-    const why = schemaProblem && schemaProblem.why;
-    const isSchema = why === 'missing_version_column' || why === 'missing_functions';
-    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
-      <div class="card-title" style="margin-bottom:8px; color:var(--danger);">DATABASE SETUP NEEDED</div>
-      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:10px;">${isSchema ? 'Your database needs the updated schema' : 'Cannot reach the database'}</div>
-      <div class="muted" style="line-height:1.7;">
-        ${isSchema
-          ? `This version needs database changes that aren't in your project yet.<br><br>
-             <b>Fix it in about 30 seconds:</b><br>
-             1. Open your Supabase project → <b>SQL Editor</b><br>
-             2. Paste the whole of the new <b>schema.sql</b><br>
-             3. Click <b>Run</b>, then reload this page<br><br>
-             It's safe to re-run even if you've set up before — it won't delete existing data.`
-          : `The database returned an error:<br><code style="color:var(--danger); font-size:11px;">${(schemaProblem && schemaProblem.detail) || 'unknown'}</code><br><br>Check that your Supabase project is running (free projects pause after a week of inactivity — press Restore in the dashboard).`}
-      </div>
-      <button class="btn btn-primary" style="margin-top:16px;" onclick="location.reload()">RELOAD</button>
-      <button class="btn btn-outline" style="margin-top:8px;" onclick="forgetSupabaseConfig()">RE-ENTER SUPABASE DETAILS</button>
-      <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
-    </div></div>`;
-    return;
-  }
   if (bootPhase === 'room_form'){
     document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
       <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · ROOM</div>
@@ -2539,10 +2484,7 @@ function renderInner(){
     return;
   }
   if (bootPhase === 'onboarding'){
-    // renderSyncError() must be included here: without it, ANY failure during
-    // join (bad schema, network, storage) produced a completely silent
-    // no-op — the button looked dead with no explanation anywhere.
-    document.getElementById('root').innerHTML = renderSyncError() + renderOnboarding();
+    document.getElementById('root').innerHTML = renderOnboarding();
     return;
   }
   if (dataStale){
