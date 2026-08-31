@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.2-preflight-2026-08-31';
+const APP_BUILD = 'rk-v0.2.3-url-normalize-2026-08-31';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -515,14 +515,48 @@ function consumeInviteLinkParams(){
 }
 consumeInviteLinkParams();
 
+function normalizeSupabaseProjectUrl(raw){
+  let s = String(raw || '').trim();
+  // Strip accidental wrapping quotes copied from docs/editors.
+  s = s.replace(/^["'`]+|["'`]+$/g, '').trim();
+  if (!s) return '';
+
+  // If someone pasted a Supabase dashboard project URL, recover the project ref.
+  // Example: https://supabase.com/dashboard/project/abcdefgh/settings/api
+  try{
+    const dash = new URL(s);
+    const m = dash.pathname.match(/\/project\/([a-z0-9-]+)/i);
+    if (dash.hostname === 'supabase.com' && m && m[1]){
+      return `https://${m[1]}.supabase.co`;
+    }
+  } catch(e){}
+
+  // createClient() expects the PROJECT ORIGIN only. If /rest/v1, /auth/v1,
+  // /storage/v1, a query string, hash, or a trailing slash was pasted,
+  // reduce it safely back to https://<project>.supabase.co.
+  try{
+    const u = new URL(s);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    return u.origin;
+  } catch(e){
+    return '';
+  }
+}
+
 function readSupabaseConfig(){
-  const savedUrl = localStorage.getItem('rk_supabase_url');
-  const savedKey = localStorage.getItem('rk_supabase_key');
-  if (savedUrl && savedKey) return { url: savedUrl, key: savedKey };
+  const savedUrlRaw = localStorage.getItem('rk_supabase_url');
+  const savedKey = (localStorage.getItem('rk_supabase_key') || '').trim();
+  const savedUrl = normalizeSupabaseProjectUrl(savedUrlRaw);
+  if (savedUrl && savedKey){
+    // Self-heal URLs saved by older builds (e.g. ones ending in /rest/v1).
+    if (savedUrlRaw !== savedUrl) localStorage.setItem('rk_supabase_url', savedUrl);
+    return { url: savedUrl, key: savedKey };
+  }
 
   if (SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
       && !SUPABASE_URL_HARDCODED.startsWith('YOUR_') && !SUPABASE_ANON_KEY_HARDCODED.startsWith('YOUR_')){
-    return { url: SUPABASE_URL_HARDCODED, key: SUPABASE_ANON_KEY_HARDCODED };
+    const hardcodedUrl = normalizeSupabaseProjectUrl(SUPABASE_URL_HARDCODED);
+    if (hardcodedUrl) return { url: hardcodedUrl, key: SUPABASE_ANON_KEY_HARDCODED.trim() };
   }
   return null;
 }
@@ -752,7 +786,7 @@ async function checkSchema(){
     if (error){
       const msg = (error.message || '').toLowerCase();
       if (msg.includes('version') || error.code === '42703') return { ok:false, why:'missing_version_column' };
-      return { ok:false, why:'unreachable', detail: error.message };
+      return { ok:false, why:'unreachable', detail: `${error.message} (Project base: ${resolvedSupabaseConfig ? resolvedSupabaseConfig.url : 'unknown'})` };
     }
   } catch(e){ return { ok:false, why:'unreachable', detail: (e && e.message) || String(e) }; }
   try{
@@ -814,9 +848,14 @@ function updateJoinRoomButtonState(){
   if (btn) btn.disabled = !joinRoomInput.trim();
 }
 function submitSetupForm(){
-  const url = (setupUrlInput || '').trim();
+  const rawUrl = (setupUrlInput || '').trim();
+  const url = normalizeSupabaseProjectUrl(rawUrl);
   const key = (setupKeyInput || '').trim();
-  if (!url || !key) return;
+  if (!rawUrl || !key) return;
+  if (!url){
+    alert('That Project URL is not valid. Paste the Supabase Project URL, for example: https://abcdefgh.supabase.co');
+    return;
+  }
   localStorage.setItem('rk_supabase_url', url);
   localStorage.setItem('rk_supabase_key', key);
   location.reload(); // simplest, safest way to cleanly re-init everything with the new config
