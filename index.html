@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.5-territory-names-2026-09-01';
+const APP_BUILD = 'rk-v0.2.7-round-end-nav-2026-09-01';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -953,6 +953,7 @@ function makeInitialWorld(){
     factionEnergy: { cinder:0, surge:0, bloom:0 },
     roundWins: { cinder:0, surge:0, bloom:0 },
     rallyEnabled: true, // any player can turn this off from the debug panel — useful while testing with only 1 player per faction, where Rally has no one to coordinate
+    npcPowerEnabled: true, // debug panel can turn this off so battle outcomes depend ONLY on real deployed power — useful for solo testing, where "background NPC" power otherwise makes territory flip without you touching it
   };
 }
 // Everything that resets at the start of each new ROUND (week). Faction
@@ -983,7 +984,7 @@ async function ensureBattlesDoc(day){
   // Battle generation is a pure function (same inputs always produce the same
   // result), so recomputing it here after a transient read failure is safe —
   // it can't conflict with a copy another player already saved.
-  doc = generateBattlesDocPure(day, world.ownership, world.holdDays, world.repHistory);
+  doc = generateBattlesDocPure(day, world.ownership, world.holdDays, world.repHistory, world.npcPowerEnabled);
   await safeSet(key, doc, true);
   const updatedRepHistory = advanceRepHistory(world.repHistory, doc.activeBattles);
   // Only write 'world' again if repHistory actually needs updating (it may
@@ -995,13 +996,18 @@ async function ensureBattlesDoc(day){
   }
   return doc;
 }
-function generateBattlesDocPure(day, ownership, holdDays, repHistory){
+function generateBattlesDocPure(day, ownership, holdDays, repHistory, npcPowerEnabled){
   const activeBattles = selectActiveBattles(day, ownership, holdDays, repHistory);
   const baseline = {};
   activeBattles.forEach(t => {
     baseline[t] = {};
     effectiveEligibleFactions(t, ownership, activeBattles, day).forEach(f => {
-      baseline[t][f] = generateBaselinePower(day, t, f);
+      // NPC/background power represents "everyone else in this faction who
+      // isn't you" — it's what makes territories move even when you've only
+      // deployed to one of them. Turning it off (debug panel) makes outcomes
+      // depend ONLY on real deployed power, which is what solo testing
+      // usually expects: nothing you didn't touch should change hands.
+      baseline[t][f] = npcPowerEnabled === false ? 0 : generateBaselinePower(day, t, f);
     });
   });
   return { activeBattles, baseline };
@@ -1367,6 +1373,11 @@ async function resolveDayManually(){
     if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
     if (roundIsOver()) return;
     await settleCurrentDay();
+    // The round (or season) just ended — take the player straight to the
+    // results screen instead of leaving them on Home, where the old banner
+    // would keep inviting them to "RESOLVE DAY" again with no visible
+    // change (that stale banner is what made it look like nothing happened).
+    if (roundIsOver()) uiScreen = 'season';
   } finally { inFlightResolve = false; render(); }
 }
 
@@ -1451,7 +1462,7 @@ async function settleCurrentDay(){
   let nextBattlesDoc = null;
   let nextRepHistory = world.repHistory;
   if (!roundDone){
-    nextBattlesDoc = generateBattlesDocPure(nextDay, newOwnership, newHoldDays, world.repHistory);
+    nextBattlesDoc = generateBattlesDocPure(nextDay, newOwnership, newHoldDays, world.repHistory, world.npcPowerEnabled);
     nextRepHistory = advanceRepHistory(world.repHistory, nextBattlesDoc.activeBattles);
   }
 
@@ -1888,6 +1899,14 @@ function renderHistoryMap(ownership){
   return `<div class="map-wrap"><div class="map-grid">${tiles}</div></div>`;
 }
 function phaseBanner(){
+  if (roundIsOver()){
+    const isSeasonEnd = world.phase === 'seasonEnd';
+    return `<div class="card" style="text-align:center; padding:14px; border-color:var(--gold);">
+      <div class="card-title" style="margin-bottom:6px;">${isSeasonEnd ? '🏆 SEASON COMPLETE' : '🏁 ROUND COMPLETE'}</div>
+      <div class="muted" style="margin-bottom:10px;">${isSeasonEnd ? 'All 6 rounds are done — see the season champion and your rewards.' : `Round ${world.round} is over — check standings, then start Round ${world.round+1} when ready.`}</div>
+      <button class="btn btn-primary btn-small" onclick="goScreen('season')">VIEW RESULTS</button>
+    </div>`;
+  }
   if (world.phase === 'fog'){
     return `<div class="fog-banner"><div class="fogtitle">🌫 BATTLE FOG</div>
       <div class="muted" style="margin-top:4px;">Final troop movements are hidden. You can still deploy remaining power.</div>
@@ -1933,6 +1952,9 @@ function screenHome(){
   const rs = rosterStats();
   return `
   ${eliminatedBanner()}
+  ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
+    <span class="muted" style="font-size:11px;">⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles</span>
+  </div>` : ''}
   ${kingmakerBanner()}
   <div class="card" style="text-align:center; padding:10px 16px;">
     <span>👥 <b>${rs.online}</b> players online</span>
@@ -2418,6 +2440,15 @@ async function dbgToggleRally(){
   fresh.rallyEnabled = fresh.rallyEnabled === false ? true : false;
   await safeSet(worldKey(), fresh, true); world = fresh; render();
 }
+async function dbgToggleNpcPower(){
+  const fresh = await safeGet(worldKey(), true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
+  fresh.npcPowerEnabled = fresh.npcPowerEnabled === false ? true : false;
+  await safeSet(worldKey(), fresh, true); world = fresh;
+  // Only future days are affected — today's battlesDoc (if already generated)
+  // keeps whatever baseline it was created with, so this doesn't retroactively
+  // change a battle that's already in progress.
+  render();
+}
 async function dbgSimulateTeammate(){
   if (!battlesDoc.activeBattles.length) return;
   const t = battlesDoc.activeBattles[Math.floor(Math.random()*battlesDoc.activeBattles.length)];
@@ -2478,6 +2509,11 @@ function renderDebug(){
       <h4>Rally (affects all players)</h4>
       <div class="muted" style="margin-bottom:6px;">Currently: ${world.rallyEnabled === false ? 'OFF' : 'ON'}. Useful to turn off while testing with only one player per faction.</div>
       <button class="btn btn-outline btn-small" onclick="dbgToggleRally()">${world.rallyEnabled === false ? 'Turn Rally ON' : 'Turn Rally OFF'}</button>
+    </div>
+    <div class="debug-section">
+      <h4>Background NPC Power (affects all players)</h4>
+      <div class="muted" style="margin-bottom:6px;">Currently: ${world.npcPowerEnabled === false ? 'OFF' : 'ON'}. When ON, every eligible faction gets randomized "background" power on top of any real deployed power — this is what makes territories flip even when nobody touched them. Turn OFF so outcomes depend only on real deployed power (only affects days not yet generated).</div>
+      <button class="btn btn-outline btn-small" onclick="dbgToggleNpcPower()">${world.npcPowerEnabled === false ? 'Turn NPC Power ON' : 'Turn NPC Power OFF'}</button>
     </div>
     <div class="debug-section">
       <h4>Simulate Teammate (affects all players)</h4>
