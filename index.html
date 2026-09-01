@@ -195,7 +195,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.4-frontier-coverage-2026-08-31';
+const APP_BUILD = 'rk-v0.2.5-territory-names-2026-09-01';
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -287,9 +287,9 @@ const FACTION_META = {
 };
 const TERRITORIES = ['A','B','C','D','E','F','G','H','I'];
 const TERRITORY_NAMES = {
-  A: 'Gilgamesh', B: 'Black Cat', C: 'Gas City',
-  D: 'Satoshi Gate', E: '👑 Kingmaker', F: 'Moonbase',
-  G: 'Genesis', H: 'Degen Hollow', I: 'The Wasteland',
+  A: 'Alpha Gate', B: 'Black Cat 🐈\u200d⬛', C: 'Charm City',
+  D: 'Diamond District 💎', E: 'Energy Core 👑', F: 'Find Satoshi',
+  G: 'Gilgamesh Domination', H: 'Haus Haven', I: 'ID Plaza',
 };
 const territoryLabel = (t) => TERRITORY_NAMES[t] || t;
 const rallyOutcomeLabel = (outcome) => outcome === 'captured' ? '✅ CAPTURED' : outcome === 'held' ? '🛡️ HELD' : '❌ LOST';
@@ -1912,7 +1912,7 @@ function kingmakerBanner(){
   const mult = CONFIG.finalDayKingmakerMultiplier;
   if (isToday){
     return `<div class="elim-banner" style="border-color:rgba(242,194,69,0.5); background:linear-gradient(135deg, rgba(242,194,69,0.16), rgba(242,194,69,0.02));">
-      <div class="et" style="color:var(--gold);">🔥 FINAL DAY — KINGMAKER ×${mult}</div>
+      <div class="et" style="color:var(--gold);">🔥 FINAL DAY — ${territoryLabel('E').toUpperCase()} ×${mult}</div>
       <div class="muted" style="margin-top:4px;">${territoryLabel('E')} is worth ${vpValueOf('E', world.currentDay)} VP today and is open to every team, adjacent or not. This is the decider.</div>
     </div>`;
   }
@@ -2174,7 +2174,7 @@ function screenRally(){
     <div class="card">
       <div class="card-title">BROADCAST TO YOUR TEAM</div>
       <div class="muted" style="font-size:12px; margin-bottom:6px;">One short message your whole team sees. Update it any day of the round.</div>
-      <input id="cmd-msg-input" class="name-input" maxlength="${CONFIG.commanderMessageMaxChars}" placeholder="e.g. Day 3: Blue left Moonbase thin — hit it tomorrow" value="${commanderMsgInput}" oninput="commanderMsgInput=this.value; updateCmdMsgCount();" />
+      <input id="cmd-msg-input" class="name-input" maxlength="${CONFIG.commanderMessageMaxChars}" placeholder="e.g. Day 3: Blue left Find Satoshi thin — hit it tomorrow" value="${commanderMsgInput}" oninput="commanderMsgInput=this.value; updateCmdMsgCount();" />
       <div class="row-between" style="margin-top:6px;">
         <span class="muted" id="cmd-msg-count" style="font-size:11px;">${remaining} characters left</span>
         <button class="btn btn-primary btn-small" onclick="publishCommanderMessage(commanderMsgInput)" ${!commanderMsgInput.trim()?'disabled':''}>POST</button>
