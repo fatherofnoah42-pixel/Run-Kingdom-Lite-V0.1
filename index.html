@@ -37,6 +37,10 @@ body{background:var(--bg); color:var(--text); font-family:'Inter','Noto Sans JP'
 .lang-toggle{font-family:'Space Mono',monospace; font-size:11px; font-weight:700; color:var(--text-dim); border:1px solid var(--border); border-radius:20px; padding:2px 10px; cursor:pointer; user-select:none; background:var(--panel-3);}
 .lang-toggle:active{transform:scale(0.94);}
 .lang-toggle{appearance:auto; max-width:110px;}
+.topbar-tools{display:flex; align-items:center; gap:7px;}
+.room-code-btn{font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1px; color:var(--gold);
+  border:1px solid rgba(248,201,74,.42); border-radius:20px; padding:3px 8px; cursor:pointer; background:rgba(248,201,74,.08);}
+.room-code-btn:active{transform:scale(.96);}
 .live-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bloom); margin-right:5px; animation:livePulse 1.6s ease-in-out infinite;}
 @keyframes livePulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
 .standings-row{display:flex; gap:10px; margin-top:8px;}
@@ -187,8 +191,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
    someone comfortable editing code who wants every visitor pre-configured
    without seeing the setup form. Leave them as-is if you're not sure.
 ========================================================= */
-const SUPABASE_URL_HARDCODED = 'YOUR_SUPABASE_PROJECT_URL';
-const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
+const SUPABASE_URL_HARDCODED = 'https://nzgpcbxlgjiozfktxjpj.supabase.co';
+const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56Z3BjYnhsZ2ppb3pma3R4anBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNDU2NTksImV4cCI6MjEwNDYyMTY1OX0.uu7qal1yVgiHMZhj8e6pO-NALkN49gwsczIfb7b82Y0';
 
 // A visible build marker — shown small in the corner of the loading/setup
 // screens. Purely a debugging aid: if you ever see a blank page and aren't
@@ -198,7 +202,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.4.0-5lang-bugfix-2026-09-10';
+const APP_BUILD = 'rk-v0.5.1-community-atomic-settlement-room-code-ui-6lang-2026-09-10';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -757,7 +761,45 @@ ZH['Room not found. Check the code, or create a new room.']='未找到房间。�
 JA['Room not found. Check the code, or create a new room.']='ルームが見つかりません。コードを確認するか、新しいルームを作成してください。';
 KO['Room not found. Check the code, or create a new room.']='방을 찾을 수 없습니다. 코드를 확인하거나 새 방을 만들어 주세요.';
 TR['Room not found. Check the code, or create a new room.']='Oda bulunamadı. Kodu kontrol edin veya yeni bir oda oluşturun.';
-const I18N = { zh: ZH, ja: JA, ko: KO, tr: TR };
+const RU = {
+  "RUN KINGDOM · SEASON 01":"RUN KINGDOM · СЕЗОН 01", "{n} online":"{n} онлайн",
+  "HOME":"ГЛАВНАЯ", "RUN":"БЕГ", "DEPLOY":"РАЗМЕЩЕНИЕ", "RALLY":"СБОР", "SEASON":"СЕЗОН",
+  "👥 <b>{n}</b> players online":"👥 <b>{n}</b> игроков онлайн", "🏆 PRIZE POOL":"🏆 ПРИЗОВОЙ ФОНД",
+  "📰 LATEST REPORT":"📰 ПОСЛЕДНИЙ ОТЧЁТ", "📜 TERRITORY HISTORY":"📜 ИСТОРИЯ ТЕРРИТОРИЙ", "View ›":"Открыть ›",
+  "TERRITORY MAP (today's open battles keep pulsing)":"КАРТА ТЕРРИТОРИЙ (сегодняшние битвы пульсируют)",
+  "Tap a glowing tile to view today's battle.":"Нажмите на светящуюся клетку, чтобы открыть битву.",
+  "YOUR POWER":"ВАША СИЛА", "DEPLOYED":"РАЗМЕЩЕНО", "TODAY'S ACTIVE BATTLES":"АКТИВНЫЕ БИТВЫ СЕГОДНЯ",
+  "No active battles today.":"Сегодня нет активных битв.", "Bounty":"Награда",
+  "ENTER BATTLE FOG":"ВКЛЮЧИТЬ ТУМАН", "RESOLVE DAY":"ЗАВЕРШИТЬ ДЕНЬ", "RESOLVING…":"ПОДВЕДЕНИЕ ИТОГОВ…",
+  "🌫 BATTLE FOG":"🌫 ТУМАН ВОЙНЫ", "Final troop movements are hidden. You can still deploy remaining power.":"Последние перемещения скрыты. Оставшуюся силу ещё можно разместить.",
+  "🏁 ROUND COMPLETE":"🏁 РАУНД ЗАВЕРШЁН", "🏆 SEASON COMPLETE":"🏆 СЕЗОН ЗАВЕРШЁН", "VIEW RESULTS":"ПОКАЗАТЬ РЕЗУЛЬТАТЫ",
+  "⚔ LAST STAND COMEBACK":"⚔ ПОСЛЕДНИЙ ШАНС", "SIMULATE TODAY'S RUN":"СИМУЛЯЦИЯ СЕГОДНЯШНЕГО БЕГА",
+  "ENERGY TODAY":"ЭНЕРГИЯ СЕГОДНЯ", "Base Power":"Базовая сила", "90 Energy":"90 энергии", "GST Boost":"Усиление GST",
+  "POWER EARNED":"ПОЛУЧЕННАЯ СИЛА", "None":"Нет", "Power available to deploy":"Доступная сила",
+  "Unused Power expires at settlement.":"Неиспользованная сила сгорает при подведении итогов.", "GO TO DEPLOY":"К РАЗМЕЩЕНИЮ",
+  "DEPLOYMENT LOCKED":"РАЗМЕЩЕНИЕ ЗАБЛОКИРОВАНО", "Power cannot be withdrawn after deployment.":"После размещения силу нельзя вернуть.",
+  "MAIN BATTLE":"ГЛАВНАЯ БИТВА", "OPTIONAL SECONDARY BATTLE":"ДОПОЛНИТЕЛЬНАЯ БИТВА", "ALLOCATION SPLIT":"РАСПРЕДЕЛЕНИЕ",
+  "RESULT":"РЕЗУЛЬТАТ", "Available":"Доступно", "CONFIRM DEPLOYMENT":"ПОДТВЕРДИТЬ", "CHOOSE YOUR TARGET":"ВЫБЕРИТЕ ЦЕЛЬ",
+  "RALLY IS OFF":"СБОР ОТКЛЮЧЁН", "STANDING FOR ELECTION ({n})":"КАНДИДАТЫ ({n})", "Nobody has stood yet.":"Кандидатов пока нет.",
+  "(you)":"(вы)", "STAND FOR COMMANDER":"СТАТЬ КАНДИДАТОМ", "ROUND {n}":"РАУНД {n}", "POST":"ОТПРАВИТЬ",
+  "MAIN":"ОСНОВНАЯ", "SUPPORT":"ПОДДЕРЖКА", "FOLLOW RALLY":"СЛЕДОВАТЬ СБОРУ", "CUSTOM DEPLOY":"СВОЁ РАЗМЕЩЕНИЕ",
+  "No settlement yet.":"Итоги ещё не подведены.", "TIE":"НИЧЬЯ", "BACK TO HOME":"НА ГЛАВНУЮ",
+  "YOUR WALLET (MOCK)":"ВАШ КОШЕЛЁК (ТЕСТ)", "GMT Balance":"Баланс GMT", "Contribution Rank":"Рейтинг вклада",
+  "Participation Days":"Дни участия", "Estimated Reward":"Ожидаемая награда", "Not eligible":"Нет права на награду",
+  "Champion":"Чемпион", "Runner-Up":"Второе место", "Second Runner-Up":"Третье место",
+  "Join the Battlefield":"Присоединиться к битве", "Runner name":"Имя бегуна", "Leave blank for a random one":"Оставьте пустым для случайного имени",
+  "Your last-7-day energy (mock STEPN data)":"Энергия за последние 7 дней (тестовые данные STEPN)",
+  "JOIN GAME":"ВОЙТИ В ИГРУ", "RUN KINGDOM · ROOM":"RUN KINGDOM · КОМНАТА", "Create or join a room":"Создать комнату или войти",
+  "CREATE A NEW ROOM":"СОЗДАТЬ КОМНАТУ", "JOIN ROOM":"ВОЙТИ В КОМНАТУ", "NEUTRAL":"НЕЙТРАЛЬНО",
+  "LEADING":"ЛИДИРУЕТ", "CLOSE":"БЛИЗКО", "BEHIND":"ОТСТАЁТ", "HIDDEN":"СКРЫТО", "CAP":"СТОЛИЦА",
+  "SYNCING":"СИНХРОНИЗАЦИЯ", "Connecting to the Run Kingdom world…":"Подключение к миру Run Kingdom…",
+  "VP today":"VP сегодня", "PARTICIPATING FACTIONS":"УЧАСТВУЮЩИЕ ФРАКЦИИ", "Status":"Статус",
+  "FOG — awaiting resolve":"ТУМАН — ожидание итогов", "OPEN — awaiting resolve":"ОТКРЫТО — ожидание итогов",
+  "POWER ALREADY DEPLOYED":"СИЛА УЖЕ РАЗМЕЩЕНА", "DEPLOY POWER HERE":"РАЗМЕСТИТЬ СИЛУ ЗДЕСЬ",
+  "Not an active battle today.":"Сегодня это не активная битва."
+};
+
+const I18N = { zh: ZH, ja: JA, ko: KO, tr: TR, ru: RU };
 
 ZH["VP today"] = "今日 VP";
 JA["VP today"] = "本日のVP";
@@ -799,9 +841,9 @@ function tr(key, vars){
   return s;
 }
 function setLang(l){
-  LANG = ['en','zh','ja','ko','tr'].includes(l) ? l : 'en';
+  LANG = ['en','zh','ja','ko','tr','ru'].includes(l) ? l : 'en';
   try { localStorage.setItem('rk_lang', LANG); } catch(e){}
-  document.documentElement.lang = ({en:'en',zh:'zh-CN',ja:'ja',ko:'ko',tr:'tr'})[LANG] || 'en';
+  document.documentElement.lang = ({en:'en',zh:'zh-CN',ja:'ja',ko:'ko',tr:'tr',ru:'ru'})[LANG] || 'en';
   render();
 }
 
@@ -1256,7 +1298,9 @@ function connectSupabase(cfg){
   sbClient = null; supabaseInitError = null;
   if (!cfg || typeof window.supabase === 'undefined') return;
   try{
-    sbClient = window.supabase.createClient(cfg.url, cfg.key);
+    sbClient = window.supabase.createClient(cfg.url, cfg.key, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:false }
+    });
   } catch(e){
     sbClient = null;
     supabaseInitError = (e && e.message) ? e.message : String(e);
@@ -1282,21 +1326,24 @@ function forgetRoomCode(){
   location.reload();
 }
 
-// ---- Local player identity ----
-// This app is a real standalone website now (not a Claude artifact), so a
-// normal browser localStorage id is the right tool for "who is this browser"
-// — it's what scopes "personal" data (your own energy, wallet, progress)
-// separately from the shared world everyone sees. Same browser = same
-// identity across visits; a different browser/device gets a new one.
-function getLocalPlayerId(){
-  let id = localStorage.getItem('rk_player_id');
-  if (!id){
-    id = 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
-    localStorage.setItem('rk_player_id', id);
+// Identity is issued by Supabase Auth. Anonymous sessions persist in this
+// browser and receive the authenticated database role, so RLS can distinguish
+// real users instead of trusting a locally invented id.
+let LOCAL_PLAYER_ID = null;
+let isRoomAdmin = false;
+async function ensureAuthenticated(){
+  const { data:sessionData, error:sessionError } = await sbClient.auth.getSession();
+  if (sessionError) throw sessionError;
+  let session = sessionData && sessionData.session;
+  if (!session){
+    const { data, error } = await sbClient.auth.signInAnonymously();
+    if (error) throw error;
+    session = data && data.session;
   }
-  return id;
+  if (!session || !session.user) throw new Error('Anonymous sign-in did not return a user. Enable Anonymous Sign-Ins in Supabase Authentication settings.');
+  LOCAL_PLAYER_ID = session.user.id;
+  return session.user;
 }
-const LOCAL_PLAYER_ID = getLocalPlayerId();
 
 // ---- Room code ----
 // Without this, every single person who connects a game to the same
@@ -1392,7 +1439,12 @@ async function safeSet(key, value, shared, attempts){
   let lastErr = null;
   for (let i = 0; i < attempts; i++){
     try{
-      const { error } = await sbClient.from('kv_store').upsert({ key: k, value, updated_at: new Date().toISOString() });
+      let error = null;
+      if (shared){
+        ({ error } = await sbClient.rpc('rk_admin_set', { p_key:k, p_value:value }));
+      } else {
+        ({ error } = await sbClient.rpc('rk_set_personal', { p_key:k, p_value:value }));
+      }
       if (error) throw error;
       return true;
     } catch(e){ lastErr = e; }
@@ -1442,6 +1494,20 @@ let debugOpen = false;
 let flashTiles = {};
 let inFlightResolve = false, inFlightFogToggle = false;
 let lastSyncError = null; // {message, retry: () => Promise}
+let roomCodeCopied = false;
+
+async function copyRoomCode(){
+  if (!roomCode) return;
+  try{
+    if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
+    await navigator.clipboard.writeText(roomCode);
+    roomCodeCopied = true;
+    render();
+    setTimeout(() => { roomCodeCopied = false; render(); }, 1400);
+  } catch(e){
+    window.prompt('Copy room code:', roomCode);
+  }
+}
 
 /* =========================================================
    ONBOARDING
@@ -1456,27 +1522,31 @@ let onboardRecentEnergy = 30;
 // instead, naming the exact fix.
 async function checkSchema(){
   try{
-    const { error } = await sbClient.from('kv_store').select('value,version').eq('key', '__preflight__').maybeSingle();
-    if (error){
-      const msg = (error.message || '').toLowerCase();
-      if (msg.includes('version') || error.code === '42703') return { ok:false, why:'missing_version_column' };
-      return { ok:false, why:'unreachable', detail: `${error.message} (Project base: ${resolvedSupabaseConfig ? resolvedSupabaseConfig.url : 'unknown'})` };
-    }
-  } catch(e){ return { ok:false, why:'unreachable', detail: (e && e.message) || String(e) }; }
-  try{
-    // Harmless probe: the expected version can never match, so this returns
-    // "conflict" without writing anything. It only tells us the function exists.
-    const { error } = await sbClient.rpc('kv_cas', { p_key:'__preflight__', p_value:{}, p_expected_version:-999999 });
-    if (error) return { ok:false, why:'missing_functions', detail: error.message };
-  } catch(e){ return { ok:false, why:'missing_functions', detail: (e && e.message) || String(e) }; }
+    const { data, error } = await sbClient.rpc('rk_schema_version');
+    if (error) return { ok:false, why:'missing_functions', detail:error.message };
+    if (data !== '0.5.1') return { ok:false, why:'missing_functions', detail:'Community schema v0.5.1 is required.' };
+  } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
 
 async function boot(){
   if (!sbClient){ bootPhase = resolvedSupabaseConfig ? 'config_missing' : 'setup_form'; render(); return; }
+  try{ await ensureAuthenticated(); }
+  catch(e){ schemaProblem={ why:'auth', detail:(e&&e.message)||String(e) }; bootPhase='schema_outdated'; render(); return; }
   const schema = await checkSchema();
   if (!schema.ok){ schemaProblem = schema; bootPhase = 'schema_outdated'; render(); return; }
   if (!roomCode){ bootPhase = 'room_form'; render(); return; }
+  try{
+    const { error:joinError } = await sbClient.rpc('rk_join_room', { p_code:roomCode });
+    if (joinError) throw joinError;
+    const { data:info, error:infoError } = await sbClient.rpc('rk_session_info', { p_room:roomCode });
+    if (infoError) throw infoError;
+    isRoomAdmin = !!(info && info.role === 'admin');
+  } catch(e){
+    localStorage.removeItem('rk_room_code'); roomCode=null;
+    lastSyncError={ message:tr('Room not found. Check the code, or create a new room.'), retry:()=>{ lastSyncError=null; } };
+    bootPhase='room_form'; render(); return;
+  }
   const p = await safeGet(profileKey(), false);
   // STORAGE_RETRY_LATER is a truthy string, not a real profile object — treating
   // it as "we have a profile" would silently skip onboarding and later crash
@@ -1493,28 +1563,27 @@ async function boot(){
   await enterWorld();
 }
 let joinRoomInput = '';
-function submitCreateRoom(){
-  roomCode = generateRoomCode();
-  saveRoomCode(roomCode);
-  bootPhase = 'loading'; render();
-  boot();
+async function submitCreateRoom(){
+  bootPhase='loading'; render();
+  for (let i=0;i<5;i++){
+    const code=generateRoomCode();
+    const { error }=await sbClient.rpc('rk_create_room',{p_code:code});
+    if (!error){ roomCode=code; isRoomAdmin=true; saveRoomCode(roomCode); boot(); return; }
+  }
+  bootPhase='room_form'; lastSyncError={message:'Could not create a unique room. Please try again.',retry:submitCreateRoom}; render();
 }
 async function submitJoinRoom(){
   const code = (joinRoomInput || '').trim().toUpperCase();
   if (!code) return;
   bootPhase = 'loading'; render();
-  const existing = await safeGet(`room:${code}:world`, true);
-  if (existing === STORAGE_RETRY_LATER){
+  const { data:joined, error:joinError } = await sbClient.rpc('rk_join_room',{p_code:code});
+  if (joinError){
     bootPhase = 'room_form';
-    lastSyncError = { message: tr('Could not check that room. Please try again.'), retry: () => { lastSyncError=null; submitJoinRoom(); } };
-    render(); return;
-  }
-  if (!existing){
-    bootPhase = 'room_form';
-    lastSyncError = { message: tr('Room not found. Check the code, or create a new room.'), retry: () => { lastSyncError=null; } };
+    lastSyncError = { message: joinError.message && joinError.message.includes('Room not found') ? tr('Room not found. Check the code, or create a new room.') : tr('Could not check that room. Please try again.'), retry: () => { lastSyncError=null; submitJoinRoom(); } };
     render(); return;
   }
   roomCode = code;
+  isRoomAdmin = !!(joined && joined.role === 'admin');
   saveRoomCode(roomCode);
   bootPhase = 'loading'; render();
   boot();
@@ -1585,11 +1654,11 @@ async function submitOnboardingInner(){
   // and both got put there, and one of the two energy writes was then lost.
   let faction = null;
   try{
-    const { data, error } = await sbClient.rpc('kv_assign_faction', { p_key: fullKey(worldKey(), true), p_energy: recentEnergy });
+    const { data, error } = await sbClient.rpc('kv_assign_faction', { p_key: fullKey(worldKey(), true), p_energy: recentEnergy, p_name:name });
     if (error) throw error;
     faction = data;
-  } catch(e){ console.warn('atomic faction assignment unavailable, falling back:', e); }
-  if (!faction) faction = assignFaction(recentEnergy, fresh.factionEnergy);
+  } catch(e){ console.warn('secure faction assignment failed:', e); }
+  if (!faction) throw new Error('The server could not assign your faction. Please retry.');
 
   profile = { name, faction, recentEnergy, seasonId: fresh.seasonId };
   const okProfile = await safeSet(profileKey(), profile, false);
@@ -1615,8 +1684,8 @@ function makeInitialWorld(){
     // by headcount. roundWins tracks the season-long scoreboard.
     factionEnergy: { cinder:0, surge:0, bloom:0 },
     roundWins: { cinder:0, surge:0, bloom:0 },
-    rallyEnabled: true, // any player can turn this off from the debug panel — useful while testing with only 1 player per faction, where Rally has no one to coordinate
-    npcPowerEnabled: true, // debug panel can turn this off so battle outcomes depend ONLY on real deployed power — useful for solo testing, where "background NPC" power otherwise makes territory flip without you touching it
+    rallyEnabled: false,
+    npcPowerEnabled: false,
   };
 }
 // Everything that resets at the start of each new ROUND (week). Faction
@@ -1684,6 +1753,11 @@ function advanceRepHistory(repHistory, activeBattles){
   return out;
 }
 async function ensureActivityDoc(day){
+  if (world && world.phase === 'fog' && !isRoomAdmin){
+    const frozen = await safeGet(dayKey(world.runId, 'fogsnapshot', day), true);
+    if (frozen && frozen !== STORAGE_RETRY_LATER) return frozen;
+    return activityDoc || { deployed:{}, rally:{cinder:null,surge:null,bloom:null} };
+  }
   const key = dayKey(world.runId, 'activity', day);
   let doc = await safeGet(key, true);
   if (doc && doc !== STORAGE_RETRY_LATER) return doc;
@@ -1754,18 +1828,9 @@ async function ensureProgress(){
 async function donateGMT(amount){
   amount = Math.round(amount);
   if (!seasonProgress || !world || amount <= 0 || amount > seasonProgress.gmtBalance) return;
-  seasonProgress.gmtBalance = round2(seasonProgress.gmtBalance - amount);
-  seasonProgress.totalDonated = round2((seasonProgress.totalDonated||0) + amount);
-  await safeSet(seasonProgressKey(), seasonProgress, false);
-
-  const prizeAdd = Math.round(amount * CONFIG.gmtSplit.prize);
-  const burnAdd = Math.round(amount * CONFIG.gmtSplit.burn);
-  const protoAdd = amount - prizeAdd - burnAdd; // remainder, so the three parts always sum exactly to the donation
-  const res = await mutateShared(worldKey(), (w) => {
-    if (!w) return null;
-    return { ...w, prizePool: w.prizePool + prizeAdd, gmtBurned: w.gmtBurned + burnAdd, protocolRevenue: w.protocolRevenue + protoAdd };
-  });
-  if (res.ok && res.value) world = res.value;
+  const { data, error }=await sbClient.rpc('rk_donate',{p_room:roomCode,p_amount:amount});
+  if (error){ lastSyncError={message:'Donation was not saved: '+error.message,retry:()=>donateGMT(amount)}; render(); return; }
+  if (data){ world=data.world; seasonProgress=data.wallet; }
   render();
 }
 
@@ -1788,17 +1853,13 @@ function myRosterEntry(){
 // pick the same name, which would silently merge them into one entry.
 // CAS-guarded so two players heartbeating at once can't drop each other.
 async function joinRoster(){
-  const key = `room:${roomCode}:${world.runId}-roster`;
-  const res = await mutateShared(key, (cur) => ({ ...(cur || {}), [LOCAL_PLAYER_ID]: myRosterEntry() }));
-  if (res.ok && res.value){ roster = res.value; lastHeartbeatAt = Date.now(); }
+  const { data, error } = await sbClient.rpc('rk_heartbeat',{p_room:roomCode,p_name:profile.name});
+  if (!error && data){ roster=data; lastHeartbeatAt=Date.now(); }
 }
 async function refreshRoster(){
-  const key = `room:${roomCode}:${world.runId}-roster`;
-  const fresh = await safeGet(key, true);
-  if (fresh && fresh !== STORAGE_RETRY_LATER) roster = fresh;
   if (Date.now() - lastHeartbeatAt > CONFIG.heartbeatMs){
-    const res = await mutateShared(key, (cur) => ({ ...(cur || {}), [LOCAL_PLAYER_ID]: myRosterEntry() }));
-    if (res.ok && res.value){ roster = res.value; lastHeartbeatAt = Date.now(); }
+    const { data, error }=await sbClient.rpc('rk_heartbeat',{p_room:roomCode,p_name:profile.name});
+    if (!error && data){ roster=data; lastHeartbeatAt=Date.now(); }
   }
 }
 function rosterStats(){
@@ -2024,21 +2085,22 @@ async function reconcileProgress(){
    take, so a write only happens when a person actually clicks something.
 ========================================================= */
 async function enterFogManually(){
-  if (inFlightFogToggle || !world || world.phase !== 'battles') return;
+  if (!isRoomAdmin || inFlightFogToggle || !world || world.phase !== 'battles') return;
   inFlightFogToggle = true;
   try{
-    const res = await mutateShared(worldKey(), (w) => {
-      if (!w || w.phase !== 'battles') return null;
-      return { ...w, phase:'fog' };
-    });
-    if (res.ok && res.value) world = res.value;
+    const { data,error }=await sbClient.rpc('rk_enter_fog',{p_room:roomCode});
+    if (error) throw error;
+    if (data) world=data;
   } finally { inFlightFogToggle = false; render(); }
 }
 async function resolveDayManually(){
-  if (inFlightResolve || !world) return;
+  if (!isRoomAdmin || inFlightResolve || !world) return;
   if (roundIsOver()) return;
   inFlightResolve = true;
   try{
+    const {data:locked,error:lockError}=await sbClient.rpc('rk_begin_resolve',{p_room:roomCode});
+    if (lockError) throw lockError;
+    if (locked) world=locked;
     const fresh = await safeGet(worldKey(), true);
     if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
     if (roundIsOver()) return;
@@ -2048,6 +2110,8 @@ async function resolveDayManually(){
     // would keep inviting them to "RESOLVE DAY" again with no visible
     // change (that stale banner is what made it look like nothing happened).
     if (roundIsOver()) uiScreen = 'season';
+  } catch(e){
+    lastSyncError={message:'The day could not be resolved: '+((e&&e.message)||'Unknown error'),retry:()=>{lastSyncError=null;resolveDayManually();}};
   } finally { inFlightResolve = false; render(); }
 }
 
@@ -2154,44 +2218,73 @@ async function settleCurrentDay(){
   }
   const isLastRound = world.round >= CONFIG.roundsPerSeason;
 
-  // CAS, and re-apply on top of whatever the newest world is. This is the
-  // most dangerous write in the game: a plain overwrite racing with someone's
-  // donation or nomination could roll back an entire day's settlement.
-  // prizePool/gmtBurned/protocolRevenue are applied as DELTAS so a concurrent
-  // donation is added to rather than discarded.
-  const settleRes = await mutateShared(worldKey(), (w) => {
-    const base = w || world;
-    if (base.currentDay !== day) return null; // someone already settled this day
-    return {
-      ...base, ownership: newOwnership, holdDays: newHoldDays, vp: newVp, repHistory: nextRepHistory,
-      prizePool: base.prizePool + prizeAdd, gmtBurned: base.gmtBurned + burnAdd, protocolRevenue: base.protocolRevenue + protoAdd,
-      commanderRecord: newCommanderRecord,
-      roundWins: roundDone ? { ...base.roundWins, [rankFactions(newVp, newOwnership)[0].f]: (base.roundWins[rankFactions(newVp, newOwnership)[0].f] || 0) + 1 } : base.roundWins,
-      currentDay: nextDay,
-      phase: roundDone ? (isLastRound ? 'seasonEnd' : 'roundEnd') : 'battles',
+  // Finalize through ONE database transaction.  The world, settlement report,
+  // and next-day battles either all commit or none do.  A version conflict
+  // means something legitimate (for example a donation) changed `world` while
+  // we calculated; preserve that newer state, rebuild only the derived totals,
+  // and retry instead of overwriting it.
+  let finalized = false;
+  for (let attempt=0; attempt<5; attempt++){
+    const cur = await safeGetVersioned(worldKey(), true);
+    if (cur === STORAGE_RETRY_LATER){ await sleep(250*(attempt+1)); continue; }
+    if (!cur || !cur.value) throw new Error('The room world could not be read.');
+    const base = cur.value;
+    if (base.runId !== world.runId || base.currentDay !== day || base.phase !== 'resolving'){
+      const official = await safeGet(sKey, true);
+      if (official && official !== STORAGE_RETRY_LATER) settlementDoc = official;
+      await advanceAfterExternalSettlement();
+      return;
+    }
+
+    // Rebase additive fields on the freshest world so donations and other
+    // legitimate concurrent changes cannot be rolled back by settlement.
+    const rebasedVp = {...base.vp};
+    FACTIONS.forEach(f => rebasedVp[f] = round2((rebasedVp[f]||0) + vpGained[f]));
+    results.forEach(r => { if (r.bonusVP > 0 && r.winner) rebasedVp[r.winner] = round2(rebasedVp[r.winner] + r.bonusVP); });
+    const rebasedCommanderRecord = JSON.parse(JSON.stringify(base.commanderRecord || newCommanderRecord));
+    Object.entries(rallyResults).forEach(([f,rr]) => {
+      if (!rebasedCommanderRecord[f]) rebasedCommanderRecord[f] = {wins:0,losses:0};
+      if (rr.main){ if (rr.main.outcome !== 'lost') rebasedCommanderRecord[f].wins++; else rebasedCommanderRecord[f].losses++; }
+    });
+    const winnerFaction = roundDone ? rankFactions(rebasedVp, newOwnership)[0].f : null;
+    const finalWorld = {
+      ...base,
+      ownership:newOwnership,
+      holdDays:newHoldDays,
+      vp:rebasedVp,
+      repHistory:nextRepHistory,
+      prizePool:(base.prizePool||0)+prizeAdd,
+      gmtBurned:(base.gmtBurned||0)+burnAdd,
+      protocolRevenue:(base.protocolRevenue||0)+protoAdd,
+      commanderRecord:rebasedCommanderRecord,
+      roundWins:roundDone ? {...base.roundWins,[winnerFaction]:(base.roundWins[winnerFaction]||0)+1} : base.roundWins,
+      currentDay:nextDay,
+      phase:roundDone ? (isLastRound ? 'seasonEnd' : 'roundEnd') : 'battles',
     };
-  });
-  if (settleRes.ok && settleRes.value && !settleRes.skipped){
-    world = settleRes.value;
-    // Only the client that actually advanced the authoritative world may publish
-    // this settlement report. This prevents two simultaneous resolvers from
-    // producing a report that disagrees with the ownership/VP stored in world.
-    await safeSet(sKey, sDoc, true);
-    settlementDoc = sDoc;
-  } else if (settleRes.skipped){
-    const official = await safeGet(sKey, true);
-    if (official && official !== STORAGE_RETRY_LATER) settlementDoc = official;
-    await advanceAfterExternalSettlement();
-    return;
-  } else {
-    return; // world was not advanced; don't leave a misleading settlement doc behind
+
+    const {data,error}=await sbClient.rpc('rk_finalize_resolve',{
+      p_room:roomCode,
+      p_run_id:world.runId,
+      p_day:day,
+      p_expected_version:cur.version,
+      p_world:finalWorld,
+      p_settlement:sDoc,
+      p_next_battles:nextBattlesDoc,
+    });
+    if (error) throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if (row && row.ok){
+      world=row.out_world||finalWorld;
+      if (row.already_settled){
+        const official=await safeGet(sKey,true);
+        if (official&&official!==STORAGE_RETRY_LATER) settlementDoc=official;
+      } else settlementDoc=sDoc;
+      finalized=true;
+      break;
+    }
+    await sleep(100*(attempt+1)+Math.random()*100);
   }
-  if (nextBattlesDoc){
-    // Write the next day's battles doc now, under its final key, so the
-    // upcoming ensureBattlesDoc() call in syncAll() finds it already there
-    // and doesn't need to generate + write it again.
-    await safeSet(dayKey(world.runId, 'battles', nextDay), nextBattlesDoc, true);
-  }
+  if (!finalized) throw new Error('Settlement encountered repeated concurrent changes. Please retry.');
 
   flashTiles = {}; results.forEach(r => { if (r.winner !== r.prevOwner) flashTiles[r.t] = true; });
 
@@ -2201,6 +2294,7 @@ async function settleCurrentDay(){
 // Starts the next ROUND: fresh map, fresh VP, fresh prize pool, fresh
 // commander election — but the same factions and the same season scoreboard.
 async function startNextRound(){
+  if (!isRoomAdmin) return;
   const next = freshRoundState(); // generated once so all clients don't each mint a different runId
   const res = await mutateShared(worldKey(), (w) => {
     if (!w || w.phase !== 'roundEnd') return null; // already advanced by someone else
@@ -2297,28 +2391,17 @@ async function deployPower(mainT, secT, splitPct){
   // to exactly what was available, every time.
   const secPower = secT ? round2(avail - mainPower) : 0;
 
-  // Try writing to shared battle data first; only lock deployment locally
-  // once that write succeeds, to avoid "looks deployed on my screen but no
-  // one else can see it" inconsistency.
-  // Deployment is the single hottest contended write: many players adding
-  // power to the same day's doc at once. It goes through a dedicated atomic
-  // database function that increments the value in place, so there is no
-  // read-modify-write window at all and no deployment can be lost.
-  const activityKey = dayKey(world.runId, 'activity', world.currentDay);
-  const addOne = async (terr, amt) => {
-    const { data, error } = await sbClient.rpc('kv_add_deploy', {
-      p_key: fullKey(activityKey, true), p_territory: terr, p_faction: profile.faction, p_amount: amt,
-    });
-    if (error) throw error;
-    return data;
-  };
   let updatedDoc = null;
   try{
-    updatedDoc = await addOne(mainT, mainPower);
-    if (secT) updatedDoc = await addOne(secT, secPower);
+    const { data,error }=await sbClient.rpc('rk_submit_deployment',{
+      p_room:roomCode,p_main:mainT,p_secondary:secT,p_main_percent:mp,
+      p_energy:mystate.energyToday,p_boost:mystate.gstBoostPercent
+    });
+    if (error) throw error;
+    updatedDoc=data;
   } catch(e){
-    console.error('atomic deploy failed:', e);
-    lastSyncError = { message: 'Your deployment did not sync to the shared battle. Please retry (your energy and choices are not lost).', retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct); } };
+    console.error('secure deploy failed:', e);
+    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct); } };
     render();
     return;
   }
@@ -2327,12 +2410,7 @@ async function deployPower(mainT, secT, splitPct){
   mystate.deployedPower[mainT] = round2((mystate.deployedPower[mainT]||0) + mainPower);
   if (secT) mystate.deployedPower[secT] = round2((mystate.deployedPower[secT]||0) + secPower);
   mystate.locked = true;
-  const personalOk = await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
-  if (!personalOk){
-    lastSyncError = { message: 'Your deployment counted toward the battle, but your personal record failed to save. It will retry automatically.', retry: () => { lastSyncError = null; safeSet(dayKey(world.runId,'mystate',world.currentDay), mystate, false).then(render); } };
-  } else {
-    lastSyncError = null;
-  }
+  lastSyncError = null;
   uiScreen = 'home';
   render();
 }
@@ -2380,18 +2458,12 @@ function myNomination(){
 }
 async function nominateSelf(){
   if (!isEligibleToNominate()) return;
-  const entry = { playerId: LOCAL_PLAYER_ID, name: profile.name, energy: profile.recentEnergy || 0 };
-  const res = await mutateShared(worldKey(), (w) => {
-    if (!w) return null;
-    const list = ((w.commanderNominees && w.commanderNominees[profile.faction]) || []).filter(n => n.playerId !== LOCAL_PLAYER_ID);
-    list.push(entry);
-    return { ...w, commanderNominees: { ...w.commanderNominees, [profile.faction]: list } };
-  });
-  if (!res.ok){
+  const {data,error}=await sbClient.rpc('rk_nominate',{p_room:roomCode});
+  if (error){
     lastSyncError = { message: 'Your nomination did not sync. Please retry.', retry: () => { lastSyncError = null; nominateSelf(); } };
     render(); return;
   }
-  if (res.value) world = res.value;
+  if (data) world=data;
   lastSyncError = null;
   await electCommanderIfNeeded();
   render();
@@ -2410,20 +2482,9 @@ function pickCommanderFrom(nominees){
 // of Day 1 and the winner is only locked in from Day 2 onward.
 function nominationsOpen(){ return world && world.currentDay <= CONFIG.commanderNominationDays; }
 async function electCommanderIfNeeded(){
-  if (!world || nominationsOpen()) return;
-  const res = await mutateShared(worldKey(), (w) => {
-    if (!w) return null;
-    let changed = false;
-    const commanders = { ...w.commanders };
-    FACTIONS.forEach(f => {
-      if (commanders[f]) return;
-      const winner = pickCommanderFrom(w.commanderNominees[f]);
-      if (winner){ commanders[f] = { ...winner, electedRound: w.round }; changed = true; }
-    });
-    if (!changed) return null; // nothing to do — skip the write entirely
-    return { ...w, commanders };
-  });
-  if (res.ok && res.value && !res.skipped) world = res.value;
+  if (!world || nominationsOpen() || world.rallyEnabled===false) return;
+  const {data,error}=await sbClient.rpc('rk_elect_commanders',{p_room:roomCode});
+  if (!error&&data) world=data;
   // Track our own consecutive-round streak locally, for the term limit.
   const mine = (world.commanders || {})[profile.faction];
   if (mine && mine.playerId === LOCAL_PLAYER_ID && seasonProgress && seasonProgress.lastCommanderRound !== world.round){
@@ -2439,32 +2500,24 @@ function iAmCommander(){
 async function publishCommanderMessage(text){
   if (!iAmCommander()) return;
   const msg = (text || '').slice(0, CONFIG.commanderMessageMaxChars);
-  const res = await mutateShared(worldKey(), (w) => {
-    if (!w) return null;
-    return { ...w, commanderMessages: { ...w.commanderMessages, [profile.faction]: { text: msg, day: w.currentDay, at: Date.now() } } };
-  });
-  if (!res.ok){
+  const {data,error}=await sbClient.rpc('rk_publish_message',{p_room:roomCode,p_text:msg});
+  if (error){
     lastSyncError = { message: 'Your message did not sync. Please retry.', retry: () => { lastSyncError = null; publishCommanderMessage(msg); } };
     render(); return;
   }
-  if (res.value) world = res.value;
+  if (data) world=data;
   lastSyncError = null; commanderMsgInput = ''; render();
 }
 async function publishRally(main, sec, split){
   if (!iAmCommander()) return;
-  const key = dayKey(world.runId, 'activity', world.currentDay);
-  const res = await mutateShared(key, (doc) => {
-    const d = doc || { deployed:{}, rally:{cinder:null,surge:null,bloom:null} };
-    if (d.rally && d.rally[profile.faction]) return null; // already published — don't clobber
-    return { ...d, rally: { ...d.rally, [profile.faction]: { main, secondary: sec, split } } };
-  });
-  if (!res.ok){
+  const {data,error}=await sbClient.rpc('rk_publish_rally',{p_room:roomCode,p_main:main,p_secondary:sec,p_main_percent:split[0]});
+  if (error){
     lastSyncError = { message: 'Your Rally failed to publish. Please retry.', retry: () => { lastSyncError = null; publishRally(main, sec, split); } };
     render();
     return;
   }
   lastSyncError = null;
-  if (res.value) activityDoc = res.value;
+  if (data) activityDoc=data;
   render();
 }
 // The energy slider's oninput event fires on every pixel of drag movement —
@@ -2539,7 +2592,10 @@ function renderTopbar(){
     </div>
     <div class="row-between" style="margin-top:4px;">
       <div class="muted" style="font-size:11px;">${tr('{n} online', {n: rs.online})}</div>
-      <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option></select>
+      <div class="topbar-tools">
+        ${isRoomAdmin ? `<button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>` : ''}
+        <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option><option value="ru" ${LANG==='ru'?'selected':''}>Русский</option></select>
+      </div>
     </div>
     <div class="standings-row">
       ${standings.map(s=>{
@@ -2615,10 +2671,11 @@ function phaseBanner(){
   if (world.phase === 'fog'){
     return `<div class="fog-banner"><div class="fogtitle">${tr('🌫 BATTLE FOG')}</div>
       <div class="muted" style="margin-top:4px;">${tr('Final troop movements are hidden. You can still deploy remaining power.')}</div>
-      <div class="btn-row" style="margin-top:10px;">
+      ${isRoomAdmin ? `<div class="btn-row" style="margin-top:10px;">
         <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
-      </div></div>`;
+      </div>` : `<div class="muted" style="margin-top:10px;">Waiting for the room admin to resolve the day.</div>`}</div>`;
   }
+  if (!isRoomAdmin) return `<div class="card" style="text-align:center; padding:12px;"><div class="muted">Deploy your Power at any time. The room admin controls Fog and settlement.</div></div>`;
   return `<div class="card" style="text-align:center; padding:12px;">
     <div class="muted" style="margin-bottom:10px;">${tr('Deploy your power, then resolve the day whenever your group is ready.')}</div>
     <div class="btn-row">
@@ -3116,7 +3173,7 @@ function screenSeason(){
     <div class="muted">👟 <b style="color:var(--text);">${tr('Polygon Locked Sneaker — {t} Design', {t: tr(r.sneakerDesign)})}</b></div>
   </div>` : `<div class="card"><div class="empty-note">${tr('Season rewards need {n}+ active days in the final round.', {n: CONFIG.participationThreshold})}</div></div>`}
   ` : `
-  <button class="btn btn-primary" onclick="startNextRound()">${tr('START ROUND {n}', {n: world.round + 1})}</button>
+  ${isRoomAdmin ? `<button class="btn btn-primary" onclick="startNextRound()">${tr('START ROUND {n}', {n: world.round + 1})}</button>` : `<div class="card"><div class="empty-note">Waiting for the room admin to start the next round.</div></div>`}
   <div class="muted" style="text-align:center; margin-top:8px; font-size:12px;">${tr('New map, new prize pool, new commander election — same teams.')}</div>
   `}
   ${walletCard}`;
@@ -3158,20 +3215,21 @@ window.addEventListener('keydown', function(e){
   if (e.key === 'Escape' && debugOpen){ debugOpen = false; render(); }
 });
 async function dbgToggleRally(){
-  const fresh = await safeGet(worldKey(), true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
-  fresh.rallyEnabled = fresh.rallyEnabled === false ? true : false;
-  await safeSet(worldKey(), fresh, true); world = fresh; render();
+  if (!isRoomAdmin) return;
+  const {data,error}=await sbClient.rpc('rk_set_flag',{p_room:roomCode,p_flag:'rallyEnabled',p_value:world.rallyEnabled===false});
+  if (!error&&data) world=data; render();
 }
 async function dbgToggleNpcPower(){
-  const fresh = await safeGet(worldKey(), true); if (!fresh || fresh === STORAGE_RETRY_LATER) return;
-  fresh.npcPowerEnabled = fresh.npcPowerEnabled === false ? true : false;
-  await safeSet(worldKey(), fresh, true); world = fresh;
+  if (!isRoomAdmin) return;
+  const {data,error}=await sbClient.rpc('rk_set_flag',{p_room:roomCode,p_flag:'npcPowerEnabled',p_value:world.npcPowerEnabled===false});
+  if (!error&&data) world=data;
   // Only future days are affected — today's battlesDoc (if already generated)
   // keeps whatever baseline it was created with, so this doesn't retroactively
   // change a battle that's already in progress.
   render();
 }
 async function dbgSimulateTeammate(){
+  if (!isRoomAdmin) return;
   if (!battlesDoc.activeBattles.length) return;
   const t = battlesDoc.activeBattles[Math.floor(Math.random()*battlesDoc.activeBattles.length)];
   const key = dayKey(world.runId, 'activity', world.currentDay);
@@ -3191,6 +3249,7 @@ function dbgCopyInviteLink(){
   }
 }
 async function dbgResetSeason(){
+  if (!isRoomAdmin) return;
   const fresh = makeInitialWorld();
   await safeSet(worldKey(), fresh, true);
   world = fresh;
@@ -3208,7 +3267,7 @@ async function dbgResetSeason(){
   render();
 }
 function renderDebug(){
-  if (!debugOpen) return '';
+  if (!debugOpen || !isRoomAdmin) return '';
   return `
   <div class="debug-backdrop" onclick="toggleDebug()"></div>
   <div class="debug-drawer">
@@ -3288,11 +3347,14 @@ function renderInner(){
   if (bootPhase === 'schema_outdated'){
     const why = schemaProblem && schemaProblem.why;
     const isSchema = why === 'missing_version_column' || why === 'missing_functions';
+    const isAuth = why === 'auth';
     document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
       <div class="card-title" style="margin-bottom:8px; color:var(--danger);">DATABASE SETUP NEEDED</div>
-      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:10px;">${isSchema ? 'Your database needs the updated schema' : 'Cannot reach the database'}</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:10px;">${isAuth ? 'Anonymous sign-in must be enabled' : (isSchema ? 'Your database needs the updated schema' : 'Cannot reach the database')}</div>
       <div class="muted" style="line-height:1.7;">
-        ${isSchema
+        ${isAuth
+          ? `Anonymous sign-in is not enabled yet.<br><br><b>Fix:</b><br>1. Open Supabase → <b>Authentication</b><br>2. Open <b>Providers</b><br>3. Enable <b>Anonymous Sign-Ins</b><br>4. Save and reload this page<br><br><code style="color:var(--danger); font-size:11px;">${(schemaProblem&&schemaProblem.detail)||''}</code>`
+          : isSchema
           ? `This version needs database changes that aren't in your project yet.<br><br>
              <b>Fix it in about 30 seconds:</b><br>
              1. Open your Supabase project → <b>SQL Editor</b><br>
@@ -3387,7 +3449,7 @@ function renderInner(){
     ${renderTopbar()}
     <div class="content">${renderSyncError()}${body}</div>
     ${renderBottomNav()}
-    <div class="fab" onclick="toggleDebug()">⚙️</div>
+    ${isRoomAdmin ? `<div class="fab" onclick="toggleDebug()">⚙️</div>` : ''}
     ${activeModal ? modalTerritory(activeModal) : ''}
     ${safeRenderDebug()}
   `;
