@@ -202,7 +202,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.5.1-community-atomic-settlement-room-code-ui-6lang-2026-09-10';
+const APP_BUILD = 'rk-v0.5.2-community-admin-recovery-atomic-settlement-6lang-2026-09-10';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1524,7 +1524,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.5.1') return { ok:false, why:'missing_functions', detail:'Community schema v0.5.1 is required.' };
+    if (data !== '0.5.2') return { ok:false, why:'missing_functions', detail:'Community schema v0.5.2 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -1567,10 +1567,33 @@ async function submitCreateRoom(){
   bootPhase='loading'; render();
   for (let i=0;i<5;i++){
     const code=generateRoomCode();
-    const { error }=await sbClient.rpc('rk_create_room',{p_code:code});
-    if (!error){ roomCode=code; isRoomAdmin=true; saveRoomCode(roomCode); boot(); return; }
+    const { data, error }=await sbClient.rpc('rk_create_room',{p_code:code});
+    if (!error){
+      roomCode=code; isRoomAdmin=true; saveRoomCode(roomCode);
+      if (data && data.admin_recovery_code) showAdminRecoveryCode(data.admin_recovery_code);
+      boot(); return;
+    }
   }
   bootPhase='room_form'; lastSyncError={message:'Could not create a unique room. Please try again.',retry:submitCreateRoom}; render();
+}
+function showAdminRecoveryCode(code){
+  window.prompt('SAVE THIS ADMIN RECOVERY CODE\n\nKeep it private. It can restore Admin access from a new browser. Generating a new code invalidates the old one.', code);
+}
+async function recoverAdminAccess(prefillRoom){
+  const code=(prefillRoom || window.prompt('Room code:','') || '').trim().toUpperCase();
+  if (!code) return;
+  const recovery=window.prompt('Admin recovery code:','');
+  if (!recovery) return;
+  bootPhase='loading'; render();
+  const {data,error}=await sbClient.rpc('rk_recover_admin',{p_room:code,p_recovery_code:recovery});
+  if (error){ bootPhase=roomCode?'ready':'room_form'; lastSyncError={message:'Admin recovery failed: '+error.message,retry:()=>recoverAdminAccess(code)}; render(); return; }
+  roomCode=code; isRoomAdmin=true; saveRoomCode(roomCode); bootPhase='loading'; render(); boot();
+}
+async function rotateAdminRecoveryCode(){
+  if (!isRoomAdmin || !window.confirm('Generate a new Admin recovery code? The previous code will stop working.')) return;
+  const {data,error}=await sbClient.rpc('rk_rotate_admin_recovery',{p_room:roomCode});
+  if (error){ lastSyncError={message:'Could not generate recovery code: '+error.message,retry:rotateAdminRecoveryCode}; render(); return; }
+  showAdminRecoveryCode(data);
 }
 async function submitJoinRoom(){
   const code = (joinRoomInput || '').trim().toUpperCase();
@@ -2593,7 +2616,9 @@ function renderTopbar(){
     <div class="row-between" style="margin-top:4px;">
       <div class="muted" style="font-size:11px;">${tr('{n} online', {n: rs.online})}</div>
       <div class="topbar-tools">
-        ${isRoomAdmin ? `<button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>` : ''}
+        ${isRoomAdmin
+          ? `<button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>`
+          : `<button class="room-code-btn" onclick="recoverAdminAccess(roomCode)" aria-label="Recover admin access" title="Recover admin access">🔑 ADMIN</button>`}
         <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option><option value="ru" ${LANG==='ru'?'selected':''}>Русский</option></select>
       </div>
     </div>
@@ -3315,6 +3340,8 @@ function renderDebug(){
       <h4>Room</h4>
       <div class="muted" style="margin-bottom:6px;">Current room code: <span class="mono" style="color:var(--gold); letter-spacing:2px;">${roomCode}</span></div>
       <div class="muted" style="margin-bottom:8px; font-size:11px;">Share this code (or the invite link above) with anyone you want in THIS game. Different room codes on the same Supabase project never see each other's data.</div>
+      <button class="btn btn-outline btn-small" style="margin-bottom:8px;" onclick="rotateAdminRecoveryCode()">Generate / Rotate Admin Recovery Code</button>
+      <div class="muted" style="margin-bottom:8px; font-size:11px;">Keep the recovery code private. It restores Admin access if this browser session is lost.</div>
       <button class="btn btn-outline btn-small" onclick="forgetRoomCode()">Leave This Room</button>
     </div>
   </div>`;
@@ -3379,6 +3406,7 @@ function renderInner(){
       <div class="muted" style="margin-bottom:4px; font-size:12px;">${tr('Or enter a room code someone shared with you')}</div>
       <input class="name-input" placeholder="e.g. AB3XY" value="${joinRoomInput}" oninput="joinRoomInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="text-transform:uppercase; letter-spacing:2px;" />
       <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>${tr('JOIN ROOM')}</button>
+      <button class="btn btn-outline" style="margin-top:10px;" onclick="recoverAdminAccess()">🔑 RECOVER ADMIN ACCESS</button>
       <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
     </div></div>`;
     return;
