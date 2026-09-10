@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Run Kingdom Lite · Online Multiplayer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <!-- Supabase JS client (free tier) — this is what makes the multiplayer world persist and sync across everyone playing. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -20,7 +20,7 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
-body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;}
+body{background:var(--bg); color:var(--text); font-family:'Inter','Noto Sans JP','Noto Sans KR',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;}
 .mono{font-family:'Space Mono',monospace;}
 .display{font-family:'Chakra Petch',sans-serif;}
 #root{
@@ -36,6 +36,7 @@ body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -w
 .day-label{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:13px; letter-spacing:1px; color:var(--gold);}
 .lang-toggle{font-family:'Space Mono',monospace; font-size:11px; font-weight:700; color:var(--text-dim); border:1px solid var(--border); border-radius:20px; padding:2px 10px; cursor:pointer; user-select:none; background:var(--panel-3);}
 .lang-toggle:active{transform:scale(0.94);}
+.lang-toggle{appearance:auto; max-width:110px;}
 .live-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bloom); margin-right:5px; animation:livePulse 1.6s ease-in-out infinite;}
 @keyframes livePulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
 .standings-row{display:flex; gap:10px; margin-top:8px;}
@@ -197,7 +198,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.3.3-zero-power-capture-fix-2026-09-10';
+const APP_BUILD = 'rk-v0.4.0-5lang-bugfix-2026-09-10';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -399,17 +400,409 @@ const ZH = {
   'Connecting to the Run Kingdom world…': '正在连接奔跑王国的世界…',
   // --- misc ---
   'NEUTRAL': '中立', 'LEADING': '领先', 'CLOSE': '胶着', 'BEHIND': '落后',
-  'HIDDEN': '已隐藏', 'CAP': '都',
+  'HIDDEN': '已隐藏', 'CAP': '首都',
   'SYNCING': '同步中',
   'A new day just began — loading the new battlefield…': '新的一天开始了——正在加载新战场…',
 };
 
+const JA = {
+  "RUN KINGDOM · SEASON 01": "ラン・キングダム · シーズン01",
+  "{n} online": "{n}人オンライン",
+  "HOME": "ホーム",
+  "RUN": "ラン",
+  "DEPLOY": "配置",
+  "RALLY": "ラリー",
+  "SEASON": "シーズン",
+  "👥 <b>{n}</b> players online": "👥 <b>{n}</b>人オンライン",
+  "🏆 PRIZE POOL": "🏆 賞金プール",
+  "Round {n} Fund<br>Growing": "ラウンド{n}基金<br>増加中",
+  "📰 LATEST REPORT": "📰 最新レポート",
+  "📜 TERRITORY HISTORY": "📜 領土履歴",
+  "View ›": "見る ›",
+  "TERRITORY MAP (today's open battles keep pulsing)": "領土マップ（本日の戦場が点滅）",
+  "Tap a glowing tile to view today's battle.": "光っている領土をタップして本日の戦況を確認。",
+  "YOUR POWER": "あなたのパワー",
+  "DEPLOYED": "配置済み",
+  "TODAY'S ACTIVE BATTLES": "本日のアクティブ戦場",
+  "No active battles today.": "本日の戦場はありません。",
+  "No active battles to deploy to today.": "本日は配置できる戦場がありません。",
+  "Bounty": "バウンティ",
+  "Deploy your power, then resolve the day whenever your group is ready.": "パワーを配置し、全員の準備ができたらその日を決着させます。",
+  "ENTER BATTLE FOG": "戦場の霧へ",
+  "RESOLVE DAY": "本日を決着",
+  "RESOLVING…": "決着処理中…",
+  "🌫 BATTLE FOG": "🌫 戦場の霧",
+  "Final troop movements are hidden. You can still deploy remaining power.": "最終配置は非表示です。残りのパワーは引き続き配置できます。",
+  "🏁 ROUND COMPLETE": "🏁 ラウンド終了",
+  "🏆 SEASON COMPLETE": "🏆 シーズン終了",
+  "All 6 rounds are done — see the season champion and your rewards.": "全6ラウンド終了。シーズン王者と報酬を確認しましょう。",
+  "Round {n} is over — check standings, then start Round {m} when ready.": "ラウンド{n}終了。順位を確認し、準備ができたらラウンド{m}を開始。",
+  "VIEW RESULTS": "結果を見る",
+  "⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles": "⚙️ デバッグ：NPCパワーOFF—実際の配置パワーのみで勝敗を決定",
+  "⚔ LAST STAND COMEBACK": "⚔ ラストスタンド",
+  "Your faction holds no territory — you may attack any one of today's open battles (adjacency not required, one target only).": "所属陣営に領土がありません。本日の戦場から1か所だけ、隣接条件なしで攻撃できます。",
+  "🔥 FINAL DAY — {name} ×{n}": "🔥 最終日 — {name} ×{n}",
+  "{name} is worth {vp} VP today and is open to every team, adjacent or not. This is the decider.": "{name}は本日{vp} VP。隣接に関係なく全陣営が参加できます。決戦です。",
+  "🔥 <b style=\"color:var(--gold);\">Day {d} showdown:</b> {name} will be worth ×{n} VP and open to all teams — {left} away.": "🔥 <b style=\"color:var(--gold);\">Day {d} 決戦：</b>{name}は×{n} VPとなり全陣営が参加可能 — あと{left}。",
+  "{n} day": "{n}日",
+  "{n} days": "{n}日",
+  "SIMULATE TODAY'S RUN": "本日のランをシミュレート",
+  "ENERGY TODAY": "本日のエナジー",
+  "Base Power": "基本パワー",
+  "90 Energy": "90 エナジー",
+  "GST Boost": "GSTブースト",
+  "POWER EARNED": "獲得パワー",
+  "BOOST WITH GST (SIMULATED)": "GSTでブースト（シミュレーション）",
+  "Exercise remains mandatory — GST cannot generate Power from zero.": "運動は必須です。GSTだけではパワーは生成できません。",
+  "None": "なし",
+  "Power available to deploy": "配置可能パワー",
+  "Unused Power expires at settlement.": "未使用パワーは決着時に失効します。",
+  "GO TO DEPLOY": "配置へ",
+  "DEPLOYMENT LOCKED": "配置ロック済み",
+  "Power cannot be withdrawn after deployment.": "配置後のパワーは撤回できません。",
+  "No battles available to deploy to today.": "本日は配置可能な戦闘がありません。",
+  "Your faction has no eligible battles today (no adjacent access).": "所属陣営は本日参加可能な戦場がありません（隣接なし）。",
+  "Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).": "所属陣営に領土がありません。攻撃する戦場を1つ選択してください（全パワー投入）。",
+  "(all power)": "（全パワー）",
+  "ALLOCATION SPLIT": "配分比率",
+  "(Secondary)": "（サブ）",
+  "MAIN BATTLE": "メイン戦場",
+  "OPTIONAL SECONDARY BATTLE": "サブ戦場（任意）",
+  "None — 100% to Main": "なし — メインに100%",
+  "RESULT": "結果",
+  "Available": "利用可能",
+  "(Main)": "（メイン）",
+  "Deployment is final. Power cannot be withdrawn after deployment.": "配置は確定です。後から撤回できません。",
+  "CONFIRM DEPLOYMENT": "配置を確定",
+  "CHOOSE YOUR TARGET": "攻撃目標を選択",
+  "RALLY IS OFF": "ラリーはOFF",
+  "The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.": "このラウンドでは司令官／ラリー機能が無効です。配置タブから直接パワーを配置してください。",
+  "👑 COMMANDER ELECTION — ROUND {n}": "👑 司令官選出 — ラウンド{n}",
+  "Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.": "司令官の任期は<b>ラウンド全体（7日間）</b>。{faction}の直近エナジー上位{p}%が立候補でき、候補者の中で最も高い人が当選します。",
+  "STANDING FOR ELECTION ({n})": "立候補者（{n}）",
+  "Nobody has stood yet.": "まだ候補者はいません。",
+  "(you)": "（あなた）",
+  "{n} energy": "{n} エナジー",
+  "Your recent energy: <b class=\"mono\">{mine}</b> · Needed to stand: <b class=\"mono\">{need}</b>": "あなたの直近エナジー：<b class=\"mono\">{mine}</b> · 立候補ライン：<b class=\"mono\">{need}</b>",
+  "You've served {n} rounds in a row — sit this one out (max {max}).": "{n}ラウンド連続で務めたため今回は休みです（最大{max}）。",
+  "✅ You're standing. The winner is decided once elections resolve.": "✅ 立候補済み。締切後に当選者が決まります。",
+  "STAND FOR COMMANDER": "司令官に立候補",
+  "ROUND {n}": "ラウンド{n}",
+  "Record this round: {w}W – {l}L": "今ラウンド戦績：{w}勝 – {l}敗",
+  "— posted day {n}": "— Day {n} に投稿",
+  "BROADCAST TO YOUR TEAM": "チームへ告知",
+  "One short message your whole team sees. Update it any day of the round.": "チーム全員が見る短いメッセージ。ラウンド中いつでも更新できます。",
+  "{n} characters left": "残り{n}文字",
+  "POST": "投稿",
+  "No eligible battles to rally today.": "本日はラリー対象の戦場がありません。",
+  "TODAY'S RALLY — MAIN TERRITORY": "本日のラリー — メイン領土",
+  "SECONDARY (OPTIONAL)": "サブ（任意）",
+  "PUBLISH RALLY": "ラリーを公開",
+  "Today's rally is published and locked.": "本日のラリーは公開され、ロックされました。",
+  "{name} hasn't published today's Rally yet — check back shortly.": "{name}はまだ本日のラリーを公開していません。しばらくして確認してください。",
+  "TODAY'S RALLY": "本日のラリー",
+  "MAIN": "メイン",
+  "SUPPORT": "サポート",
+  "(auto-generated)": "（自動生成）",
+  "FOLLOW RALLY": "ラリーに従う",
+  "CUSTOM DEPLOY": "自由配置",
+  "Power already deployed today.": "本日のパワーは配置済みです。",
+  "No settlement yet.": "まだ決着はありません。",
+  "DAY {n} SETTLEMENT REPORT": "Day {n} 決着レポート",
+  "BATTLE FOR {name}": "{name}争奪戦",
+  "VP EARNED THAT DAY": "当日獲得VP",
+  "{faction} RALLY RESULT": "{faction} ラリー結果",
+  "{faction} HOLDS {name}": "{faction}が{name}を防衛",
+  "{faction} CAPTURES {name}": "{faction}が{name}を占領",
+  "{name} REMAINS NEUTRAL": "{name}は中立のまま",
+  "No days have been resolved yet — check back after Day 1 is settled.": "まだ決着済みの日はありません。Day 1終了後に確認してください。",
+  "Loading Day {n}…": "Day {n} を読み込み中…",
+  "TERRITORY OWNERSHIP — END OF DAY {n}": "領土所有 — Day {n}終了時",
+  "No record found for Day {n}.": "Day {n}の記録がありません。",
+  "PICK A DAY": "日を選択",
+  "· HIGH-VALUE TERRITORY": "· 高価値領土",
+  "TIE": "引き分け",
+  "held": "防衛",
+  "captured": "占領",
+  "stays neutral": "中立維持",
+  "VP GAINED TODAY": "本日獲得VP",
+  "RALLY RESULT": "ラリー結果",
+  "✅ CAPTURED": "✅ 占領",
+  "🛡️ HELD": "🛡️ 防衛",
+  "❌ LOST": "❌ 敗北",
+  "BACK TO HOME": "ホームへ戻る",
+  "YOUR WALLET (MOCK)": "ウォレット（モック）",
+  "GMT Balance": "GMT残高",
+  "Season Entry Fee Paid": "シーズン参加費支払済み",
+  "Donated to War Fund": "戦争基金への寄付",
+  "Donate to the War Fund — grows the Prize Pool (split {p}% prize / {b}% burn / {r}% protocol, same as the daily mock economy).": "戦争基金に寄付して賞金プールを増やします（{p}%賞金 / {b}%バーン / {r}%プロトコル）。",
+  "SEASON 01 · ROUND {n} / {total}": "シーズン01 · ラウンド {n} / {total}",
+  "Round wins so far — your team is locked for the whole season.": "現在のラウンド勝利数 — チームはシーズン中固定です。",
+  "win": "勝",
+  "wins": "勝",
+  "ROUND {n} — IN PROGRESS": "ラウンド{n} — 進行中",
+  "Live VP · settles after Day {n}.": "リアルタイムVP · Day {n}終了後に決着。",
+  "🏁 ROUND {n} WINNER": "🏁 ラウンド{n} 勝者",
+  "ROUND {n} STANDINGS": "ラウンド{n} 順位",
+  "🏆 ROUND PRIZE POOL": "🏆 ラウンド賞金プール",
+  "Polygon Locked Sneaker — {t} Design": "Polygonロック済みスニーカー — {t}デザイン",
+  "YOUR RESULT THIS ROUND": "あなたの今ラウンド結果",
+  "Team Placing": "チーム順位",
+  "Contribution Rank": "貢献順位",
+  "Participation Days": "参加日数",
+  "Estimated Reward": "予想報酬",
+  "Not eligible": "対象外",
+  "Requires active participation on {n}+ days.": "{n}日以上の参加が必要です。",
+  "👑 SEASON 01 CHAMPION": "👑 シーズン01 王者",
+  "Most round wins across {n} rounds": "{n}ラウンドで最多勝利",
+  "🎖 SEASON REWARDS UNLOCKED": "🎖 シーズン報酬解放",
+  "STEPN VIP — 30 Days": "STEPN VIP — 30日",
+  "Season rewards need {n}+ active days in the final round.": "シーズン報酬には最終ラウンドで{n}日以上の参加が必要です。",
+  "START ROUND {n}": "ラウンド{n}を開始",
+  "New map, new prize pool, new commander election — same teams.": "新しいマップ、賞金プール、司令官選出 — チームは同じです。",
+  "Champion": "優勝",
+  "Runner-Up": "準優勝",
+  "Second Runner-Up": "3位",
+  "TERRITORY HISTORY": "領土履歴",
+  "No settled days yet.": "決着済みの日はまだありません。",
+  "Day {n}": "Day {n}",
+  "Ownership after Day {n} settlement": "Day {n}決着後の所有状況",
+  "Join the Battlefield": "戦場に参加",
+  "Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>": "チームは選択ではなく<b>自動割り当て</b>です。直近エナジー総量でバランスされ、<b>6週間のシーズン中は固定</b>されます。",
+  "Runner name": "ランナー名",
+  "Leave blank for a random one": "空欄でランダム生成",
+  "Your last-7-day energy (mock STEPN data)": "直近7日間のエナジー（STEPNモック）",
+  "In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.": "本番ではSTEPNから直接取得します。ここではチーム分けテスト用に設定できます。",
+  "JOIN GAME": "ゲームに参加",
+  "RUN KINGDOM · ROOM": "ラン・キングダム · ルーム",
+  "Create or join a room": "ルームを作成または参加",
+  "Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.": "同じルームの全員が1つのマップとシーズンを共有します。Supabaseプロジェクトが同じでも他ルームとは分離されます。",
+  "CREATE A NEW ROOM": "新しいルームを作成",
+  "Or enter a room code someone shared with you": "または共有されたルームコードを入力",
+  "JOIN ROOM": "ルームに参加",
+  "Connecting to the Run Kingdom world…": "ラン・キングダムに接続中…",
+  "NEUTRAL": "中立",
+  "LEADING": "優勢",
+  "CLOSE": "接戦",
+  "BEHIND": "劣勢",
+  "HIDDEN": "非表示",
+  "CAP": "首都",
+  "SYNCING": "同期中",
+  "A new day just began — loading the new battlefield…": "新しい日が始まりました。戦場を読み込み中…"
+};
+
+const KO = {
+  "RUN KINGDOM · SEASON 01": "런 킹덤 · 시즌 01",
+  "{n} online": "{n}명 온라인",
+  "HOME": "홈",
+  "RUN": "러닝",
+  "DEPLOY": "배치",
+  "RALLY": "집결",
+  "SEASON": "시즌",
+  "🏆 PRIZE POOL": "🏆 상금 풀",
+  "📰 LATEST REPORT": "📰 최신 전투 보고서",
+  "📜 TERRITORY HISTORY": "📜 영토 기록",
+  "View ›": "보기 ›",
+  "YOUR POWER": "내 전투력",
+  "DEPLOYED": "배치 완료",
+  "TODAY'S ACTIVE BATTLES": "오늘의 활성 전장",
+  "Bounty": "현상금",
+  "ENTER BATTLE FOG": "전장의 안개 진입",
+  "RESOLVE DAY": "오늘 결산",
+  "RESOLVING…": "결산 중…",
+  "🌫 BATTLE FOG": "🌫 전장의 안개",
+  "🏁 ROUND COMPLETE": "🏁 라운드 종료",
+  "🏆 SEASON COMPLETE": "🏆 시즌 종료",
+  "VIEW RESULTS": "결과 보기",
+  "⚔ LAST STAND COMEBACK": "⚔ 최후의 반격",
+  "SIMULATE TODAY'S RUN": "오늘 러닝 시뮬레이션",
+  "ENERGY TODAY": "오늘의 에너지",
+  "Base Power": "기본 전투력",
+  "90 Energy": "90 에너지",
+  "GST Boost": "GST 부스트",
+  "POWER EARNED": "획득 전투력",
+  "None": "없음",
+  "Power available to deploy": "배치 가능한 전투력",
+  "GO TO DEPLOY": "배치하기",
+  "DEPLOYMENT LOCKED": "배치 잠김",
+  "MAIN BATTLE": "주 전장",
+  "OPTIONAL SECONDARY BATTLE": "보조 전장(선택)",
+  "RESULT": "결과",
+  "Available": "사용 가능",
+  "CONFIRM DEPLOYMENT": "배치 확정",
+  "CHOOSE YOUR TARGET": "공격 대상 선택",
+  "RALLY IS OFF": "집결 기능 꺼짐",
+  "STANDING FOR ELECTION ({n})": "지휘관 후보 ({n})",
+  "Nobody has stood yet.": "아직 후보가 없습니다.",
+  "(you)": "(나)",
+  "STAND FOR COMMANDER": "지휘관 후보 등록",
+  "ROUND {n}": "라운드 {n}",
+  "POST": "게시",
+  "MAIN": "주공",
+  "SUPPORT": "지원",
+  "FOLLOW RALLY": "집결 따르기",
+  "CUSTOM DEPLOY": "직접 배치",
+  "No settlement yet.": "아직 결산 기록이 없습니다.",
+  "TIE": "무승부",
+  "BACK TO HOME": "홈으로",
+  "YOUR WALLET (MOCK)": "내 지갑(모의)",
+  "GMT Balance": "GMT 잔액",
+  "Contribution Rank": "기여 순위",
+  "Participation Days": "참여 일수",
+  "Estimated Reward": "예상 보상",
+  "Not eligible": "자격 없음",
+  "Champion": "우승",
+  "Runner-Up": "준우승",
+  "Second Runner-Up": "3위",
+  "Join the Battlefield": "전장 참가",
+  "Runner name": "러너 이름",
+  "JOIN GAME": "게임 참가",
+  "RUN KINGDOM · ROOM": "런 킹덤 · 방",
+  "Create or join a room": "방 만들기 또는 참가",
+  "CREATE A NEW ROOM": "새 방 만들기",
+  "JOIN ROOM": "방 참가",
+  "NEUTRAL": "중립",
+  "LEADING": "우세",
+  "CLOSE": "접전",
+  "BEHIND": "열세",
+  "HIDDEN": "숨김",
+  "CAP": "수도",
+  "SYNCING": "동기화 중"
+};
+
+const TR = {
+  "RUN KINGDOM · SEASON 01": "Run Kingdom · Sezon 01",
+  "{n} online": "{n} çevrimiçi",
+  "HOME": "ANA SAYFA",
+  "RUN": "KOŞU",
+  "DEPLOY": "KONUŞLANDIR",
+  "RALLY": "TOPLANMA",
+  "SEASON": "SEZON",
+  "🏆 PRIZE POOL": "🏆 ÖDÜL HAVUZU",
+  "📰 LATEST REPORT": "📰 SON RAPOR",
+  "📜 TERRITORY HISTORY": "📜 BÖLGE GEÇMİŞİ",
+  "View ›": "Görüntüle ›",
+  "YOUR POWER": "GÜCÜN",
+  "DEPLOYED": "KONUŞLANDIRILDI",
+  "TODAY'S ACTIVE BATTLES": "BUGÜNÜN AKTİF SAVAŞLARI",
+  "Bounty": "Ödül",
+  "ENTER BATTLE FOG": "SAVAŞ SİSİNE GİR",
+  "RESOLVE DAY": "GÜNÜ SONUÇLANDIR",
+  "RESOLVING…": "SONUÇLANDIRILIYOR…",
+  "🌫 BATTLE FOG": "🌫 SAVAŞ SİSİ",
+  "🏁 ROUND COMPLETE": "🏁 TUR TAMAMLANDI",
+  "🏆 SEASON COMPLETE": "🏆 SEZON TAMAMLANDI",
+  "VIEW RESULTS": "SONUÇLARI GÖR",
+  "⚔ LAST STAND COMEBACK": "⚔ SON DİRENİŞ",
+  "SIMULATE TODAY'S RUN": "BUGÜNKÜ KOŞUYU SİMÜLE ET",
+  "ENERGY TODAY": "BUGÜNKÜ ENERJİ",
+  "Base Power": "Temel Güç",
+  "90 Energy": "90 Enerji",
+  "GST Boost": "GST Takviyesi",
+  "POWER EARNED": "KAZANILAN GÜÇ",
+  "None": "Yok",
+  "Power available to deploy": "Konuşlandırılabilir güç",
+  "GO TO DEPLOY": "KONUŞLANDIRMAYA GİT",
+  "DEPLOYMENT LOCKED": "KONUŞLANDIRMA KİLİTLİ",
+  "MAIN BATTLE": "ANA SAVAŞ",
+  "OPTIONAL SECONDARY BATTLE": "İKİNCİL SAVAŞ (İSTEĞE BAĞLI)",
+  "RESULT": "SONUÇ",
+  "Available": "Mevcut",
+  "CONFIRM DEPLOYMENT": "KONUŞLANDIRMAYI ONAYLA",
+  "CHOOSE YOUR TARGET": "HEDEFİNİ SEÇ",
+  "RALLY IS OFF": "TOPLANMA KAPALI",
+  "STANDING FOR ELECTION ({n})": "ADAYLAR ({n})",
+  "Nobody has stood yet.": "Henüz aday yok.",
+  "(you)": "(sen)",
+  "STAND FOR COMMANDER": "KOMUTANLIĞA ADAY OL",
+  "ROUND {n}": "TUR {n}",
+  "POST": "YAYINLA",
+  "MAIN": "ANA",
+  "SUPPORT": "DESTEK",
+  "FOLLOW RALLY": "TOPLANMAYI TAKİP ET",
+  "CUSTOM DEPLOY": "ÖZEL KONUŞLANDIRMA",
+  "No settlement yet.": "Henüz sonuçlandırma yok.",
+  "TIE": "BERABERE",
+  "BACK TO HOME": "ANA SAYFAYA DÖN",
+  "YOUR WALLET (MOCK)": "CÜZDANIN (MOCK)",
+  "GMT Balance": "GMT Bakiyesi",
+  "Contribution Rank": "Katkı Sırası",
+  "Participation Days": "Katılım Günleri",
+  "Estimated Reward": "Tahmini Ödül",
+  "Not eligible": "Uygun değil",
+  "Champion": "Şampiyon",
+  "Runner-Up": "İkinci",
+  "Second Runner-Up": "Üçüncü",
+  "Join the Battlefield": "Savaş Alanına Katıl",
+  "Runner name": "Koşucu adı",
+  "JOIN GAME": "OYUNA KATIL",
+  "RUN KINGDOM · ROOM": "Run Kingdom · Oda",
+  "Create or join a room": "Oda oluştur veya katıl",
+  "CREATE A NEW ROOM": "YENİ ODA OLUŞTUR",
+  "JOIN ROOM": "ODAYA KATIL",
+  "NEUTRAL": "TARAFSIZ",
+  "LEADING": "ÖNDE",
+  "CLOSE": "BAŞA BAŞ",
+  "BEHIND": "GERİDE",
+  "HIDDEN": "GİZLİ",
+  "CAP": "BAŞKENT",
+  "SYNCING": "SENKRONİZE EDİLİYOR"
+};
+
+ZH['Could not check that room. Please try again.']='无法检查该房间，请重试。';
+JA['Could not check that room. Please try again.']='ルームを確認できませんでした。もう一度お試しください。';
+KO['Could not check that room. Please try again.']='방을 확인할 수 없습니다. 다시 시도해 주세요.';
+TR['Could not check that room. Please try again.']='Oda kontrol edilemedi. Lütfen tekrar deneyin.';
+ZH['Room not found. Check the code, or create a new room.']='未找到房间。请检查房间码，或创建新房间。';
+JA['Room not found. Check the code, or create a new room.']='ルームが見つかりません。コードを確認するか、新しいルームを作成してください。';
+KO['Room not found. Check the code, or create a new room.']='방을 찾을 수 없습니다. 코드를 확인하거나 새 방을 만들어 주세요.';
+TR['Room not found. Check the code, or create a new room.']='Oda bulunamadı. Kodu kontrol edin veya yeni bir oda oluşturun.';
+const I18N = { zh: ZH, ja: JA, ko: KO, tr: TR };
+
+ZH["VP today"] = "今日 VP";
+JA["VP today"] = "本日のVP";
+KO["VP today"] = "오늘 VP";
+TR["VP today"] = "Bugünkü VP";
+ZH["PARTICIPATING FACTIONS"] = "参战阵营";
+JA["PARTICIPATING FACTIONS"] = "参加陣営";
+KO["PARTICIPATING FACTIONS"] = "참전 진영";
+TR["PARTICIPATING FACTIONS"] = "KATILAN TAKIMLAR";
+ZH["Status"] = "状态";
+JA["Status"] = "状態";
+KO["Status"] = "상태";
+TR["Status"] = "Durum";
+ZH["FOG — awaiting resolve"] = "迷雾 — 等待结算";
+JA["FOG — awaiting resolve"] = "霧 — 決着待ち";
+KO["FOG — awaiting resolve"] = "안개 — 결산 대기";
+TR["FOG — awaiting resolve"] = "SİS — sonuç bekleniyor";
+ZH["OPEN — awaiting resolve"] = "开放 — 等待结算";
+JA["OPEN — awaiting resolve"] = "オープン — 決着待ち";
+KO["OPEN — awaiting resolve"] = "오픈 — 결산 대기";
+TR["OPEN — awaiting resolve"] = "AÇIK — sonuç bekleniyor";
+ZH["POWER ALREADY DEPLOYED"] = "战力已部署";
+JA["POWER ALREADY DEPLOYED"] = "パワー配置済み";
+KO["POWER ALREADY DEPLOYED"] = "전투력 배치 완료";
+TR["POWER ALREADY DEPLOYED"] = "GÜÇ ZATEN KONUŞLANDIRILDI";
+ZH["DEPLOY POWER HERE"] = "在此部署战力";
+JA["DEPLOY POWER HERE"] = "ここにパワーを配置";
+KO["DEPLOY POWER HERE"] = "여기에 전투력 배치";
+TR["DEPLOY POWER HERE"] = "GÜCÜ BURAYA KONUŞLANDIR";
+ZH["Not an active battle today."] = "今日不是活跃战场。";
+JA["Not an active battle today."] = "本日のアクティブ戦場ではありません。";
+KO["Not an active battle today."] = "오늘의 활성 전장이 아닙니다.";
+TR["Not an active battle today."] = "Bugün aktif bir savaş alanı değil.";
+
 function tr(key, vars){
-  let s = (LANG === 'zh' && ZH[key] !== undefined) ? ZH[key] : key;
-  if (vars){
-    Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
-  }
+  const table = I18N[LANG];
+  let s = (table && table[key] !== undefined) ? table[key] : key;
+  if (vars){ Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); }); }
   return s;
+}
+function setLang(l){
+  LANG = ['en','zh','ja','ko','tr'].includes(l) ? l : 'en';
+  try { localStorage.setItem('rk_lang', LANG); } catch(e){}
+  document.documentElement.lang = ({en:'en',zh:'zh-CN',ja:'ja',ko:'ko',tr:'tr'})[LANG] || 'en';
+  render();
 }
 
 // Safety net: if ANY unexpected error happens while the script is first
@@ -504,9 +897,9 @@ const CONFIG = {
 
 const FACTIONS = ['cinder','surge','bloom'];
 const FACTION_META_RAW = {
-  cinder: { name: 'Red Running Team', short: 'Red Team', zhName: '红跑步队', zhShort: '红队', emoji: '🔴', color: 'var(--cinder)' },
-  surge:  { name: 'Blue Running Team', short: 'Blue Team', zhName: '蓝跑步队', zhShort: '蓝队', emoji: '🔵', color: 'var(--surge)' },
-  bloom:  { name: 'Green Running Team', short: 'Green Team', zhName: '绿跑步队', zhShort: '绿队', emoji: '🟢', color: 'var(--bloom)' },
+  cinder: { name: 'Red Running Team', short: 'Red Team', zhName: '红跑步队', zhShort: '红队', jaName:'レッド・ランニングチーム', jaShort:'レッド', koName:'레드 러닝 팀', koShort:'레드 팀', trName:'Kırmızı Koşu Takımı', trShort:'Kırmızı', emoji: '🔴', color: 'var(--cinder)' },
+  surge:  { name: 'Blue Running Team', short: 'Blue Team', zhName: '蓝跑步队', zhShort: '蓝队', jaName:'ブルー・ランニングチーム', jaShort:'ブルー', koName:'블루 러닝 팀', koShort:'블루 팀', trName:'Mavi Koşu Takımı', trShort:'Mavi', emoji: '🔵', color: 'var(--surge)' },
+  bloom:  { name: 'Green Running Team', short: 'Green Team', zhName: '绿跑步队', zhShort: '绿队', jaName:'グリーン・ランニングチーム', jaShort:'グリーン', koName:'그린 러닝 팀', koShort:'그린 팀', trName:'Yeşil Koşu Takımı', trShort:'Yeşil', emoji: '🟢', color: 'var(--bloom)' },
 };
 // Proxy so every existing `FACTION_META[f].name / .short` read stays unchanged
 // but returns whichever language is active.
@@ -516,8 +909,8 @@ const FACTION_META = new Proxy(FACTION_META_RAW, {
     if (!base) return base;
     return new Proxy(base, {
       get(b, prop){
-        if (prop === 'name')  return LANG === 'zh' ? b.zhName  : b.name;
-        if (prop === 'short') return LANG === 'zh' ? b.zhShort : b.short;
+        if (prop === 'name')  return LANG === 'zh' ? b.zhName : LANG === 'ja' ? b.jaName : LANG === 'ko' ? b.koName : LANG === 'tr' ? b.trName : b.name;
+        if (prop === 'short') return LANG === 'zh' ? b.zhShort : LANG === 'ja' ? b.jaShort : LANG === 'ko' ? b.koShort : LANG === 'tr' ? b.trShort : b.short;
         return b[prop];
       }
     });
@@ -530,7 +923,7 @@ const TERRITORY_NAMES = {
   G: 'Gilgamesh Domination', H: 'Haus Haven', I: 'ID Plaza',
 };
 const territoryLabel = (t) => TERRITORY_NAMES[t] || t;
-const rallyOutcomeLabel = (outcome) => outcome === 'captured' ? '✅ CAPTURED' : outcome === 'held' ? '🛡️ HELD' : '❌ LOST';
+const rallyOutcomeLabel = (outcome) => outcome === 'captured' ? tr('✅ CAPTURED') : outcome === 'held' ? tr('🛡️ HELD') : tr('❌ LOST');
 const ADJ = {
   A:['B','D'], B:['A','C','E'], C:['B','F'],
   D:['A','E','G'], E:['B','D','F','H'], F:['C','E','I'],
@@ -727,8 +1120,13 @@ function vpValueOf(t, day){
 }
 function calculateDailyVP(ownership, day){
   const mult = CONFIG.vpMultiplier(day); const totals = { cinder:0, surge:0, bloom:0 };
-  TERRITORIES.forEach(t => { const o = ownership[t]; if (o) totals[o] += vpValueOf(t, day); });
-  FACTIONS.forEach(f => totals[f] = totals[f]*mult);
+  TERRITORIES.forEach(t => {
+    const o = ownership[t]; if (!o) return;
+    // Final-day Kingmaker already includes its published ×3 value in vpValueOf().
+    // Do not apply the day multiplier a second time, otherwise the UI says 6 VP
+    // while settlement awards 12 VP on Day 7.
+    totals[o] += (t === 'E' && isFinalDay(day)) ? vpValueOf(t, day) : baseVPof(t) * mult;
+  });
   return totals;
 }
 
@@ -916,6 +1314,7 @@ function generateRoomCode(){
   return code;
 }
 let roomCode = getSavedRoomCode();
+function profileKey(){ return `room:${roomCode}:profile`; }
 function worldKey(){ return `room:${roomCode}:world`; }
 function fullKey(key, shared){ return shared ? key : `personal:${LOCAL_PLAYER_ID}:${key}`; }
 
@@ -1078,7 +1477,7 @@ async function boot(){
   const schema = await checkSchema();
   if (!schema.ok){ schemaProblem = schema; bootPhase = 'schema_outdated'; render(); return; }
   if (!roomCode){ bootPhase = 'room_form'; render(); return; }
-  const p = await safeGet('profile', false);
+  const p = await safeGet(profileKey(), false);
   // STORAGE_RETRY_LATER is a truthy string, not a real profile object — treating
   // it as "we have a profile" would silently skip onboarding and later crash
   // anywhere profile.name/profile.faction gets read. Retry a few times before
@@ -1100,9 +1499,21 @@ function submitCreateRoom(){
   bootPhase = 'loading'; render();
   boot();
 }
-function submitJoinRoom(){
+async function submitJoinRoom(){
   const code = (joinRoomInput || '').trim().toUpperCase();
   if (!code) return;
+  bootPhase = 'loading'; render();
+  const existing = await safeGet(`room:${code}:world`, true);
+  if (existing === STORAGE_RETRY_LATER){
+    bootPhase = 'room_form';
+    lastSyncError = { message: tr('Could not check that room. Please try again.'), retry: () => { lastSyncError=null; submitJoinRoom(); } };
+    render(); return;
+  }
+  if (!existing){
+    bootPhase = 'room_form';
+    lastSyncError = { message: tr('Room not found. Check the code, or create a new room.'), retry: () => { lastSyncError=null; } };
+    render(); return;
+  }
   roomCode = code;
   saveRoomCode(roomCode);
   bootPhase = 'loading'; render();
@@ -1181,7 +1592,7 @@ async function submitOnboardingInner(){
   if (!faction) faction = assignFaction(recentEnergy, fresh.factionEnergy);
 
   profile = { name, faction, recentEnergy, seasonId: fresh.seasonId };
-  const okProfile = await safeSet('profile', profile, false);
+  const okProfile = await safeSet(profileKey(), profile, false);
   if (!okProfile){
     lastSyncError = { message: 'Could not save your profile. Please retry.', retry: () => { lastSyncError = null; submitOnboarding(); } };
     bootPhase = 'onboarding'; render(); return;
@@ -1243,8 +1654,11 @@ async function ensureBattlesDoc(day){
   // already have been folded into the settlement write that created this day —
   // see settleCurrentDay — so this is normally a no-op, saving a write.)
   if (JSON.stringify(updatedRepHistory) !== JSON.stringify(world.repHistory)){
-    world = { ...world, repHistory: updatedRepHistory };
-    await safeSet(worldKey(), world, true);
+    const rr = await mutateShared(worldKey(), (w) => {
+      if (!w || w.runId !== world.runId || w.currentDay !== day) return null;
+      return { ...w, repHistory: updatedRepHistory };
+    });
+    if (rr.ok && rr.value) world = rr.value;
   }
   return doc;
 }
@@ -1412,11 +1826,10 @@ async function ensureWorldLoaded(){
   // concluding the world doesn't exist — otherwise we'd spin up a duplicate world.
   for (let i = 0; i < 3 && w === STORAGE_RETRY_LATER; i++){ await sleep(700); w = await safeGet(worldKey(), true); }
   if (!w || w === STORAGE_RETRY_LATER){
-    w = makeInitialWorld();
-    const ok = await safeSet(worldKey(), w, true);
-    if (!ok) return null;
-    const check = await safeGet(worldKey(), true);
-    if (check && check !== STORAGE_RETRY_LATER) w = check;
+    const candidate = makeInitialWorld();
+    const created = await mutateShared(worldKey(), (cur) => cur || candidate);
+    if (!created.ok) return null;
+    w = created.value || candidate;
   }
   world = w;
   return world;
@@ -1426,6 +1839,13 @@ async function enterWorld(){
   if (!loaded){
     lastSyncError = { message: 'Could not reach the game world. Please retry.', retry: () => { lastSyncError = null; enterWorld(); } };
     bootPhase = 'ready'; render(); return;
+  }
+  if (profile && profile.seasonId && profile.seasonId !== world.seasonId){
+    profile = null;
+    await safeSet(profileKey(), null, false);
+    bootPhase = 'onboarding';
+    render();
+    return;
   }
   await syncAll();
   await joinRoster(); // announce ourselves once so we show up for others right away
@@ -1607,13 +2027,11 @@ async function enterFogManually(){
   if (inFlightFogToggle || !world || world.phase !== 'battles') return;
   inFlightFogToggle = true;
   try{
-    const fresh = await safeGet(worldKey(), true);
-    if (!fresh || fresh === STORAGE_RETRY_LATER) return;
-    if (fresh.phase === 'battles'){
-      fresh.phase = 'fog';
-      await safeSet(worldKey(), fresh, true);
-    }
-    world = fresh;
+    const res = await mutateShared(worldKey(), (w) => {
+      if (!w || w.phase !== 'battles') return null;
+      return { ...w, phase:'fog' };
+    });
+    if (res.ok && res.value) world = res.value;
   } finally { inFlightFogToggle = false; render(); }
 }
 async function resolveDayManually(){
@@ -1712,8 +2130,6 @@ async function settleCurrentDay(){
   });
 
   sDoc = { results, vpGained, rallyResults, commanders: world.commanders, settledAt: Date.now(), ownershipAfter: newOwnership };
-  await safeSet(sKey, sDoc, true);
-  settlementDoc = sDoc;
 
   const roundDone = day >= CONFIG.roundDays;
   const nextDay = roundDone ? day : day + 1;
@@ -1755,8 +2171,21 @@ async function settleCurrentDay(){
       phase: roundDone ? (isLastRound ? 'seasonEnd' : 'roundEnd') : 'battles',
     };
   });
-  if (settleRes.ok && settleRes.value && !settleRes.skipped) world = settleRes.value;
-  else if (settleRes.skipped){ await advanceAfterExternalSettlement(); return; }
+  if (settleRes.ok && settleRes.value && !settleRes.skipped){
+    world = settleRes.value;
+    // Only the client that actually advanced the authoritative world may publish
+    // this settlement report. This prevents two simultaneous resolvers from
+    // producing a report that disagrees with the ownership/VP stored in world.
+    await safeSet(sKey, sDoc, true);
+    settlementDoc = sDoc;
+  } else if (settleRes.skipped){
+    const official = await safeGet(sKey, true);
+    if (official && official !== STORAGE_RETRY_LATER) settlementDoc = official;
+    await advanceAfterExternalSettlement();
+    return;
+  } else {
+    return; // world was not advanced; don't leave a misleading settlement doc behind
+  }
   if (nextBattlesDoc){
     // Write the next day's battles doc now, under its final key, so the
     // upcoming ensureBattlesDoc() call in syncAll() finds it already there
@@ -2110,7 +2539,7 @@ function renderTopbar(){
     </div>
     <div class="row-between" style="margin-top:4px;">
       <div class="muted" style="font-size:11px;">${tr('{n} online', {n: rs.online})}</div>
-      <div class="lang-toggle" onclick="toggleLang()" title="Switch language / 切换语言">${LANG === 'en' ? '中文' : 'EN'}</div>
+      <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option></select>
     </div>
     <div class="standings-row">
       ${standings.map(s=>{
@@ -2219,7 +2648,7 @@ function kingmakerBanner(){
 function eliminatedBanner(){
   if (!iAmEliminated()) return '';
   return `<div class="elim-banner"><div class="et">${tr('⚔ LAST STAND COMEBACK')}</div>
-    <div class="muted" style="margin-top:4px;">Your faction currently holds no territory — you may still attack one of today's open battles (adjacency not required, one target only).</div></div>`;
+    <div class="muted" style="margin-top:4px;">${tr("Your faction holds no territory — you may attack any one of today's open battles (adjacency not required, one target only).")}</div></div>`;
 }
 
 /* ---------- HOME ---------- */
@@ -2286,12 +2715,12 @@ function modalTerritory(t){
   <div class="modal-backdrop" onclick="closeModalIfBackdrop(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="card-title">BATTLE FOR ${territoryLabel(t)} ${t==='E'?'· HIGH-VALUE TERRITORY':''}</div>
-      <div class="row-between" style="margin-bottom:10px;"><div>VP today: <b>${vpValueOf(t, world.currentDay)}</b>${t==='E'&&isFinalDay(world.currentDay)?` <span class="chip-small" style="color:var(--gold);">FINAL DAY ×${CONFIG.finalDayKingmakerMultiplier}</span>`:''}</div>${ownerBadge(owner)}</div>
+      <div class="card-title">${tr('BATTLE FOR {name}', {name: territoryLabel(t)})} ${t==='E'?tr('· HIGH-VALUE TERRITORY'):''}</div>
+      <div class="row-between" style="margin-bottom:10px;"><div>${tr('VP today')}: <b>${vpValueOf(t, world.currentDay)}</b>${t==='E'&&isFinalDay(world.currentDay)?` <span class="chip-small" style="color:var(--gold);">FINAL DAY ×${CONFIG.finalDayKingmakerMultiplier}</span>`:''}</div>${ownerBadge(owner)}</div>
       ${bLvl>0 ? `<div class="muted" style="margin-bottom:10px;">🎯 BOUNTY Lv${bLvl} — held ${world.holdDays[t]} days. Capture reward: +${bountyBonusVP(bLvl)} VP</div>` : ''}
       <div class="divider"></div>
       ${isActive ? `
-        <div class="card-title">PARTICIPATING FACTIONS</div>
+        <div class="card-title">${tr('PARTICIPATING FACTIONS')}</div>
         ${eligible.map(f => {
           const m = FACTION_META[f]; const st = world.phase==='fog' ? null : statusMap[f];
           const notOwner = !factionOwnsAny(f, world.ownership);
@@ -2301,11 +2730,11 @@ function modalTerritory(t){
           </div>`;
         }).join('')}
         <div class="divider"></div>
-        <div class="row-between" style="margin-bottom:12px;"><span class="muted">Status</span><span class="mono">${world.phase==='fog' ? 'FOG — awaiting resolve' : 'OPEN — awaiting resolve'}</span></div>
+        <div class="row-between" style="margin-bottom:12px;"><span class="muted">${tr('Status')}</span><span class="mono">${world.phase==='fog' ? tr('FOG — awaiting resolve') : tr('OPEN — awaiting resolve')}</span></div>
         <button class="btn btn-primary" onclick="closeModal(); goScreen('deploy'); prefillDeploy('${t}')" ${mystate.locked?'disabled':''}>
-          ${mystate.locked ? 'POWER ALREADY DEPLOYED' : 'DEPLOY POWER HERE'}
+          ${mystate.locked ? tr('POWER ALREADY DEPLOYED') : tr('DEPLOY POWER HERE')}
         </button>
-      ` : `<div class="empty-note">Not an active battle today.</div>`}
+      ` : `<div class="empty-note">${tr('Not an active battle today.')}</div>`}
     </div>
   </div>`;
 }
@@ -2501,7 +2930,7 @@ function screenRally(){
         ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="rMain('${t}')"><div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
       </div>
       <div class="card"><div class="card-title">${tr('SECONDARY (OPTIONAL)')}</div>
-        <div class="terr-select ${!secondary?'selected':''}" onclick="rSec(null)">None</div>
+        <div class="terr-select ${!secondary?'selected':''}" onclick="rSec(null)">${tr('None')}</div>
         ${secOpts.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="rSec('${t}')"><div><b class="display">${territoryLabel(t)}</b></div></div>`).join('')}
       </div>
       ${secondary ? `<div class="card"><div class="card-title">${tr('ALLOCATION SPLIT')}</div>
@@ -2519,7 +2948,7 @@ function screenRally(){
   }
   return commanderCard + `
   <div class="rally-card" style="border-color:${m.color};">
-    <div class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px; margin-bottom:8px;">TODAY'S RALLY</div>
+    <div class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px; margin-bottom:8px;">${tr("TODAY'S RALLY")}</div>
     <div class="row-between"><span class="muted">${tr('MAIN')}</span><span><b>${territoryLabel(rally.main)}</b> — ${rally.split[0]}%</span></div>
     ${rally.secondary ? `<div class="row-between"><span class="muted">${tr('SUPPORT')}</span><span><b>${territoryLabel(rally.secondary)}</b> — ${rally.split[1]}%</span></div>` : ''}
     ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">${tr('(auto-generated)')}</div>` : ''}
@@ -2534,7 +2963,7 @@ function screenRally(){
 // screen and yank focus out of the input after every character.
 function updateCmdMsgCount(){
   const el = document.getElementById('cmd-msg-count');
-  if (el) el.textContent = (CONFIG.commanderMessageMaxChars - commanderMsgInput.length) + ' characters left';
+  if (el) el.textContent = tr('{n} characters left', {n: CONFIG.commanderMessageMaxChars - commanderMsgInput.length});
 }
 function rMain(t){
   rallyPublishState.main=t;
@@ -2615,7 +3044,7 @@ function screenHistory(){
   <div class="card">
     <div class="card-title">${tr('PICK A DAY')}</div>
     <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
-      ${days.map(d => `<div class="split-opt ${historyDay===d?'selected':''}" onclick="viewHistoryDay(${d})">Day ${d}</div>`).join('')}
+      ${days.map(d => `<div class="split-opt ${historyDay===d?'selected':''}" onclick="viewHistoryDay(${d})">${tr('Day {n}', {n:d})}</div>`).join('')}
     </div>
   </div>
   ${mapSection}
@@ -2879,12 +3308,10 @@ function renderInner(){
     return;
   }
   if (bootPhase === 'room_form'){
-    document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
+    document.getElementById('root').innerHTML = renderSyncError() + `<div class="onboard-wrap"><div class="onboard-card">
       <div class="card-title" style="margin-bottom:4px;">${tr('RUN KINGDOM · ROOM')}</div>
       <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">${tr('Create or join a room')}</div>
-      <div class="muted" style="line-height:1.6; margin-bottom:16px;">
-        Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.
-      </div>
+      <div class="muted" style="line-height:1.6; margin-bottom:16px;">${tr("Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.")}</div>
       <button class="btn btn-primary" onclick="submitCreateRoom()">${tr('CREATE A NEW ROOM')}</button>
       <div class="divider"></div>
       <div class="muted" style="margin-bottom:4px; font-size:12px;">${tr('Or enter a room code someone shared with you')}</div>
@@ -2926,7 +3353,7 @@ function renderInner(){
     return;
   }
   if (bootPhase === 'loading'){
-    document.getElementById('root').innerHTML = `<div class="loading-wrap">Connecting to the Run Kingdom world…<br><span style="font-size:10px; opacity:0.4; font-family:monospace;">${APP_BUILD}</span></div>`;
+    document.getElementById('root').innerHTML = `<div class="loading-wrap">${tr('Connecting to the Run Kingdom world…')}<br><span style="font-size:10px; opacity:0.4; font-family:monospace;">${APP_BUILD}</span></div>`;
     return;
   }
   if (bootPhase === 'onboarding'){
