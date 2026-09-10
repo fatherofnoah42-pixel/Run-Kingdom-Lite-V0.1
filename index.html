@@ -34,6 +34,8 @@ body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -w
 .topbar-row{display:flex; justify-content:space-between; align-items:baseline;}
 .season-label{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; letter-spacing:2px; color:var(--text-dim);}
 .day-label{font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:13px; letter-spacing:1px; color:var(--gold);}
+.lang-toggle{font-family:'Space Mono',monospace; font-size:11px; font-weight:700; color:var(--text-dim); border:1px solid var(--border); border-radius:20px; padding:2px 10px; cursor:pointer; user-select:none; background:var(--panel-3);}
+.lang-toggle:active{transform:scale(0.94);}
 .live-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bloom); margin-right:5px; animation:livePulse 1.6s ease-in-out infinite;}
 @keyframes livePulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
 .standings-row{display:flex; gap:10px; margin-top:8px;}
@@ -195,7 +197,220 @@ const SUPABASE_ANON_KEY_HARDCODED = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.2.7-round-end-nav-2026-09-01';
+const APP_BUILD = 'rk-v0.3.3-zero-power-capture-fix-2026-09-10';
+
+/* =========================================================
+   I18N — in-app EN / 中文 switch
+   Keys are the English source strings, so an untranslated key
+   still renders correct English rather than a blank or a raw key.
+   t('KEY') for plain strings; t('KEY', {n: 3}) for placeholders
+   written as {n} inside the translation.
+========================================================= */
+function getSavedLang(){
+  try { return localStorage.getItem('rk_lang') || 'en'; } catch(e){ return 'en'; }
+}
+let LANG = getSavedLang();
+function setLang(l){
+  LANG = l;
+  try { localStorage.setItem('rk_lang', l); } catch(e){}
+  render();
+}
+function toggleLang(){ setLang(LANG === 'en' ? 'zh' : 'en'); }
+
+const ZH = {
+  // --- topbar / nav ---
+  'RUN KINGDOM · SEASON 01': '奔跑王国 · 第一赛季',
+  '{n} online': '{n} 人在线',
+  'HOME': '首页', 'RUN': '跑步', 'DEPLOY': '部署', 'RALLY': '集结', 'SEASON': '赛季',
+  // --- home ---
+  '👥 <b>{n}</b> players online': '👥 <b>{n}</b> 人在线',
+  '🏆 PRIZE POOL': '🏆 奖金池',
+  'Round {n} Fund<br>Growing': '第 {n} 轮基金<br>持续增长',
+  '📰 LATEST REPORT': '📰 最新战报',
+  '📜 TERRITORY HISTORY': '📜 领土历史',
+  'View ›': '查看 ›',
+  "TERRITORY MAP (today's open battles keep pulsing)": '领土地图（今日开放战场持续闪烁）',
+  'Tap a glowing tile to view today\'s battle.': '点击发光的领土查看今日战况。',
+  'YOUR POWER': '今日战力',
+  'DEPLOYED': '已部署',
+  'TODAY\'S ACTIVE BATTLES': '今日活跃战场',
+  'No active battles today.': '今日暂无活跃战场。',
+  'No active battles to deploy to today.': '今日暂无可部署的战斗。',
+  'Bounty': '悬赏',
+  'Deploy your power, then resolve the day whenever your group is ready.': '部署你的战力，然后在大家准备好时结算当天。',
+  'ENTER BATTLE FOG': '进入战场迷雾',
+  'RESOLVE DAY': '结算当天',
+  'RESOLVING…': '结算中…',
+  '🌫 BATTLE FOG': '🌫 战场迷雾',
+  'Final troop movements are hidden. You can still deploy remaining power.': '最终部署已隐藏，仍可继续投入剩余战力。',
+  '🏁 ROUND COMPLETE': '🏁 本轮结束',
+  '🏆 SEASON COMPLETE': '🏆 赛季结束',
+  'All 6 rounds are done — see the season champion and your rewards.': '6 轮全部结束——查看赛季冠军和你的奖励。',
+  'Round {n} is over — check standings, then start Round {m} when ready.': '第 {n} 轮已结束——查看排名，准备好后开始第 {m} 轮。',
+  'VIEW RESULTS': '查看结果',
+  '⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles': '⚙️ 调试：背景 NPC 战力已关闭——仅真实部署战力决定胜负',
+  '⚔ LAST STAND COMEBACK': '⚔ 绝地反攻',
+  'Your faction holds no territory — you may attack any one of today\'s open battles (adjacency not required, one target only).': '你的阵营已无领地——可在今日任意开放战场中选择一处发起攻占（不受相邻限制，仅限一处）。',
+  // --- kingmaker banner ---
+  '🔥 FINAL DAY — {name} ×{n}': '🔥 最终日 — {name} ×{n}',
+  '{name} is worth {vp} VP today and is open to every team, adjacent or not. This is the decider.': '{name} 今日价值 {vp} 点，且不受相邻限制、全员可打。这是决胜局。',
+  '🔥 <b style="color:var(--gold);">Day {d} showdown:</b> {name} will be worth ×{n} VP and open to all teams — {left} away.': '🔥 <b style="color:var(--gold);">第 {d} 天决战：</b>{name} 将价值 ×{n} 点且全员可打——还有 {left}。',
+  '{n} day': '{n} 天', '{n} days': '{n} 天',
+  // --- run ---
+  'SIMULATE TODAY\'S RUN': '模拟今日跑步',
+  'ENERGY TODAY': '今日能量',
+  'Base Power': '基础战力',
+  '90 Energy': '90 能量',
+  'GST Boost': 'GST 加成',
+  'POWER EARNED': '获得战力',
+  'BOOST WITH GST (SIMULATED)': '使用 GST 加成（模拟）',
+  'Exercise remains mandatory — GST cannot generate Power from zero.': '运动仍是必要条件——GST 无法从零生成战力。',
+  'None': '不使用',
+  'Power available to deploy': '可部署战力',
+  'Unused Power expires at settlement.': '未使用的战力将在结算时清零。',
+  'GO TO DEPLOY': '前往部署',
+  // --- deploy ---
+  'DEPLOYMENT LOCKED': '部署已锁定',
+  'Power cannot be withdrawn after deployment.': '战力部署后无法撤回。',
+  'No battles available to deploy to today.': '今日暂无可部署的战斗。',
+  'Your faction has no eligible battles today (no adjacent access).': '你的阵营今日没有可参与的战斗（无相邻通路）。',
+  'Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).': '你的阵营目前没有任何领地。请选择一处开放战场发起攻占（仅限一处，全部战力投入该处）。',
+  '(all power)': '（全部投入）',
+  'ALLOCATION SPLIT': '战力分配比例',
+  '(Secondary)': '（副）',
+  'MAIN BATTLE': '主战场',
+  'OPTIONAL SECONDARY BATTLE': '可选副战场',
+  'None — 100% to Main': '不选择 — 100% 投入主战场',
+
+  'RESULT': '部署结果',
+  'Available': '可用战力',
+  '(Main)': '（主）',
+
+  'Deployment is final. Power cannot be withdrawn after deployment.': '部署不可撤销，战力一旦投入即无法撤回。',
+  'CONFIRM DEPLOYMENT': '确认部署',
+  'CHOOSE YOUR TARGET': '选择攻占目标',
+
+  // --- rally / commander ---
+  'RALLY IS OFF': '集结功能已关闭',
+  'The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.': '本轮已关闭指挥官/集结功能（可在调试面板开关——当一个阵营只有一名玩家时集结没有协调对象）。请直接在"部署"页投入战力。',
+  '👑 COMMANDER ELECTION — ROUND {n}': '👑 指挥官选举 — 第 {n} 轮',
+  'Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.': '指挥官任期为<b>一整轮（7 天）</b>。{faction} 中近期能量排名前 {p}% 的玩家均可参选，参选者中能量最高者当选。',
+  'STANDING FOR ELECTION ({n})': '参选名单（{n}）',
+  'Nobody has stood yet.': '目前无人参选。',
+  '(you)': '（你）',
+  '{n} energy': '{n} 能量',
+  'Your recent energy: <b class="mono">{mine}</b> · Needed to stand: <b class="mono">{need}</b>': '你的近期能量：<b class="mono">{mine}</b> · 参选门槛：<b class="mono">{need}</b>',
+  'You\'ve served {n} rounds in a row — sit this one out (max {max}).': '你已连任 {n} 轮——本轮需要轮空（上限 {max} 轮）。',
+  '✅ You\'re standing. The winner is decided once elections resolve.': '✅ 你已参选。选举结算后公布当选者。',
+  'STAND FOR COMMANDER': '参选指挥官',
+  'ROUND {n}': '第 {n} 轮',
+  'Record this round: {w}W – {l}L': '本轮战绩：{w} 胜 – {l} 负',
+  '— posted day {n}': '— 发布于第 {n} 天',
+  'BROADCAST TO YOUR TEAM': '向全队广播',
+  'One short message your whole team sees. Update it any day of the round.': '一条全队可见的简短信息，本轮内随时可更新。',
+  '{n} characters left': '还可输入 {n} 字',
+  'POST': '发布',
+  'No eligible battles to rally today.': '今日没有可发起集结的战斗。',
+  'TODAY\'S RALLY — MAIN TERRITORY': '今日集结 — 主攻领土',
+  'SECONDARY (OPTIONAL)': '副攻（可选）',
+  'PUBLISH RALLY': '发布集结令',
+  'Today\'s rally is published and locked.': '今日集结令已发布并锁定。',
+  '{name} hasn\'t published today\'s Rally yet — check back shortly.': '{name} 尚未发布今日集结令，请稍后查看。',
+  'TODAY\'S RALLY': '今日集结令',
+  'MAIN': '主攻',
+  'SUPPORT': '支援',
+  '(auto-generated)': '（系统自动生成）',
+  'FOLLOW RALLY': '跟随集结',
+  'CUSTOM DEPLOY': '自主部署',
+  'Power already deployed today.': '今日已部署战力。',
+  // --- report ---
+  'No settlement yet.': '尚无结算记录。',
+  'DAY {n} SETTLEMENT REPORT': '第 {n} 天结算战报',
+  'BATTLE FOR {name}': '{name} 争夺战',
+  'VP EARNED THAT DAY': '当日获得点数',
+  '{faction} RALLY RESULT': '{faction} 集结结果',
+  '{faction} HOLDS {name}': '{faction} 成功守住 {name}',
+  '{faction} CAPTURES {name}': '{faction} 夺取 {name}',
+  '{name} REMAINS NEUTRAL': '{name} 维持中立',
+  'No days have been resolved yet — check back after Day 1 is settled.': '尚无已结算的日期——第 1 天结算后再来查看。',
+  'Loading Day {n}…': '正在加载第 {n} 天…',
+  'TERRITORY OWNERSHIP — END OF DAY {n}': '领土归属 — 第 {n} 天结束时',
+  'No record found for Day {n}.': '未找到第 {n} 天的记录。',
+  'PICK A DAY': '选择日期',
+  'DAY {n} SETTLEMENT REPORT': '第 {n} 天结算战报',
+  'BATTLE FOR {name}': '{name} 争夺战',
+  '· HIGH-VALUE TERRITORY': '· 高价值领土',
+  'TIE': '平局',
+  'held': '成功守住', 'captured': '夺取', 'stays neutral': '维持中立',
+  'VP GAINED TODAY': '当日获得点数',
+  'RALLY RESULT': '集结结果',
+  '✅ CAPTURED': '✅ 已夺取', '🛡️ HELD': '🛡️ 已守住', '❌ LOST': '❌ 未夺取',
+  'BACK TO HOME': '返回首页',
+  // --- season ---
+  'YOUR WALLET (MOCK)': '你的钱包（模拟）',
+  'GMT Balance': 'GMT 余额',
+  'Season Entry Fee Paid': '已付赛季入场费',
+  'Donated to War Fund': '已捐赠战争基金',
+  'Donate to the War Fund — grows the Prize Pool (split {p}% prize / {b}% burn / {r}% protocol, same as the daily mock economy).': '捐赠战争基金——增加奖金池（{p}% 奖池 / {b}% 销毁 / {r}% 协议收入，与每日模拟经济一致）。',
+  'SEASON 01 · ROUND {n} / {total}': '第一赛季 · 第 {n} / {total} 轮',
+  'Round wins so far — your team is locked for the whole season.': '目前轮次胜场——你的阵营在整个赛季内固定。',
+  'win': '胜', 'wins': '胜',
+  'ROUND {n} — IN PROGRESS': '第 {n} 轮 — 进行中',
+  'Live VP · settles after Day {n}.': '实时点数 · 第 {n} 天后结算。',
+  '🏁 ROUND {n} WINNER': '🏁 第 {n} 轮冠军',
+  'ROUND {n} STANDINGS': '第 {n} 轮排名',
+  '🏆 ROUND PRIZE POOL': '🏆 本轮奖金池',
+  'Polygon Locked Sneaker — {t} Design': 'Polygon 锁定球鞋 — {t} 版本',
+  'YOUR RESULT THIS ROUND': '你本轮的成绩',
+  'Team Placing': '阵营名次',
+  'Contribution Rank': '贡献排名',
+  'Participation Days': '参与天数',
+  'Estimated Reward': '预估奖励',
+  'Not eligible': '不符合资格',
+  'Requires active participation on {n}+ days.': '需至少参与 {n} 天。',
+  '👑 SEASON 01 CHAMPION': '👑 第一赛季冠军',
+  'Most round wins across {n} rounds': '{n} 轮中获胜轮次最多',
+  '🎖 SEASON REWARDS UNLOCKED': '🎖 已解锁赛季奖励',
+  'STEPN VIP — 30 Days': 'STEPN VIP — 30 天',
+  'Season rewards need {n}+ active days in the final round.': '赛季奖励需在最后一轮参与至少 {n} 天。',
+  'START ROUND {n}': '开始第 {n} 轮',
+  'New map, new prize pool, new commander election — same teams.': '全新地图、全新奖金池、重新选举指挥官——阵营不变。',
+  'Champion': '冠军', 'Runner-Up': '亚军', 'Second Runner-Up': '季军',
+  // --- history ---
+  'TERRITORY HISTORY': '领土历史',
+  'No settled days yet.': '尚无已结算的日期。',
+  'Day {n}': '第 {n} 天',
+  'Ownership after Day {n} settlement': '第 {n} 天结算后的归属',
+  // --- onboarding / setup ---
+  'RUN KINGDOM · SEASON 01': '奔跑王国 · 第一赛季',
+  'Join the Battlefield': '加入战场',
+  'Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>': '你的阵营是<b>系统分配</b>的，不可自选——按近期总能量平衡分配，确保没有一方开局更强。<b>阵营在整个 6 周赛季内锁定。</b>',
+  'Runner name': '跑者昵称',
+  'Leave blank for a random one': '留空则随机生成',
+  'Your last-7-day energy (mock STEPN data)': '你近 7 天的能量（模拟 STEPN 数据）',
+  'In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.': '真实产品中此数据直接来自 STEPN。此处可自行设置，用于测试阵营平衡分配。',
+  'JOIN GAME': '加入游戏',
+  'RUN KINGDOM · ROOM': '奔跑王国 · 房间',
+  'Create or join a room': '创建或加入房间',
+  'Everyone in the same room shares one map and one season — this keeps your game separate from anyone else\'s, even if they\'re using the same Supabase project.': '同一房间内的所有人共享一张地图和一个赛季——即使使用同一个 Supabase 项目，你的对局也与他人完全隔离。',
+  'CREATE A NEW ROOM': '创建新房间',
+  'Or enter a room code someone shared with you': '或输入他人分享给你的房间码',
+  'JOIN ROOM': '加入房间',
+  'Connecting to the Run Kingdom world…': '正在连接奔跑王国的世界…',
+  // --- misc ---
+  'NEUTRAL': '中立', 'LEADING': '领先', 'CLOSE': '胶着', 'BEHIND': '落后',
+  'HIDDEN': '已隐藏', 'CAP': '都',
+  'SYNCING': '同步中',
+  'A new day just began — loading the new battlefield…': '新的一天开始了——正在加载新战场…',
+};
+
+function tr(key, vars){
+  let s = (LANG === 'zh' && ZH[key] !== undefined) ? ZH[key] : key;
+  if (vars){
+    Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+  }
+  return s;
+}
 
 // Safety net: if ANY unexpected error happens while the script is first
 // loading — before the game has managed to render anything at all — show
@@ -256,6 +471,14 @@ const CONFIG = {
     { min: 4, max: 5, level: 2, bonus: 1.5, mult: 1.3 },
     { min: 6, max: 999, level: 3, bonus: 2, mult: 1.5 },
   ],
+  // BUG FIX 2 — background NPC power used to be 3,200–11,800 while a real
+  // player contributes roughly 8–30. Real deployment was therefore ~0.3% of a
+  // battle's total and could never change an outcome: results were decided
+  // entirely by the NPC roll. This range is now comparable to one real
+  // player's contribution, so deployments actually decide battles. With many
+  // real players a faction's combined power correctly outweighs the NPC
+  // baseline, which is the intended behaviour.
+  npcPower: { min: 4, max: 40 },
   gstTiers: [0, 5, 10, 15, 20],
   // 90% prize / 4% burn / 6% protocol — total rake down to 10% (was 20%), so
   // the game reads as an entertainment spend rather than a losing investment.
@@ -280,11 +503,26 @@ const CONFIG = {
 };
 
 const FACTIONS = ['cinder','surge','bloom'];
-const FACTION_META = {
-  cinder: { name: 'Red Running Team', short: 'Red Team', emoji: '🔴', color: 'var(--cinder)' },
-  surge:  { name: 'Blue Running Team', short: 'Blue Team', emoji: '🔵', color: 'var(--surge)' },
-  bloom:  { name: 'Green Running Team', short: 'Green Team', emoji: '🟢', color: 'var(--bloom)' },
+const FACTION_META_RAW = {
+  cinder: { name: 'Red Running Team', short: 'Red Team', zhName: '红跑步队', zhShort: '红队', emoji: '🔴', color: 'var(--cinder)' },
+  surge:  { name: 'Blue Running Team', short: 'Blue Team', zhName: '蓝跑步队', zhShort: '蓝队', emoji: '🔵', color: 'var(--surge)' },
+  bloom:  { name: 'Green Running Team', short: 'Green Team', zhName: '绿跑步队', zhShort: '绿队', emoji: '🟢', color: 'var(--bloom)' },
 };
+// Proxy so every existing `FACTION_META[f].name / .short` read stays unchanged
+// but returns whichever language is active.
+const FACTION_META = new Proxy(FACTION_META_RAW, {
+  get(target, f){
+    const base = target[f];
+    if (!base) return base;
+    return new Proxy(base, {
+      get(b, prop){
+        if (prop === 'name')  return LANG === 'zh' ? b.zhName  : b.name;
+        if (prop === 'short') return LANG === 'zh' ? b.zhShort : b.short;
+        return b[prop];
+      }
+    });
+  }
+});
 const TERRITORIES = ['A','B','C','D','E','F','G','H','I'];
 const TERRITORY_NAMES = {
   A: 'Alpha Gate', B: 'Black Cat 🐈\u200d⬛', C: 'Charm City',
@@ -442,9 +680,15 @@ function selectActiveBattles(day, ownership, holdDays, repHistory){
   }
   return result;
 }
-function generateBaselinePower(day, territory, faction){
-  const rng = rngFor('power', day, territory, faction);
-  return Math.round(3200 + rng() * 8600); // background power from other NPC runners
+function generateBaselinePower(day, territory, faction, runId){
+  // BUG FIX 1 — seed now includes runId. Previously the seed was only
+  // (day, territory, faction), so the "random" background power was the
+  // exact same number in every game, every room, forever: the same tile on
+  // the same day always produced the identical winner regardless of what
+  // any player did. Adding runId makes each round genuinely different.
+  const rng = rngFor('power', runId || '', day, territory, faction);
+  const { min, max } = CONFIG.npcPower;
+  return round2(min + rng() * (max - min));
 }
 function calculateBattleStatus(powerMap){
   const entries = Object.entries(powerMap);
@@ -457,6 +701,14 @@ function resolveBattle(powerMap, currentOwner){
   const entries = Object.entries(powerMap);
   if (!entries.length) return { winner: currentOwner, tie: false };
   const max = Math.max(...entries.map(e=>e[1]));
+  // Zero power can never capture anything. Previously, a tile whose only
+  // eligible attacker had 0 power was handed to that attacker unopposed —
+  // `max` was 0, that faction was the unique "top" scorer, and it won. With
+  // NPC power off and nobody playing, territory therefore changed hands on
+  // its own every settlement, which looked exactly like the map moving by
+  // itself. If nobody committed any power, nothing changes: the defender
+  // holds and a neutral tile stays neutral.
+  if (max <= 0) return { winner: currentOwner, tie: true };
   const top = entries.filter(([,p]) => p === max).map(([f]) => f);
   if (top.length > 1) return { winner: currentOwner, tie: true };
   return { winner: top[0], tie: false };
@@ -984,7 +1236,7 @@ async function ensureBattlesDoc(day){
   // Battle generation is a pure function (same inputs always produce the same
   // result), so recomputing it here after a transient read failure is safe —
   // it can't conflict with a copy another player already saved.
-  doc = generateBattlesDocPure(day, world.ownership, world.holdDays, world.repHistory, world.npcPowerEnabled);
+  doc = generateBattlesDocPure(day, world.ownership, world.holdDays, world.repHistory, world.npcPowerEnabled, world.runId);
   await safeSet(key, doc, true);
   const updatedRepHistory = advanceRepHistory(world.repHistory, doc.activeBattles);
   // Only write 'world' again if repHistory actually needs updating (it may
@@ -996,7 +1248,7 @@ async function ensureBattlesDoc(day){
   }
   return doc;
 }
-function generateBattlesDocPure(day, ownership, holdDays, repHistory, npcPowerEnabled){
+function generateBattlesDocPure(day, ownership, holdDays, repHistory, npcPowerEnabled, runId){
   const activeBattles = selectActiveBattles(day, ownership, holdDays, repHistory);
   const baseline = {};
   activeBattles.forEach(t => {
@@ -1007,7 +1259,7 @@ function generateBattlesDocPure(day, ownership, holdDays, repHistory, npcPowerEn
       // deployed to one of them. Turning it off (debug panel) makes outcomes
       // depend ONLY on real deployed power, which is what solo testing
       // usually expects: nothing you didn't touch should change hands.
-      baseline[t][f] = npcPowerEnabled === false ? 0 : generateBaselinePower(day, t, f);
+      baseline[t][f] = npcPowerEnabled === false ? 0 : generateBaselinePower(day, t, f, runId);
     });
   });
   return { activeBattles, baseline };
@@ -1395,7 +1647,19 @@ async function settleCurrentDay(){
 
   const results = []; const newOwnership = {...world.ownership}; const rallyResults = {};
   bDoc.activeBattles.forEach(t => {
-    const eff = effectiveEligibleFactions(t, world.ownership, bDoc.activeBattles, day);
+    // Eligibility is recomputed here from ownership at settlement time, but
+    // the deployment was made earlier against the eligibility shown on the
+    // deploy screen. If those two disagree — which happens around the moment
+    // a faction is eliminated or captures its first tile back — a faction
+    // could have real, committed power on this tile and still be missing from
+    // `eff`, so its power was silently dropped from the battle entirely.
+    // That's how a Last Stand attack could never win: the power was recorded,
+    // then ignored at settlement. Anyone who actually deployed here always
+    // counts, regardless of what the eligibility check now says.
+    const eff = new Set(effectiveEligibleFactions(t, world.ownership, bDoc.activeBattles, day));
+    Object.keys((aDoc.deployed && aDoc.deployed[t]) || {}).forEach(f => {
+      if (((aDoc.deployed[t][f]) || 0) > 0) eff.add(f);
+    });
     const powerMap = {};
     eff.forEach(f => {
       const base = (bDoc.baseline[t] && bDoc.baseline[t][f]) || 0;
@@ -1462,7 +1726,7 @@ async function settleCurrentDay(){
   let nextBattlesDoc = null;
   let nextRepHistory = world.repHistory;
   if (!roundDone){
-    nextBattlesDoc = generateBattlesDocPure(nextDay, newOwnership, newHoldDays, world.repHistory, world.npcPowerEnabled);
+    nextBattlesDoc = generateBattlesDocPure(nextDay, newOwnership, newHoldDays, world.repHistory, world.npcPowerEnabled, world.runId);
     nextRepHistory = advanceRepHistory(world.repHistory, nextBattlesDoc.activeBattles);
   }
 
@@ -1588,9 +1852,21 @@ function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownershi
 async function deployPower(mainT, secT, splitPct){
   if (mystate.locked) return;
   const avail = remainingPower();
-  const [mp, sp] = splitPct;
+  let [mp, sp] = splitPct;
+  // AUTHORITATIVE GUARD: with no secondary target there is nowhere for the
+  // secondary share to go, so the main target must take 100%. Without this,
+  // a split like [50,50] arriving alongside secT === null silently discarded
+  // half the player's power — it was neither deployed nor left available,
+  // because deployment also locks for the day. That's how "I deployed 100%
+  // but still have power left, and the button is greyed out" happens.
+  if (!secT){ mp = 100; sp = 0; }
   const mainPower = round2(avail * mp/100);
-  const secPower = secT ? round2(avail * sp/100) : 0;
+  // Give the secondary the exact remainder rather than an independently
+  // rounded share. Rounding both halves separately can overshoot (16.67
+  // split 50/50 rounds to 8.34 + 8.34 = 16.68), which left the player at
+  // -0.01 available. Deriving the remainder makes main + secondary add up
+  // to exactly what was available, every time.
+  const secPower = secT ? round2(avail - mainPower) : 0;
 
   // Try writing to shared battle data first; only lock deployment locally
   // once that write succeeds, to avoid "looks deployed on my screen but no
@@ -1800,14 +2076,13 @@ function fmt(n){ return Math.round(n).toLocaleString(); }
 function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
 function mmss(sec){ sec = Math.max(0, sec); const m = Math.floor(sec/60).toString().padStart(2,'0'); const s = Math.floor(sec%60).toString().padStart(2,'0'); return `${m}:${s}`; }
 function ownerBadge(owner){
-  if (!owner) return `<span class="badge-owner badge-neutral">NEUTRAL</span>`;
+  if (!owner) return `<span class="badge-owner badge-neutral">${tr('NEUTRAL')}</span>`;
   const m = FACTION_META[owner]; return `<span class="badge-owner badge-${owner}">${m.emoji} ${m.short}</span>`;
 }
 function statusPill(status){
   if (!status) return '';
   const cls = status.toLowerCase();
-  const map = { LEADING:'LEADING', CLOSE:'CLOSE', BEHIND:'BEHIND' };
-  return `<span class="pill ${cls}">${map[status]||status}</span>`;
+  return `<span class="pill ${cls}">${tr(status)}</span>`;
 }
 
 function renderSyncError(){
@@ -1830,11 +2105,12 @@ function renderTopbar(){
   return `
   <div class="topbar">
     <div class="topbar-row">
-      <div class="season-label"><span class="live-dot"></span>RUN KINGDOM · SEASON 01</div>
+      <div class="season-label"><span class="live-dot"></span>${tr('RUN KINGDOM · SEASON 01')}</div>
       <div class="day-label">R${world.round}·D${world.currentDay}/${CONFIG.roundDays}</div>
     </div>
     <div class="row-between" style="margin-top:4px;">
-      <div class="muted" style="font-size:11px;">👥 ${rs.online} online</div>
+      <div class="muted" style="font-size:11px;">${tr('{n} online', {n: rs.online})}</div>
+      <div class="lang-toggle" onclick="toggleLang()" title="Switch language / 切换语言">${LANG === 'en' ? '中文' : 'EN'}</div>
     </div>
     <div class="standings-row">
       ${standings.map(s=>{
@@ -1849,11 +2125,11 @@ function renderTopbar(){
 }
 function renderBottomNav(){
   const items = [
-    {id:'home', icon:'🗺️', label:'HOME'},
-    {id:'run', icon:'⚡', label:'RUN'},
-    {id:'deploy', icon:'🎯', label:'DEPLOY'},
-    {id:'rally', icon:'📯', label:'RALLY'},
-    {id:'season', icon:'🏆', label:'SEASON'},
+    {id:'home', icon:'🗺️', label:tr('HOME')},
+    {id:'run', icon:'⚡', label:tr('RUN')},
+    {id:'deploy', icon:'🎯', label:tr('DEPLOY')},
+    {id:'rally', icon:'📯', label:tr('RALLY')},
+    {id:'season', icon:'🏆', label:tr('SEASON')},
   ];
   return `<div class="bottomnav">
     ${items.map(it => `<div class="navitem ${uiScreen===it.id?'active':''}" onclick="goScreen('${it.id}')">
@@ -1874,7 +2150,7 @@ function renderMap(){
     const [gx,gy] = POS[t];
     return `<div class="tile ${ownerClass} ${isActive?'active-battle':''} ${flash}"
       style="grid-column:${gx+1}; grid-row:${gy+1};" onclick="openTerritory('${t}')">
-      ${cap ? '<span class="cap">CAP</span>' : ''}
+      ${cap ? `<span class="cap">${tr('CAP')}</span>` : ''}
       <span class="tid" style="font-size:10px; opacity:0.6;">${t}</span>
       <span class="tname">${territoryLabel(t)}</span>
       <span class="tvp">${vpValueOf(t, world.currentDay)} VP</span>
@@ -1902,23 +2178,23 @@ function phaseBanner(){
   if (roundIsOver()){
     const isSeasonEnd = world.phase === 'seasonEnd';
     return `<div class="card" style="text-align:center; padding:14px; border-color:var(--gold);">
-      <div class="card-title" style="margin-bottom:6px;">${isSeasonEnd ? '🏆 SEASON COMPLETE' : '🏁 ROUND COMPLETE'}</div>
-      <div class="muted" style="margin-bottom:10px;">${isSeasonEnd ? 'All 6 rounds are done — see the season champion and your rewards.' : `Round ${world.round} is over — check standings, then start Round ${world.round+1} when ready.`}</div>
-      <button class="btn btn-primary btn-small" onclick="goScreen('season')">VIEW RESULTS</button>
+      <div class="card-title" style="margin-bottom:6px;">${isSeasonEnd ? tr('🏆 SEASON COMPLETE') : tr('🏁 ROUND COMPLETE')}</div>
+      <div class="muted" style="margin-bottom:10px;">${isSeasonEnd ? tr('All 6 rounds are done — see the season champion and your rewards.') : tr('Round {n} is over — check standings, then start Round {m} when ready.', {n: world.round, m: world.round+1})}</div>
+      <button class="btn btn-primary btn-small" onclick="goScreen('season')">${tr('VIEW RESULTS')}</button>
     </div>`;
   }
   if (world.phase === 'fog'){
-    return `<div class="fog-banner"><div class="fogtitle">🌫 BATTLE FOG</div>
-      <div class="muted" style="margin-top:4px;">Final troop movements are hidden. You can still deploy remaining power.</div>
+    return `<div class="fog-banner"><div class="fogtitle">${tr('🌫 BATTLE FOG')}</div>
+      <div class="muted" style="margin-top:4px;">${tr('Final troop movements are hidden. You can still deploy remaining power.')}</div>
       <div class="btn-row" style="margin-top:10px;">
-        <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?'RESOLVING…':'RESOLVE DAY'}</button>
+        <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
       </div></div>`;
   }
   return `<div class="card" style="text-align:center; padding:12px;">
-    <div class="muted" style="margin-bottom:10px;">Deploy your power, then resolve the day whenever your group is ready.</div>
+    <div class="muted" style="margin-bottom:10px;">${tr('Deploy your power, then resolve the day whenever your group is ready.')}</div>
     <div class="btn-row">
-      <button class="btn btn-outline btn-small" onclick="enterFogManually()" ${inFlightFogToggle?'disabled':''}>ENTER BATTLE FOG</button>
-      <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?'RESOLVING…':'RESOLVE DAY'}</button>
+      <button class="btn btn-outline btn-small" onclick="enterFogManually()" ${inFlightFogToggle?'disabled':''}>${tr('ENTER BATTLE FOG')}</button>
+      <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
     </div>
   </div>`;
 }
@@ -1931,18 +2207,18 @@ function kingmakerBanner(){
   const mult = CONFIG.finalDayKingmakerMultiplier;
   if (isToday){
     return `<div class="elim-banner" style="border-color:rgba(242,194,69,0.5); background:linear-gradient(135deg, rgba(242,194,69,0.16), rgba(242,194,69,0.02));">
-      <div class="et" style="color:var(--gold);">🔥 FINAL DAY — ${territoryLabel('E').toUpperCase()} ×${mult}</div>
-      <div class="muted" style="margin-top:4px;">${territoryLabel('E')} is worth ${vpValueOf('E', world.currentDay)} VP today and is open to every team, adjacent or not. This is the decider.</div>
+      <div class="et" style="color:var(--gold);">${tr('🔥 FINAL DAY — {name} ×{n}', {name: territoryLabel('E').toUpperCase(), n: mult})}</div>
+      <div class="muted" style="margin-top:4px;">${tr('{name} is worth {vp} VP today and is open to every team, adjacent or not. This is the decider.', {name: territoryLabel('E'), vp: vpValueOf('E', world.currentDay)})}</div>
     </div>`;
   }
   const daysLeft = finalDay - world.currentDay;
   return `<div class="card" style="padding:10px 14px; border-color:rgba(242,194,69,0.25);">
-    <div class="muted" style="font-size:12px;">🔥 <b style="color:var(--gold);">Day ${finalDay} showdown:</b> ${territoryLabel('E')} will be worth ×${mult} VP and open to all teams — ${daysLeft} ${daysLeft===1?'day':'days'} away.</div>
+    <div class="muted" style="font-size:12px;">${tr('🔥 <b style="color:var(--gold);">Day {d} showdown:</b> {name} will be worth ×{n} VP and open to all teams — {left} away.', {d: finalDay, name: territoryLabel('E'), n: mult, left: tr(daysLeft===1?'{n} day':'{n} days', {n: daysLeft})})}</div>
   </div>`;
 }
 function eliminatedBanner(){
   if (!iAmEliminated()) return '';
-  return `<div class="elim-banner"><div class="et">⚔ LAST STAND COMEBACK</div>
+  return `<div class="elim-banner"><div class="et">${tr('⚔ LAST STAND COMEBACK')}</div>
     <div class="muted" style="margin-top:4px;">Your faction currently holds no territory — you may still attack one of today's open battles (adjacency not required, one target only).</div></div>`;
 }
 
@@ -1953,41 +2229,41 @@ function screenHome(){
   return `
   ${eliminatedBanner()}
   ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
-    <span class="muted" style="font-size:11px;">⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles</span>
+    <span class="muted" style="font-size:11px;">${tr('⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles')}</span>
   </div>` : ''}
   ${kingmakerBanner()}
   <div class="card" style="text-align:center; padding:10px 16px;">
-    <span>👥 <b>${rs.online}</b> players online</span>
+    <span>${tr('👥 <b>{n}</b> players online', {n: rs.online})}</span>
   </div>
   <div class="prize-box row-between">
-    <div><div class="prize-label">🏆 PRIZE POOL</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
-    <div style="text-align:right;" class="muted">Round ${world.round} Fund<br>Growing</div>
+    <div><div class="prize-label">${tr('🏆 PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
+    <div style="text-align:right;" class="muted">${tr('Round {n} Fund<br>Growing', {n: world.round})}</div>
   </div>
   ${phaseBanner()}
   ${settlementDoc ? `<div class="card" style="cursor:pointer;" onclick="goScreen('report')">
-    <div class="row-between"><span class="card-title" style="margin:0;">📰 LATEST REPORT</span><span class="muted">View ›</span></div>
+    <div class="row-between"><span class="card-title" style="margin:0;">${tr('📰 LATEST REPORT')}</span><span class="muted">${tr('View ›')}</span></div>
   </div>` : ''}
   ${(world.currentDay > 1 || roundIsOver()) ? `<div class="card" style="cursor:pointer;" onclick="goScreen('history')">
-    <div class="row-between"><span class="card-title" style="margin:0;">📜 TERRITORY HISTORY</span><span class="muted">View ›</span></div>
+    <div class="row-between"><span class="card-title" style="margin:0;">${tr('📜 TERRITORY HISTORY')}</span><span class="muted">${tr('View ›')}</span></div>
   </div>` : ''}
   <div class="card">
-    <div class="card-title">TERRITORY MAP (today's open battles keep pulsing)</div>
+    <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
     ${renderMap()}
-    <div class="muted" style="text-align:center; margin-top:10px;">Tap a glowing tile to view today's battle.</div>
+    <div class="muted" style="text-align:center; margin-top:10px;">${tr("Tap a glowing tile to view today's battle.")}</div>
   </div>
   <div class="card row-between">
-    <div><div class="card-title" style="margin-bottom:2px;">YOUR POWER</div><div class="big-num mono">${fmt1(avail)}</div></div>
+    <div><div class="card-title" style="margin-bottom:2px;">${tr('YOUR POWER')}</div><div class="big-num mono">${fmt1(avail)}</div></div>
     <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${mystate.locked||avail<=0?'disabled':''}>
-      ${mystate.locked ? 'DEPLOYED' : 'DEPLOY'}
+      ${mystate.locked ? tr('DEPLOYED') : tr('DEPLOY')}
     </button>
   </div>
   <div class="card">
-    <div class="card-title">TODAY'S ACTIVE BATTLES</div>
+    <div class="card-title">${tr("TODAY'S ACTIVE BATTLES")}</div>
     ${battlesDoc.activeBattles.map(t => `
       <div class="terr-select" onclick="openTerritory('${t}')">
         <div><b class="display">${territoryLabel(t)}</b> <span class="chip-small">${t}</span> &nbsp;${ownerBadge(world.ownership[t])}</div>
-        <div class="muted">${vpValueOf(t, world.currentDay)} VP ${t==='E'&&isFinalDay(world.currentDay)?'🔥':''} ${getBountyLevel(world.holdDays[t]||0)>0?'· 🎯 Bounty':''}</div>
-      </div>`).join('') || `<div class="empty-note">No active battles today.</div>`}
+        <div class="muted">${vpValueOf(t, world.currentDay)} VP ${t==='E'&&isFinalDay(world.currentDay)?'🔥':''} ${getBountyLevel(world.holdDays[t]||0)>0?'· 🎯 '+tr('Bounty'):''}</div>
+      </div>`).join('') || `<div class="empty-note">${tr('No active battles today.')}</div>`}
   </div>`;
 }
 
@@ -2021,7 +2297,7 @@ function modalTerritory(t){
           const notOwner = !factionOwnsAny(f, world.ownership);
           return `<div class="row-between" style="padding:6px 0;">
             <span><span class="dot" style="background:${m.color}"></span>${m.name}${notOwner?' <span class="chip-small">COMEBACK</span>':''}</span>
-            ${world.phase==='fog' ? `<span class="chip-small">HIDDEN</span>` : statusPill(st)}
+            ${world.phase==='fog' ? `<span class="chip-small">${tr('HIDDEN')}</span>` : statusPill(st)}
           </div>`;
         }).join('')}
         <div class="divider"></div>
@@ -2039,27 +2315,27 @@ function screenRun(){
   const base = energyToPower(mystate.energyToday); const boosted = computeAvailablePower();
   return `
   <div class="card">
-    <div class="card-title">SIMULATE TODAY'S RUN</div>
-    <div class="energy-readout"><div class="muted">ENERGY TODAY</div><div class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
+    <div class="card-title">${tr("SIMULATE TODAY'S RUN")}</div>
+    <div class="energy-readout"><div class="muted">${tr('ENERGY TODAY')}</div><div class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
     <input type="range" min="${CONFIG.energy.min}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
       value="${mystate.energyToday}" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)" ${mystate.locked?'disabled':''}>
-    <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>0</span><span>90 Energy</span></div>
+    <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>0</span><span>${tr('90 Energy')}</span></div>
     <div class="divider"></div>
-    <div class="row-between"><span class="muted">Base Power</span><span class="mono">⚡ ${fmt1(base)}</span></div>
-    ${mystate.gstBoostPercent>0 ? `<div class="row-between"><span class="muted">GST Boost</span><span class="mono" style="color:var(--gold)">+${mystate.gstBoostPercent}%</span></div>` : ''}
-    <div class="row-between" style="margin-top:6px;"><span><b>POWER EARNED</b></span><span class="big-num mono" style="font-size:22px;">⚡ ${fmt1(boosted)}</span></div>
+    <div class="row-between"><span class="muted">${tr('Base Power')}</span><span class="mono">⚡ ${fmt1(base)}</span></div>
+    ${mystate.gstBoostPercent>0 ? `<div class="row-between"><span class="muted">${tr('GST Boost')}</span><span class="mono" style="color:var(--gold)">+${mystate.gstBoostPercent}%</span></div>` : ''}
+    <div class="row-between" style="margin-top:6px;"><span><b>${tr('POWER EARNED')}</b></span><span class="big-num mono" style="font-size:22px;">⚡ ${fmt1(boosted)}</span></div>
   </div>
   <div class="card">
-    <div class="card-title">BOOST WITH GST (SIMULATED)</div>
-    <div class="muted" style="margin-bottom:8px;">Exercise remains mandatory — GST cannot generate Power from zero.</div>
+    <div class="card-title">${tr('BOOST WITH GST (SIMULATED)')}</div>
+    <div class="muted" style="margin-bottom:8px;">${tr('Exercise remains mandatory — GST cannot generate Power from zero.')}</div>
     <div class="debug-grid">
-      ${CONFIG.gstTiers.map(pct => `<div class="gst-tier ${mystate.gstBoostPercent===pct?'selected':''}" onclick="setGST(${pct})">${pct===0?'None':'+'+pct+'%'}</div>`).join('')}
+      ${CONFIG.gstTiers.map(pct => `<div class="gst-tier ${mystate.gstBoostPercent===pct?'selected':''}" onclick="setGST(${pct})">${pct===0?tr('None'):'+'+pct+'%'}</div>`).join('')}
     </div>
   </div>
   <div class="card">
-    <div class="row-between"><span class="muted">Power available to deploy</span><span class="mono">${fmt1(remainingPower())}</span></div>
-    <div class="muted" style="margin-top:6px; font-size:12px;">Unused Power expires at settlement.</div>
-    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>GO TO DEPLOY</button>
+    <div class="row-between"><span class="muted">${tr('Power available to deploy')}</span><span class="mono">${fmt1(remainingPower())}</span></div>
+    <div class="muted" style="margin-top:6px; font-size:12px;">${tr('Unused Power expires at settlement.')}</div>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>${tr('GO TO DEPLOY')}</button>
   </div>`;
 }
 
@@ -2070,66 +2346,77 @@ function screenDeploy(){
   const avail = remainingPower();
   if (mystate.locked){
     return `<div class="card" style="text-align:center;">
-      <div class="card-title">DEPLOYMENT LOCKED</div>
-      <div class="muted">Power cannot be withdrawn after deployment.</div><div class="divider"></div>
+      <div class="card-title">${tr('DEPLOYMENT LOCKED')}</div>
+      <div class="muted">${tr('Power cannot be withdrawn after deployment.')}</div><div class="divider"></div>
       ${Object.entries(mystate.deployedPower).map(([t,p]) => `<div class="row-between"><span>${territoryLabel(t)}</span><span class="mono">⚡ ${fmt1(p)}</span></div>`).join('')}
     </div>`;
   }
-  if (!battlesDoc.activeBattles.length) return `<div class="card"><div class="empty-note">No active battles to deploy to today.</div></div>`;
+  if (!battlesDoc.activeBattles.length) return `<div class="card"><div class="empty-note">${tr('No active battles to deploy to today.')}</div></div>`;
 
   const eliminated = iAmEliminated();
   const battles = eliminated
     ? battlesDoc.activeBattles
     : battlesDoc.activeBattles.filter(t => getEligibleFactions(t, world.ownership).includes(profile.faction));
-  if (!battles.length) return `<div class="card"><div class="empty-note">Your faction has no eligible battles today (no adjacent access).</div></div>`;
+  if (!battles.length) return `<div class="card"><div class="empty-note">${tr('Your faction has no eligible battles today (no adjacent access).')}</div></div>`;
 
   const main = deployState.main && battles.includes(deployState.main) ? deployState.main : battles[0];
   if (eliminated){
     const mainPower = avail;
     return `
-    <div class="elim-banner"><div class="et">⚔ LAST STAND COMEBACK</div>
-      <div class="muted" style="margin-top:4px;">Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).</div></div>
+    <div class="elim-banner"><div class="et">${tr('⚔ LAST STAND COMEBACK')}</div>
+      <div class="muted" style="margin-top:4px;">${tr('Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).')}</div></div>
     <div class="card">
-      <div class="card-title">CHOOSE YOUR TARGET</div>
+      <div class="card-title">${tr('CHOOSE YOUR TARGET')}</div>
       ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
         <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
     </div>
     <div class="card">
-      <div class="row-between"><span>Available</span><span class="mono">${fmt1(avail)}</span></div>
-      <div class="row-between"><span>${territoryLabel(main)} (all power)</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
+      <div class="row-between"><span>${tr('Available')}</span><span class="mono">${fmt1(avail)}</span></div>
+      <div class="row-between"><span>${territoryLabel(main)} ${tr('(all power)')}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
       <div class="divider"></div>
-      <div class="muted" style="font-size:12px; margin-bottom:10px;">Deployment is final. Power cannot be withdrawn after deployment.</div>
-      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0])" ${avail<=0?'disabled':''}>CONFIRM DEPLOYMENT</button>
+      <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
+      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0])" ${avail<=0?'disabled':''}>${tr('CONFIRM DEPLOYMENT')}</button>
     </div>`;
   }
   const secondaryOptions = battles.filter(t=>t!==main);
   const secondary = deployState.secondary && secondaryOptions.includes(deployState.secondary) ? deployState.secondary : null;
-  const split = CONFIG.splitPresets[deployState.splitIdx];
+  // The secondary can also be invalidated without any click — e.g. a realtime
+  // sync changes which battles are open. Derive the split from whether a
+  // secondary actually survived, so the ratio shown and the ratio deployed
+  // can never disagree.
+  const split = secondary ? CONFIG.splitPresets[deployState.splitIdx] : [100, 0];
   const mainPower = round2(avail*split[0]/100); const secPower = secondary ? round2(avail*split[1]/100) : 0;
   return `
-  <div class="card"><div class="card-title">MAIN BATTLE</div>
+  <div class="card"><div class="card-title">${tr('MAIN BATTLE')}</div>
     ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
       <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
   </div>
-  <div class="card"><div class="card-title">OPTIONAL SECONDARY BATTLE</div>
-    <div class="terr-select ${!secondary?'selected':''}" onclick="setDeploySecondary(null)"><div>None — 100% to Main</div></div>
+  <div class="card"><div class="card-title">${tr('OPTIONAL SECONDARY BATTLE')}</div>
+    <div class="terr-select ${!secondary?'selected':''}" onclick="setDeploySecondary(null)"><div>${tr('None — 100% to Main')}</div></div>
     ${secondaryOptions.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="setDeploySecondary('${t}')">
       <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
   </div>
-  ${secondary ? `<div class="card"><div class="card-title">ALLOCATION SPLIT</div>
+  ${secondary ? `<div class="card"><div class="card-title">${tr('ALLOCATION SPLIT')}</div>
     <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
       ${CONFIG.splitPresets.map((p,i) => `<div class="split-opt ${deployState.splitIdx===i?'selected':''}" onclick="setSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
     </div></div>` : ''}
-  <div class="card"><div class="card-title">RESULT</div>
-    <div class="row-between"><span>Available</span><span class="mono">${fmt1(avail)}</span></div>
-    <div class="row-between"><span>${territoryLabel(main)} (Main)</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
-    ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} (Secondary)</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
+  <div class="card"><div class="card-title">${tr('RESULT')}</div>
+    <div class="row-between"><span>${tr('Available')}</span><span class="mono">${fmt1(avail)}</span></div>
+    <div class="row-between"><span>${territoryLabel(main)} ${tr('(Main)')}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
+    ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} ${tr('(Secondary)')}</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
     <div class="divider"></div>
-    <div class="muted" style="font-size:12px; margin-bottom:10px;">Deployment is final. Power cannot be withdrawn after deployment.</div>
-    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])" ${avail<=0?'disabled':''}>CONFIRM DEPLOYMENT</button>
+    <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
+    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])" ${avail<=0?'disabled':''}>${tr('CONFIRM DEPLOYMENT')}</button>
   </div>`;
 }
-function setDeployMain(t){ deployState.main = t; if(deployState.secondary===t) deployState.secondary=null; render(); }
+function setDeployMain(t){
+  deployState.main = t;
+  // If the new main was the secondary, the secondary is gone — reset the split
+  // to 100/0 too. Leaving splitIdx at 75/25 or 50/50 with no secondary hides
+  // the split UI while still arming a partial deploy.
+  if (deployState.secondary===t){ deployState.secondary=null; deployState.splitIdx=0; }
+  render();
+}
 function setDeploySecondary(t){ deployState.secondary = t; if(!t) deployState.splitIdx = 0; else if(deployState.splitIdx===0) deployState.splitIdx=1; render(); }
 function setSplit(i){ deployState.splitIdx = i; render(); }
 function confirmDeploy(main, sec, split){ deployPower(main, sec, split); deployState = {main:null, secondary:null, splitIdx:1}; }
@@ -2140,8 +2427,8 @@ let commanderMsgInput = '';
 function screenRally(){
   if (world.rallyEnabled === false){
     return `<div class="card" style="text-align:center;">
-      <div class="card-title">RALLY IS OFF</div>
-      <div class="muted">The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.</div>
+      <div class="card-title">${tr('RALLY IS OFF')}</div>
+      <div class="muted">${tr('The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.')}</div>
     </div>`;
   }
   const m = FACTION_META[profile.faction];
@@ -2158,21 +2445,21 @@ function screenRally(){
     const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
     return `
     <div class="card">
-      <div class="card-title">👑 COMMANDER ELECTION — ROUND ${world.round}</div>
-      <div class="muted" style="line-height:1.6;">Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top ${Math.round(CONFIG.commanderTopPercent*100)}% of ${m.name} by recent energy can stand. Highest recent energy among those who stand wins.</div>
+      <div class="card-title">${tr('👑 COMMANDER ELECTION — ROUND {n}', {n: world.round})}</div>
+      <div class="muted" style="line-height:1.6;">${tr('Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.', {p: Math.round(CONFIG.commanderTopPercent*100), faction: m.name})}</div>
     </div>
     <div class="card">
-      <div class="card-title">STANDING FOR ELECTION (${nominees.length})</div>
+      <div class="card-title">${tr('STANDING FOR ELECTION ({n})', {n: nominees.length})}</div>
       ${nominees.length ? nominees.slice().sort((a,b)=>b.energy-a.energy).map(n => `
         <div class="row-between" style="padding:5px 0;">
-          <span>${n.name}${n.playerId===LOCAL_PLAYER_ID?' (you)':''}</span>
-          <span class="mono">${fmt1(n.energy)} energy</span>
-        </div>`).join('') : `<div class="empty-note">Nobody has stood yet.</div>`}
+          <span>${n.name}${n.playerId===LOCAL_PLAYER_ID?' '+tr('(you)'):''}</span>
+          <span class="mono">${tr('{n} energy', {n: fmt1(n.energy)})}</span>
+        </div>`).join('') : `<div class="empty-note">${tr('Nobody has stood yet.')}</div>`}
       <div class="divider"></div>
-      <div class="muted" style="font-size:12px; margin-bottom:8px;">Your recent energy: <b class="mono">${fmt1(profile.recentEnergy||0)}</b> · Needed to stand: <b class="mono">${fmt1(threshold)}</b></div>
-      ${streak >= CONFIG.commanderMaxConsecutiveRounds ? `<div class="muted" style="font-size:12px; color:var(--gold);">You've served ${streak} rounds in a row — sit this one out (max ${CONFIG.commanderMaxConsecutiveRounds}).</div>` : ''}
-      ${mine ? `<div class="muted" style="text-align:center;">✅ You're standing. The winner is decided once elections resolve.</div>`
-             : `<button class="btn btn-primary" onclick="nominateSelf()" ${!eligible?'disabled':''}>STAND FOR COMMANDER</button>`}
+      <div class="muted" style="font-size:12px; margin-bottom:8px;">${tr('Your recent energy: <b class="mono">{mine}</b> · Needed to stand: <b class="mono">{need}</b>', {mine: fmt1(profile.recentEnergy||0), need: fmt1(threshold)})}</div>
+      ${streak >= CONFIG.commanderMaxConsecutiveRounds ? `<div class="muted" style="font-size:12px; color:var(--gold);">${tr("You've served {n} rounds in a row — sit this one out (max {max}).", {n: streak, max: CONFIG.commanderMaxConsecutiveRounds})}</div>` : ''}
+      ${mine ? `<div class="muted" style="text-align:center;">${tr("✅ You're standing. The winner is decided once elections resolve.")}</div>`
+             : `<button class="btn btn-primary" onclick="nominateSelf()" ${!eligible?'disabled':''}>${tr('STAND FOR COMMANDER')}</button>`}
     </div>`;
   }
 
@@ -2182,11 +2469,11 @@ function screenRally(){
   const commanderCard = `
   <div class="rally-card" style="border-color:${m.color};">
     <div class="row-between" style="margin-bottom:6px;">
-      <span class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px;">👑 ${commander.name}${isMe?' (you)':''}</span>
-      <span class="chip-small">ROUND ${world.round}</span>
+      <span class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px;">👑 ${commander.name}${isMe?' '+tr('(you)'):''}</span>
+      <span class="chip-small">${tr('ROUND {n}', {n: world.round})}</span>
     </div>
-    <div class="muted" style="font-size:12px;">Record this round: ${world.commanderRecord[profile.faction].wins}W – ${world.commanderRecord[profile.faction].losses}L</div>
-    ${msg && msg.text ? `<div class="divider"></div><div style="font-size:13px; line-height:1.5;">💬 ${msg.text}</div><div class="muted" style="font-size:11px; margin-top:4px;">— posted day ${msg.day}</div>` : ''}
+    <div class="muted" style="font-size:12px;">${tr('Record this round: {w}W – {l}L', {w: world.commanderRecord[profile.faction].wins, l: world.commanderRecord[profile.faction].losses})}</div>
+    ${msg && msg.text ? `<div class="divider"></div><div style="font-size:13px; line-height:1.5;">💬 ${msg.text}</div><div class="muted" style="font-size:11px; margin-top:4px;">${tr('— posted day {n}', {n: msg.day})}</div>` : ''}
   </div>`;
 
   // --- Commander's own view: message board + rally publishing ---
@@ -2194,54 +2481,54 @@ function screenRally(){
     const remaining = CONFIG.commanderMessageMaxChars - commanderMsgInput.length;
     const msgCard = `
     <div class="card">
-      <div class="card-title">BROADCAST TO YOUR TEAM</div>
-      <div class="muted" style="font-size:12px; margin-bottom:6px;">One short message your whole team sees. Update it any day of the round.</div>
+      <div class="card-title">${tr('BROADCAST TO YOUR TEAM')}</div>
+      <div class="muted" style="font-size:12px; margin-bottom:6px;">${tr('One short message your whole team sees. Update it any day of the round.')}</div>
       <input id="cmd-msg-input" class="name-input" maxlength="${CONFIG.commanderMessageMaxChars}" placeholder="e.g. Day 3: Blue left Find Satoshi thin — hit it tomorrow" value="${commanderMsgInput}" oninput="commanderMsgInput=this.value; updateCmdMsgCount();" />
       <div class="row-between" style="margin-top:6px;">
-        <span class="muted" id="cmd-msg-count" style="font-size:11px;">${remaining} characters left</span>
-        <button class="btn btn-primary btn-small" onclick="publishCommanderMessage(commanderMsgInput)" ${!commanderMsgInput.trim()?'disabled':''}>POST</button>
+        <span class="muted" id="cmd-msg-count" style="font-size:11px;">${tr('{n} characters left', {n: remaining})}</span>
+        <button class="btn btn-primary btn-small" onclick="publishCommanderMessage(commanderMsgInput)" ${!commanderMsgInput.trim()?'disabled':''}>${tr('POST')}</button>
       </div>
     </div>`;
 
     if (!rally){
-      if (!battles.length) return commanderCard + msgCard + `<div class="card"><div class="empty-note">No eligible battles to rally today.</div></div>`;
+      if (!battles.length) return commanderCard + msgCard + `<div class="card"><div class="empty-note">${tr('No eligible battles to rally today.')}</div></div>`;
       const main = rallyPublishState.main && battles.includes(rallyPublishState.main) ? rallyPublishState.main : battles[0];
       const secOpts = battles.filter(t=>t!==main);
       const secondary = rallyPublishState.secondary && secOpts.includes(rallyPublishState.secondary) ? rallyPublishState.secondary : null;
-      const split = CONFIG.splitPresets[rallyPublishState.splitIdx];
+      const split = secondary ? CONFIG.splitPresets[rallyPublishState.splitIdx] : [100, 0];
       return commanderCard + msgCard + `
-      <div class="card"><div class="card-title">TODAY'S RALLY — MAIN TERRITORY</div>
+      <div class="card"><div class="card-title">${tr("TODAY'S RALLY — MAIN TERRITORY")}</div>
         ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="rMain('${t}')"><div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
       </div>
-      <div class="card"><div class="card-title">SECONDARY (OPTIONAL)</div>
+      <div class="card"><div class="card-title">${tr('SECONDARY (OPTIONAL)')}</div>
         <div class="terr-select ${!secondary?'selected':''}" onclick="rSec(null)">None</div>
         ${secOpts.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="rSec('${t}')"><div><b class="display">${territoryLabel(t)}</b></div></div>`).join('')}
       </div>
-      ${secondary ? `<div class="card"><div class="card-title">SPLIT</div>
+      ${secondary ? `<div class="card"><div class="card-title">${tr('ALLOCATION SPLIT')}</div>
         <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
           ${CONFIG.splitPresets.map((p,i)=>`<div class="split-opt ${rallyPublishState.splitIdx===i?'selected':''}" onclick="rSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
         </div></div>` : ''}
-      <button class="btn btn-primary" onclick="doPublish('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])">PUBLISH RALLY</button>`;
+      <button class="btn btn-primary" onclick="doPublish('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])">${tr('PUBLISH RALLY')}</button>`;
     }
-    return commanderCard + msgCard + `<div class="card"><div class="empty-note">Today's rally is published and locked.</div></div>`;
+    return commanderCard + msgCard + `<div class="card"><div class="empty-note">${tr("Today's rally is published and locked.")}</div></div>`;
   }
 
   // --- Normal player's view ---
   if (!rally){
-    return commanderCard + `<div class="card"><div class="empty-note">${commander.name} hasn't published today's Rally yet — check back shortly.</div></div>`;
+    return commanderCard + `<div class="card"><div class="empty-note">${tr("{name} hasn't published today's Rally yet — check back shortly.", {name: commander.name})}</div></div>`;
   }
   return commanderCard + `
   <div class="rally-card" style="border-color:${m.color};">
     <div class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px; margin-bottom:8px;">TODAY'S RALLY</div>
-    <div class="row-between"><span class="muted">MAIN</span><span><b>${territoryLabel(rally.main)}</b> — ${rally.split[0]}%</span></div>
-    ${rally.secondary ? `<div class="row-between"><span class="muted">SUPPORT</span><span><b>${territoryLabel(rally.secondary)}</b> — ${rally.split[1]}%</span></div>` : ''}
-    ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">(auto-generated)</div>` : ''}
+    <div class="row-between"><span class="muted">${tr('MAIN')}</span><span><b>${territoryLabel(rally.main)}</b> — ${rally.split[0]}%</span></div>
+    ${rally.secondary ? `<div class="row-between"><span class="muted">${tr('SUPPORT')}</span><span><b>${territoryLabel(rally.secondary)}</b> — ${rally.split[1]}%</span></div>` : ''}
+    ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">${tr('(auto-generated)')}</div>` : ''}
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary" onclick="followRally()" ${mystate.locked?'disabled':''}>FOLLOW RALLY</button>
-    <button class="btn btn-outline" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>CUSTOM DEPLOY</button>
+    <button class="btn btn-primary" onclick="followRally()" ${mystate.locked?'disabled':''}>${tr('FOLLOW RALLY')}</button>
+    <button class="btn btn-outline" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>${tr('CUSTOM DEPLOY')}</button>
   </div>
-  ${mystate.locked ? `<div class="muted" style="text-align:center; margin-top:10px;">Power already deployed today.</div>` : ''}`;
+  ${mystate.locked ? `<div class="muted" style="text-align:center; margin-top:10px;">${tr('Power already deployed today.')}</div>` : ''}`;
 }
 // Surgical update so typing in the broadcast box doesn't re-render the whole
 // screen and yank focus out of the input after every character.
@@ -2249,7 +2536,13 @@ function updateCmdMsgCount(){
   const el = document.getElementById('cmd-msg-count');
   if (el) el.textContent = (CONFIG.commanderMessageMaxChars - commanderMsgInput.length) + ' characters left';
 }
-function rMain(t){ rallyPublishState.main=t; if(rallyPublishState.secondary===t) rallyPublishState.secondary=null; render(); }
+function rMain(t){
+  rallyPublishState.main=t;
+  // Same reset as setDeployMain — a rally published with a split but no
+  // secondary would waste that share for every player who follows it.
+  if (rallyPublishState.secondary===t){ rallyPublishState.secondary=null; rallyPublishState.splitIdx=0; }
+  render();
+}
 function rSec(t){ rallyPublishState.secondary=t; if(!t) rallyPublishState.splitIdx=0; else if(rallyPublishState.splitIdx===0) rallyPublishState.splitIdx=1; render(); }
 function rSplit(i){ rallyPublishState.splitIdx=i; render(); }
 function doPublish(main, sec, split){ publishRally(main, sec, split); rallyPublishState={main:null,secondary:null,splitIdx:1}; }
@@ -2263,33 +2556,33 @@ function doPublish(main, sec, split){ publishRally(main, sec, split); rallyPubli
 
 /* ---------- REPORT (latest battle report) ---------- */
 function screenReport(){
-  if (!settlementDoc) return `<div class="card"><div class="empty-note">No settlement yet.</div></div>`;
+  if (!settlementDoc) return `<div class="card"><div class="empty-note">${tr('No settlement yet.')}</div></div>`;
   const s = settlementDoc; const m = FACTION_META[profile.faction];
   const dayShown = roundIsOver() ? world.currentDay : world.currentDay - 1;
   return `
-  <div class="card"><div class="card-title">DAY ${dayShown} SETTLEMENT REPORT</div>
+  <div class="card"><div class="card-title">${tr('DAY {n} SETTLEMENT REPORT', {n: dayShown})}</div>
     ${s.results.map(r => {
       const winnerMeta = r.winner ? FACTION_META[r.winner] : null;
       return `<div style="margin-bottom:14px;">
-        <div class="row-between"><b class="display">BATTLE FOR ${territoryLabel(r.t)}</b>${r.tie ? '<span class="chip-small">TIE</span>' : ''}</div>
+        <div class="row-between"><b class="display">${tr('BATTLE FOR {name}', {name: territoryLabel(r.t)})}</b>${r.tie ? `<span class="chip-small">${tr('TIE')}</span>` : ''}</div>
         ${Object.entries(r.powerMap).sort((a,b)=>b[1]-a[1]).map(([f,p]) => `
           <div class="row-between" style="padding:3px 0;"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">${fmt(p)}</span></div>`).join('')}
         <div style="margin-top:6px; font-family:'Chakra Petch',sans-serif; font-weight:700; color:${winnerMeta?winnerMeta.color:'var(--text-dim)'};">
-          ${r.winner ? (r.winner===r.prevOwner ? `${winnerMeta.name.toUpperCase()} HOLDS ${territoryLabel(r.t)}` : `${winnerMeta.name.toUpperCase()} CAPTURES ${territoryLabel(r.t)}`) : `${territoryLabel(r.t)} REMAINS NEUTRAL`}
+          ${r.winner ? (r.winner===r.prevOwner ? tr('{faction} HOLDS {name}', {faction: winnerMeta.name.toUpperCase(), name: territoryLabel(r.t)}) : tr('{faction} CAPTURES {name}', {faction: winnerMeta.name.toUpperCase(), name: territoryLabel(r.t)})) : tr('{name} REMAINS NEUTRAL', {name: territoryLabel(r.t)})}
           ${r.bonusVP>0 ? ` · 🎯 +${r.bonusVP} VP` : ''}
         </div>
       </div>`;
     }).join('<div class="divider"></div>')}
   </div>
-  <div class="card"><div class="card-title">VP EARNED THAT DAY</div>
+  <div class="card"><div class="card-title">${tr('VP EARNED THAT DAY')}</div>
     ${FACTIONS.map(f => `<div class="row-between"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">+${fmt1(s.vpGained[f])}</span></div>`).join('')}
   </div>
   ${s.rallyResults && s.rallyResults[profile.faction] ? `
-  <div class="card"><div class="card-title">${m.emoji} ${m.name} RALLY RESULT</div>
-    ${s.rallyResults[profile.faction].main ? `<div>MAIN — ${territoryLabel(s.rallyResults[profile.faction].main.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].main.outcome)}</div>` : ''}
-    ${s.rallyResults[profile.faction].secondary ? `<div>SUPPORT — ${territoryLabel(s.rallyResults[profile.faction].secondary.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].secondary.outcome)}</div>` : ''}
+  <div class="card"><div class="card-title">${m.emoji} ${tr('{faction} RALLY RESULT', {faction: m.name})}</div>
+    ${s.rallyResults[profile.faction].main ? `<div>${tr('MAIN')} — ${territoryLabel(s.rallyResults[profile.faction].main.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].main.outcome)}</div>` : ''}
+    ${s.rallyResults[profile.faction].secondary ? `<div>${tr('SUPPORT')} — ${territoryLabel(s.rallyResults[profile.faction].secondary.t)} ${rallyOutcomeLabel(s.rallyResults[profile.faction].secondary.outcome)}</div>` : ''}
   </div>` : ''}
-  <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+  <button class="btn btn-outline" onclick="goScreen('home')">${tr('BACK TO HOME')}</button>`;
 }
 
 /* ---------- SEASON ---------- */
@@ -2297,48 +2590,48 @@ function screenReport(){
 function screenHistory(){
   const maxDay = roundIsOver() ? world.currentDay : world.currentDay - 1;
   if (maxDay < 1){
-    return `<div class="card"><div class="empty-note">No days have been resolved yet — check back after Day 1 is settled.</div></div>
-    <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+    return `<div class="card"><div class="empty-note">${tr('No days have been resolved yet — check back after Day 1 is settled.')}</div></div>
+    <button class="btn btn-outline" onclick="goScreen('home')">${tr('BACK TO HOME')}</button>`;
   }
   const days = Array.from({length: maxDay}, (_, i) => i + 1);
   let mapSection = '';
   if (historyDay){
     if (historyLoading){
-      mapSection = `<div class="card"><div class="empty-note">Loading Day ${historyDay}…</div></div>`;
+      mapSection = `<div class="card"><div class="empty-note">${tr('Loading Day {n}…', {n: historyDay})}</div></div>`;
     } else if (historyDoc && historyDoc.ownershipAfter){
       mapSection = `<div class="card">
-        <div class="card-title">TERRITORY OWNERSHIP — END OF DAY ${historyDay}</div>
+        <div class="card-title">${tr('TERRITORY OWNERSHIP — END OF DAY {n}', {n: historyDay})}</div>
         ${renderHistoryMap(historyDoc.ownershipAfter)}
       </div>
       <div class="card">
-        <div class="card-title">VP EARNED THAT DAY</div>
+        <div class="card-title">${tr('VP EARNED THAT DAY')}</div>
         ${FACTIONS.map(f => `<div class="row-between"><span><span class="dot" style="background:${FACTION_META[f].color}"></span>${FACTION_META[f].name}</span><span class="mono">+${fmt1(historyDoc.vpGained[f])}</span></div>`).join('')}
       </div>`;
     } else {
-      mapSection = `<div class="card"><div class="empty-note">No record found for Day ${historyDay}.</div></div>`;
+      mapSection = `<div class="card"><div class="empty-note">${tr('No record found for Day {n}.', {n: historyDay})}</div></div>`;
     }
   }
   return `
   <div class="card">
-    <div class="card-title">PICK A DAY</div>
+    <div class="card-title">${tr('PICK A DAY')}</div>
     <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
       ${days.map(d => `<div class="split-opt ${historyDay===d?'selected':''}" onclick="viewHistoryDay(${d})">Day ${d}</div>`).join('')}
     </div>
   </div>
   ${mapSection}
-  <button class="btn btn-outline" onclick="goScreen('home')">BACK TO HOME</button>`;
+  <button class="btn btn-outline" onclick="goScreen('home')">${tr('BACK TO HOME')}</button>`;
 }
 
 function screenSeason(){
   const pct = (x) => Math.round(x*100);
   const walletCard = `
   <div class="card">
-    <div class="card-title">YOUR WALLET (MOCK)</div>
-    <div class="row-between"><span class="muted">GMT Balance</span><span class="mono">${fmt(seasonProgress.gmtBalance)} GMT</span></div>
-    <div class="row-between"><span class="muted">Season Entry Fee Paid</span><span class="mono">-${CONFIG.seasonEntryFeeGMT} GMT</span></div>
-    ${seasonProgress.totalDonated > 0 ? `<div class="row-between"><span class="muted">Donated to War Fund</span><span class="mono">${fmt(seasonProgress.totalDonated)} GMT</span></div>` : ''}
+    <div class="card-title">${tr('YOUR WALLET (MOCK)')}</div>
+    <div class="row-between"><span class="muted">${tr('GMT Balance')}</span><span class="mono">${fmt(seasonProgress.gmtBalance)} GMT</span></div>
+    <div class="row-between"><span class="muted">${tr('Season Entry Fee Paid')}</span><span class="mono">-${CONFIG.seasonEntryFeeGMT} GMT</span></div>
+    ${seasonProgress.totalDonated > 0 ? `<div class="row-between"><span class="muted">${tr('Donated to War Fund')}</span><span class="mono">${fmt(seasonProgress.totalDonated)} GMT</span></div>` : ''}
     <div class="divider"></div>
-    <div class="muted" style="margin-bottom:8px; font-size:12px;">Donate to the War Fund — grows the Prize Pool (split ${pct(CONFIG.gmtSplit.prize)}% prize / ${pct(CONFIG.gmtSplit.burn)}% burn / ${pct(CONFIG.gmtSplit.protocol)}% protocol, same as the daily mock economy).</div>
+    <div class="muted" style="margin-bottom:8px; font-size:12px;">${tr('Donate to the War Fund — grows the Prize Pool (split {p}% prize / {b}% burn / {r}% protocol, same as the daily mock economy).', {p: pct(CONFIG.gmtSplit.prize), b: pct(CONFIG.gmtSplit.burn), r: pct(CONFIG.gmtSplit.protocol)})}</div>
     <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
       ${[100,500,1000,5000].map(amt => `<button class="btn btn-outline btn-small" onclick="donateGMT(${amt})" ${amt>seasonProgress.gmtBalance?'disabled':''}>${amt}</button>`).join('')}
     </div>
@@ -2346,16 +2639,16 @@ function screenSeason(){
 
   const seasonCard = `
   <div class="card">
-    <div class="card-title">SEASON 01 · ROUND ${world.round} / ${CONFIG.roundsPerSeason}</div>
-    <div class="muted" style="font-size:12px; margin-bottom:8px;">Round wins so far — your team is locked for the whole season.</div>
+    <div class="card-title">${tr('SEASON 01 · ROUND {n} / {total}', {n: world.round, total: CONFIG.roundsPerSeason})}</div>
+    <div class="muted" style="font-size:12px; margin-bottom:8px;">${tr('Round wins so far — your team is locked for the whole season.')}</div>
     ${FACTIONS.map(f=>{const m=FACTION_META[f]; const me = f===profile.faction;
-      return `<div class="row-between" style="${me?`color:${m.color};`:''}"><span><span class="dot" style="background:${m.color}"></span>${m.name}${me?' (you)':''}</span><span class="mono">${world.roundWins[f]||0} ${(world.roundWins[f]||0)===1?'win':'wins'}</span></div>`;
+      return `<div class="row-between" style="${me?`color:${m.color};`:''}"><span><span class="dot" style="background:${m.color}"></span>${m.name}${me?' '+tr('(you)'):''}</span><span class="mono">${world.roundWins[f]||0} ${(world.roundWins[f]||0)===1?tr('win'):tr('wins')}</span></div>`;
     }).join('')}
   </div>`;
 
   if (!roundIsOver()){
-    return `${seasonCard}<div class="card"><div class="card-title">ROUND ${world.round} — IN PROGRESS</div>
-      <div class="muted" style="margin-bottom:8px;">Live VP · settles after Day ${CONFIG.roundDays}.</div>
+    return `${seasonCard}<div class="card"><div class="card-title">${tr('ROUND {n} — IN PROGRESS', {n: world.round})}</div>
+      <div class="muted" style="margin-bottom:8px;">${tr('Live VP · settles after Day {n}.', {n: CONFIG.roundDays})}</div>
       ${rankFactions(world.vp, world.ownership).map((s,idx)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${idx+1}. <span class="dot" style="background:${m.color}"></span>${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
     </div>${walletCard}`;
   }
@@ -2366,36 +2659,36 @@ function screenSeason(){
 
   return `
   <div class="card" style="text-align:center;">
-    <div class="card-title">🏁 ROUND ${world.round} WINNER</div>
+    <div class="card-title">${tr('🏁 ROUND {n} WINNER', {n: world.round})}</div>
     <div class="big-num display" style="color:${cm.color};">${cm.emoji} ${cm.name}</div>
   </div>
-  <div class="card"><div class="card-title">ROUND ${world.round} STANDINGS</div>
+  <div class="card"><div class="card-title">${tr('ROUND {n} STANDINGS', {n: world.round})}</div>
     ${r.standings.map((s,i)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${i+1}. ${m.emoji} ${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
   </div>
-  <div class="prize-box"><div class="prize-label">🏆 ROUND PRIZE POOL</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
-  <div class="card"><div class="card-title">YOUR RESULT THIS ROUND</div>
-    <div class="row-between"><span>Team Placing</span><span class="mono">#${r.myRank} — ${r.rankTitle || '-'}</span></div>
-    <div class="row-between"><span>Contribution Rank</span><span class="mono">#${progress.contributionRank}</span></div>
-    <div class="row-between"><span>Participation Days</span><span class="mono">${progress.participationDays} / ${CONFIG.roundDays}</span></div>
-    <div class="row-between"><span>Estimated Reward</span><span class="mono">${r.eligible ? fmt(r.estReward)+' GMT' : 'Not eligible'}</span></div>
-    ${!r.eligible ? `<div class="muted" style="font-size:12px; margin-top:4px;">Requires active participation on ${CONFIG.participationThreshold}+ days.</div>` : ''}
+  <div class="prize-box"><div class="prize-label">${tr('🏆 ROUND PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
+  <div class="card"><div class="card-title">${tr('YOUR RESULT THIS ROUND')}</div>
+    <div class="row-between"><span>${tr('Team Placing')}</span><span class="mono">#${r.myRank} — ${r.rankTitle ? tr(r.rankTitle) : '-'}</span></div>
+    <div class="row-between"><span>${tr('Contribution Rank')}</span><span class="mono">#${progress.contributionRank}</span></div>
+    <div class="row-between"><span>${tr('Participation Days')}</span><span class="mono">${progress.participationDays} / ${CONFIG.roundDays}</span></div>
+    <div class="row-between"><span>${tr('Estimated Reward')}</span><span class="mono">${r.eligible ? fmt(r.estReward)+' GMT' : tr('Not eligible')}</span></div>
+    ${!r.eligible ? `<div class="muted" style="font-size:12px; margin-top:4px;">${tr('Requires active participation on {n}+ days.', {n: CONFIG.participationThreshold})}</div>` : ''}
   </div>
   ${seasonCard}
   ${r.isSeasonEnd ? `
   <div class="card" style="text-align:center;">
-    <div class="card-title">👑 SEASON 01 CHAMPION</div>
+    <div class="card-title">${tr('👑 SEASON 01 CHAMPION')}</div>
     <div class="big-num display" style="color:${seasonChamp.color};">${seasonChamp.emoji} ${seasonChamp.name}</div>
-    <div class="muted" style="margin-top:4px;">Most round wins across ${CONFIG.roundsPerSeason} rounds</div>
+    <div class="muted" style="margin-top:4px;">${tr('Most round wins across {n} rounds', {n: CONFIG.roundsPerSeason})}</div>
   </div>
   ${r.badge ? `<div class="card">
-    <div style="color:var(--gold); margin-bottom:6px;">🎖 SEASON REWARDS UNLOCKED</div>
+    <div style="color:var(--gold); margin-bottom:6px;">${tr('🎖 SEASON REWARDS UNLOCKED')}</div>
     <div class="muted" style="margin-bottom:3px;">🏅 <b style="color:var(--text);">${r.badge}</b></div>
-    <div class="muted" style="margin-bottom:3px;">💎 <b style="color:var(--text);">STEPN VIP — 30 Days</b></div>
-    <div class="muted">👟 <b style="color:var(--text);">Polygon Locked Sneaker — ${r.sneakerDesign} Design</b></div>
-  </div>` : `<div class="card"><div class="empty-note">Season rewards need ${CONFIG.participationThreshold}+ active days in the final round.</div></div>`}
+    <div class="muted" style="margin-bottom:3px;">💎 <b style="color:var(--text);">${tr('STEPN VIP — 30 Days')}</b></div>
+    <div class="muted">👟 <b style="color:var(--text);">${tr('Polygon Locked Sneaker — {t} Design', {t: tr(r.sneakerDesign)})}</b></div>
+  </div>` : `<div class="card"><div class="empty-note">${tr('Season rewards need {n}+ active days in the final round.', {n: CONFIG.participationThreshold})}</div></div>`}
   ` : `
-  <button class="btn btn-primary" onclick="startNextRound()">START ROUND ${world.round + 1}</button>
-  <div class="muted" style="text-align:center; margin-top:8px; font-size:12px;">New map, new prize pool, new commander election — same teams.</div>
+  <button class="btn btn-primary" onclick="startNextRound()">${tr('START ROUND {n}', {n: world.round + 1})}</button>
+  <div class="muted" style="text-align:center; margin-top:8px; font-size:12px;">${tr('New map, new prize pool, new commander election — same teams.')}</div>
   `}
   ${walletCard}`;
 }
@@ -2405,15 +2698,15 @@ function screenSeason(){
 ========================================================= */
 function renderOnboarding(){
   return `<div class="onboard-wrap"><div class="onboard-card">
-    <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · SEASON 01</div>
-    <div class="display" style="font-size:20px; font-weight:700; margin-bottom:6px;">Join the Battlefield</div>
-    <div class="muted" style="line-height:1.6;">Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b></div>
-    <div class="muted" style="margin:12px 0 4px; font-size:12px;">Runner name</div>
-    <input class="name-input" placeholder="Leave blank for a random one" value="${onboardName}" oninput="onboardName=this.value" />
-    <div class="muted" style="margin:12px 0 4px; font-size:12px;">Your last-7-day energy (mock STEPN data)</div>
+    <div class="card-title" style="margin-bottom:4px;">${tr('RUN KINGDOM · SEASON 01')}</div>
+    <div class="display" style="font-size:20px; font-weight:700; margin-bottom:6px;">${tr('Join the Battlefield')}</div>
+    <div class="muted" style="line-height:1.6;">${tr('Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>')}</div>
+    <div class="muted" style="margin:12px 0 4px; font-size:12px;">${tr('Runner name')}</div>
+    <input class="name-input" placeholder="${tr('Leave blank for a random one')}" value="${onboardName}" oninput="onboardName=this.value" />
+    <div class="muted" style="margin:12px 0 4px; font-size:12px;">${tr('Your last-7-day energy (mock STEPN data)')}</div>
     <input class="name-input" type="number" min="0" step="0.2" value="${onboardRecentEnergy}" oninput="onboardRecentEnergy=parseFloat(this.value)||0" />
-    <div class="muted" style="margin-top:6px; font-size:11px;">In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.</div>
-    <button class="btn btn-primary" style="margin-top:16px;" onclick="submitOnboarding()">JOIN GAME</button>
+    <div class="muted" style="margin-top:6px; font-size:11px;">${tr('In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.')}</div>
+    <button class="btn btn-primary" style="margin-top:16px;" onclick="submitOnboarding()">${tr('JOIN GAME')}</button>
     <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
   </div></div>`;
 }
@@ -2587,16 +2880,16 @@ function renderInner(){
   }
   if (bootPhase === 'room_form'){
     document.getElementById('root').innerHTML = `<div class="onboard-wrap"><div class="onboard-card">
-      <div class="card-title" style="margin-bottom:4px;">RUN KINGDOM · ROOM</div>
-      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">Create or join a room</div>
+      <div class="card-title" style="margin-bottom:4px;">${tr('RUN KINGDOM · ROOM')}</div>
+      <div class="display" style="font-size:18px; font-weight:700; margin-bottom:6px;">${tr('Create or join a room')}</div>
       <div class="muted" style="line-height:1.6; margin-bottom:16px;">
         Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.
       </div>
-      <button class="btn btn-primary" onclick="submitCreateRoom()">CREATE A NEW ROOM</button>
+      <button class="btn btn-primary" onclick="submitCreateRoom()">${tr('CREATE A NEW ROOM')}</button>
       <div class="divider"></div>
-      <div class="muted" style="margin-bottom:4px; font-size:12px;">Or enter a room code someone shared with you</div>
+      <div class="muted" style="margin-bottom:4px; font-size:12px;">${tr('Or enter a room code someone shared with you')}</div>
       <input class="name-input" placeholder="e.g. AB3XY" value="${joinRoomInput}" oninput="joinRoomInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="text-transform:uppercase; letter-spacing:2px;" />
-      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>JOIN ROOM</button>
+      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>${tr('JOIN ROOM')}</button>
       <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
     </div></div>`;
     return;
@@ -2647,8 +2940,8 @@ function renderInner(){
     document.getElementById('root').innerHTML = `
       ${renderTopbar()}
       <div class="content"><div class="card" style="text-align:center;">
-        <div class="card-title">SYNCING</div>
-        <div class="muted">A new day just began — loading the new battlefield…</div>
+        <div class="card-title">${tr('SYNCING')}</div>
+        <div class="muted">${tr('A new day just began — loading the new battlefield…')}</div>
       </div></div>
       ${renderBottomNav()}`;
     return;
