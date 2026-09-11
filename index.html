@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Run Kingdom Lite · Online Multiplayer</title>
+<title>Run Kingdom Lite · Community Demo v0.6.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <!-- Supabase JS client (free tier) — this is what makes the multiplayer world persist and sync across everyone playing. -->
@@ -99,6 +99,8 @@ body{background:var(--bg); color:var(--text); font-family:'Inter','Noto Sans JP'
 .pill.leading{color:#1c3d1f; background:var(--bloom);}
 .pill.close{color:#3d3512; background:var(--gold);}
 .pill.behind{color:var(--text-dim); background:var(--panel-3); border-color:var(--border);}
+.pill.no-power{color:var(--text-dim);background:var(--panel-3);border-color:var(--border)}
+.pill.tied{color:#dfd2ff;background:#352a4a;border-color:#6c5794}
 .row-between{display:flex; justify-content:space-between; align-items:center;}
 .muted{color:var(--text-dim); font-size:13px;}
 .divider{height:1px; background:var(--border); margin:12px 0;}
@@ -153,6 +155,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
 .rally-card{border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px;}
 .gst-tier{border:1px solid var(--border); border-radius:9px; padding:8px; text-align:center; font-family:'Space Mono',monospace; font-size:12px; cursor:pointer;}
 .gst-tier.selected{border-color:var(--gold); color:var(--gold); background:rgba(242,194,69,0.08);}
+.gst-tier.disabled{opacity:.45;pointer-events:none;}
 .empty-note{color:var(--text-dim2); font-size:12px; text-align:center; padding:10px;}
 .elim-banner{background:linear-gradient(135deg, rgba(255,90,60,0.14), rgba(255,90,60,0.02)); border:1px solid rgba(255,90,60,0.4);
   border-radius:var(--radius); padding:14px; margin-bottom:14px; text-align:center;}
@@ -170,6 +173,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; hei
   margin-bottom:14px; font-size:13px;}
 .sync-error .se-title{color:var(--danger); font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; letter-spacing:1px; margin-bottom:4px;}
 .sync-error .se-row{display:flex; gap:8px; margin-top:8px;}
+
+/* v0.6 unified community UI — preserves all game and sync logic. */
+:root{--bg:#0c1118;--panel:#141c26;--panel-2:#18232e;--panel-3:#202b37;--border:#27323e;--text:#edf3f6;--text-dim:#9babb9;--text-dim2:#748493;--cinder:#ff795f;--cinder-dim:#302522;--surge:#59b9ff;--surge-dim:#1c3040;--bloom:#6bdc8c;--bloom-dim:#1e302a;--gold:#ebc76b;--mint:#4ce2bf;--purple:#aa89ff;--radius:15px}
+body{background:#080c12;font-size:16px;line-height:1.45}#root{background:radial-gradient(circle at 15% 0,#173e3736,transparent 28%),var(--bg)}
+.topbar{padding:18px 20px 0;position:relative;background:linear-gradient(125deg,#122b2a88,rgba(12,17,24,.97) 62%);backdrop-filter:none}.rk-brand{display:flex;align-items:center;gap:9px;font-size:19px;font-weight:800;letter-spacing:-.7px}.rk-brand svg{width:25px;height:25px;color:var(--mint);fill:none;stroke:currentColor;stroke-width:1.8}.rk-brand small{display:block;color:var(--mint);font-size:10px;letter-spacing:1.4px;line-height:1.2}.day-label{font-size:12px}.top-meta{margin-top:16px}.topbar-tools{gap:8px}.lang-toggle{height:36px;border-radius:8px;padding:0 9px;background:#17212c;font-family:inherit;font-size:12px}.room-code-btn{min-height:34px;border-radius:9px;font-family:inherit;font-size:11px}.standings-row{gap:8px;margin-top:13px;padding-bottom:16px}.standing-chip{display:block;padding:9px 10px;border-radius:10px;font-family:inherit}.standing-chip>span:first-child{display:flex;align-items:center;font-size:12px;color:#cbd5df;white-space:nowrap}.standing-chip>span:last-child{display:block;font-size:21px;font-weight:700;margin-top:3px}.standing-chip.me{background:#183040;box-shadow:0 0 0 1px currentColor inset}.content{padding:18px 18px 98px}.screen-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 16px}.screen-head h1{font-size:26px;line-height:1.15;letter-spacing:-.8px;margin:0}.screen-head p{font-size:14px;color:var(--text-dim);margin:4px 0 0}.phase-chip{font-size:11px;color:var(--mint);padding:4px 8px;border-radius:6px;background:#4ce2bf0c;white-space:nowrap}.card{padding:17px}.card-title{font-family:inherit;font-size:12px;letter-spacing:1.3px}.btn{font-family:inherit}.btn-primary{background:var(--mint);color:#09261e}.btn-primary:disabled{background:#33423e;color:#788a84}.btn-outline.selected,.split-opt.selected,.terr-select.selected,.gst-tier.selected{border-color:var(--purple);color:#eadfff;background:#3a2c4e}.prize-box{padding:18px;border-color:#776035;background:radial-gradient(circle at 88% 20%,#8a6d271f,transparent 35%),linear-gradient(125deg,#342c1c,#1a2028 78%);box-shadow:inset 0 1px 0 #f5d88917}.prize-label{font-family:inherit;font-size:12px;letter-spacing:1px;color:#ecd393}.prize-num{font-family:inherit;font-size:34px;color:#f5d681}.home-power{border-color:#305047;background:linear-gradient(120deg,#17332d,#151e28 72%)}.home-power .big-num{font-size:43px;color:var(--text);letter-spacing:-1.5px}.home-power .power-unit{font-size:13px;color:var(--text-dim);font-weight:400}.home-day{margin:22px 0 12px}.home-day h2{font-size:20px;margin:0}.active-summary{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}.active-summary .battle-line{width:16px;height:3px;border-radius:3px;background:var(--gold);margin-right:8px;display:inline-block}.map-card{background:#101822}.map-wrap{width:min(304px,100%);margin:8px auto 4px}.map-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr);gap:8px}.tile{aspect-ratio:1;min-width:0;border-width:1px;border-radius:11px}.tile.active-battle{animation:rkBattleBreath 1.8s ease-in-out infinite}.tile.active-battle:before{content:"";position:absolute;top:-1px;left:22%;width:56%;height:3px;background:var(--gold);border-radius:0 0 4px 4px}@keyframes rkBattleBreath{0%,100%{box-shadow:0 0 0 1px #ebc76b66,0 0 9px #ebc76b20;border-color:#a48b4c}50%{box-shadow:0 0 0 2px #ebc76b99,0 0 18px #ebc76b48;border-color:#e2c66f}}.tile .tname{font-size:11px}.tile .tvp{font-family:inherit}.terr-select{min-height:58px;background:#151e28;padding:12px 13px}.terr-select.selected{box-shadow:inset 3px 0 0 var(--mint);border-color:var(--mint);background:linear-gradient(110deg,#17312c,#182432);color:var(--text)}.split-opt{min-height:44px;background:#1a222d}.gst-tier{min-height:44px;display:grid;place-items:center;background:#1b2330}.gst-tier.selected{border-color:var(--purple)}.run-energy{border-color:#305047;background:linear-gradient(130deg,#17332d,#151e28 70%)}.energy-readout .big-num{font-size:46px;letter-spacing:-1.5px}.boost-card{border-color:#3f3553;background:linear-gradient(135deg,#251f34,#171d28)}.boost-title{display:flex;align-items:center;gap:9px}.gst-logo{width:28px;height:28px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px #d9d2e955,0 0 16px #aa89ff2b}.power-total{border-top:1px solid var(--border);padding-top:14px;margin-top:13px}.power-total .big-num{font-size:32px;color:var(--mint)}.rally-card{border-radius:15px;padding:17px;background:linear-gradient(125deg,#172b3a,#171d28 75%)}.bottomnav{padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:#101720}.navitem{padding:7px 1px;border:0;border-radius:9px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:inherit;font-size:11px;letter-spacing:0}.navitem .navicon{font-size:0;margin:0;display:grid;place-items:center}.navitem .navicon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.navitem.active{color:var(--mint);background:#4ce2bf0c}.fab{width:44px;height:44px;background:#202b37}.debug-section h4{color:var(--mint)}.season-progress{border-color:#3e354f;background:linear-gradient(135deg,#211d30,#151d27)}.season-rank-row{padding:11px 0;border-top:1px solid #ffffff0e}.season-rank-row:first-of-type{border-top:0}.season-you{border-color:#315348;background:linear-gradient(130deg,#17322d,#151e28 75%)}.wallet-card{padding:0;overflow:hidden}.wallet-card summary{cursor:pointer;padding:16px 17px}.modal-sheet{background:#17212c}.name-input{font-size:16px}.sync-error{border-radius:14px}.fog-banner{background:linear-gradient(135deg,#1c3040,#17232c)}
+@media(max-width:370px){.topbar{padding:16px 14px 0}.content{padding:15px 12px 92px}.card{padding:14px}.standing-chip{padding:8px}.standing-chip>span:last-child{font-size:18px}.screen-head h1{font-size:24px}.tile .tname{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.tile.active-battle,.live-dot{animation:none!important}.tile.active-battle{box-shadow:0 0 0 1px #ebc76b88;border-color:var(--gold)}}
 </style>
 </head>
 <body>
@@ -202,7 +212,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.5.3-community-pilot-config-lock-6lang-2026-09-11';
+const APP_BUILD = 'rk-v0.6.2-incremental-deploy-6lang-2026-09-11';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -821,6 +831,21 @@ ZH["OPEN — awaiting resolve"] = "开放 — 等待结算";
 JA["OPEN — awaiting resolve"] = "オープン — 決着待ち";
 KO["OPEN — awaiting resolve"] = "오픈 — 결산 대기";
 TR["OPEN — awaiting resolve"] = "AÇIK — sonuç bekleniyor";
+ZH["NO POWER"] = "尚无战力";
+JA["NO POWER"] = "パワーなし";
+KO["NO POWER"] = "전투력 없음";
+TR["NO POWER"] = "GÜÇ YOK";
+RU["NO POWER"] = "НЕТ СИЛЫ";
+ZH["TIED"] = "平局";
+JA["TIED"] = "同点";
+KO["TIED"] = "동점";
+TR["TIED"] = "BERABERE";
+RU["TIED"] = "НИЧЬЯ";
+ZH["AWAITING DEPLOYMENT"] = "等待部署";
+JA["AWAITING DEPLOYMENT"] = "配置待ち";
+KO["AWAITING DEPLOYMENT"] = "배치 대기";
+TR["AWAITING DEPLOYMENT"] = "KONUŞLANDIRMA BEKLENİYOR";
+RU["AWAITING DEPLOYMENT"] = "ОЖИДАНИЕ РАЗМЕЩЕНИЯ";
 ZH["POWER ALREADY DEPLOYED"] = "战力已部署";
 JA["POWER ALREADY DEPLOYED"] = "パワー配置済み";
 KO["POWER ALREADY DEPLOYED"] = "전투력 배치 완료";
@@ -833,6 +858,22 @@ ZH["Not an active battle today."] = "今日不是活跃战场。";
 JA["Not an active battle today."] = "本日のアクティブ戦場ではありません。";
 KO["Not an active battle today."] = "오늘의 활성 전장이 아닙니다.";
 TR["Not an active battle today."] = "Bugün aktif bir savaş alanı değil.";
+
+Object.assign(ZH,{
+  'NO POWER AVAILABLE NOW':'当前没有可用战力','New Energy earned before settlement creates additional Power you can deploy later.':'结算前新增的能量会生成额外战力，可稍后继续部署。','POWER TO DEPLOY NOW':'本次部署战力','Left after this deployment':'本次部署后剩余','Deploy now':'本次部署','Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.':'已部署的战力会保留。结算前增加今日能量，即可获得更多可部署战力。','No Power is available now. New Energy can be deployed before settlement.':'当前没有可用战力；结算前新增的能量仍可继续部署。'
+});
+Object.assign(JA,{
+  'NO POWER AVAILABLE NOW':'現在利用できるパワーはありません','New Energy earned before settlement creates additional Power you can deploy later.':'決着前に増えたエナジーから追加パワーが生まれ、後から配置できます。','POWER TO DEPLOY NOW':'今回配置するパワー','Left after this deployment':'今回の配置後の残り','Deploy now':'今回配置','Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.':'配置済みパワーは維持されます。決着前に今日のエナジーを増やすと、追加パワーを配置できます。','No Power is available now. New Energy can be deployed before settlement.':'現在利用可能なパワーはありません。決着前に増えたエナジーは配置できます。'
+});
+Object.assign(KO,{
+  'NO POWER AVAILABLE NOW':'현재 사용 가능한 전투력이 없습니다','New Energy earned before settlement creates additional Power you can deploy later.':'결산 전 새로 얻은 에너지는 추가 전투력이 되어 나중에 배치할 수 있습니다.','POWER TO DEPLOY NOW':'이번에 배치할 전투력','Left after this deployment':'이번 배치 후 남음','Deploy now':'이번 배치','Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.':'이미 배치한 전투력은 유지됩니다. 결산 전 오늘의 에너지를 늘리면 추가 전투력을 배치할 수 있습니다.','No Power is available now. New Energy can be deployed before settlement.':'현재 사용 가능한 전투력이 없습니다. 결산 전 새 에너지는 배치할 수 있습니다.'
+});
+Object.assign(TR,{
+  'NO POWER AVAILABLE NOW':'ŞU AN KULLANILABİLİR GÜÇ YOK','New Energy earned before settlement creates additional Power you can deploy later.':'Sonuçlanmadan önce kazanılan yeni Enerji, daha sonra konuşlandırabileceğiniz ek Güç oluşturur.','POWER TO DEPLOY NOW':'ŞİMDİ KONUŞLANDIRILACAK GÜÇ','Left after this deployment':'Bu konuşlandırmadan sonra kalan','Deploy now':'Şimdi konuşlandır','Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.':'Konuşlandırılmış Güç yerinde kalır. Sonuçlanmadan önce bugünkü Enerjiyi artırarak ek Güç oluşturabilirsiniz.','No Power is available now. New Energy can be deployed before settlement.':'Şu an kullanılabilir Güç yok. Yeni Enerji sonuçlanmadan önce konuşlandırılabilir.'
+});
+Object.assign(RU,{
+  'NO POWER AVAILABLE NOW':'СЕЙЧАС НЕТ ДОСТУПНОЙ СИЛЫ','New Energy earned before settlement creates additional Power you can deploy later.':'Новая Энергия до подведения итогов создаёт дополнительную Силу, которую можно разместить позже.','POWER TO DEPLOY NOW':'СИЛА ДЛЯ РАЗМЕЩЕНИЯ СЕЙЧАС','Left after this deployment':'Останется после размещения','Deploy now':'Разместить сейчас','Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.':'Размещённая Сила остаётся на месте. Увеличьте сегодняшнюю Энергию до подведения итогов, чтобы получить дополнительную Силу.','No Power is available now. New Energy can be deployed before settlement.':'Сейчас нет доступной Силы. Новую Энергию можно разместить до подведения итогов.'
+});
 
 function tr(key, vars){
   const table = I18N[LANG];
@@ -1129,7 +1170,12 @@ function calculateBattleStatus(powerMap){
   const entries = Object.entries(powerMap);
   if (!entries.length) return {};
   const max = Math.max(...entries.map(e=>e[1])); const out = {};
-  entries.forEach(([f,p]) => { out[f] = p===max ? 'LEADING' : (p >= max*0.9 ? 'CLOSE' : 'BEHIND'); });
+  if (max <= 0){
+    entries.forEach(([f]) => { out[f] = 'NO POWER'; });
+    return out;
+  }
+  const leaders = entries.filter(([,p]) => p === max).length;
+  entries.forEach(([f,p]) => { out[f] = p===max ? (leaders>1?'TIED':'LEADING') : (p >= max*0.9 ? 'CLOSE' : 'BEHIND'); });
   return out;
 }
 function resolveBattle(powerMap, currentOwner){
@@ -1534,7 +1580,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.5.2') return { ok:false, why:'missing_functions', detail:'Community schema v0.5.2 is required.' };
+    if (data !== '0.6.0') return { ok:false, why:'missing_functions', detail:'Community schema v0.6.0 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -1807,11 +1853,16 @@ async function ensureActivityDoc(day){
 async function ensureMyState(day){
   const key = dayKey(world.runId, 'mystate', day);
   let doc = await safeGet(key, false);
-  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
-  if (doc === STORAGE_RETRY_LATER){
-    return mystate || { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, followedRally: null };
+  if (doc && doc !== STORAGE_RETRY_LATER){
+    doc.deployedPower = doc.deployedPower || {};
+    if (doc.creditedEnergy === undefined) doc.creditedEnergy = Object.keys(doc.deployedPower).length ? Number(doc.energyToday||0) : 0;
+    doc.locked = false;
+    return doc;
   }
-  doc = { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, followedRally: null };
+  if (doc === STORAGE_RETRY_LATER){
+    return mystate || { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
+  }
+  doc = { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
   await safeSet(key, doc, false);
   return doc;
 }
@@ -2402,12 +2453,15 @@ function computeRoundResult(){
 ========================================================= */
 function computeAvailablePower(){ return applyGSTBoost(energyToPower(mystate.energyToday), mystate.gstBoostPercent); }
 function totalDeployedMine(){ return Object.values(mystate.deployedPower).reduce((a,b)=>a+b,0); }
-function remainingPower(){ return round2(computeAvailablePower() - totalDeployedMine()); }
+function remainingPower(){ return Math.max(0, round2(computeAvailablePower() - totalDeployedMine())); }
+function deploymentOpen(){ return world && world.phase==='battles' && !roundIsOver(); }
 function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownership); }
 
-async function deployPower(mainT, secT, splitPct){
-  if (mystate.locked) return;
+async function deployPower(mainT, secT, splitPct, amount=null){
+  if (!deploymentOpen()) return;
   const avail = remainingPower();
+  const deployNow = round2(Math.min(avail, amount===null ? avail : Number(amount)));
+  if (!Number.isFinite(deployNow) || deployNow<=0) return;
   let [mp, sp] = splitPct;
   // AUTHORITATIVE GUARD: with no secondary target there is nowhere for the
   // secondary share to go, so the main target must take 100%. Without this,
@@ -2416,25 +2470,25 @@ async function deployPower(mainT, secT, splitPct){
   // because deployment also locks for the day. That's how "I deployed 100%
   // but still have power left, and the button is greyed out" happens.
   if (!secT){ mp = 100; sp = 0; }
-  const mainPower = round2(avail * mp/100);
+  const mainPower = round2(deployNow * mp/100);
   // Give the secondary the exact remainder rather than an independently
   // rounded share. Rounding both halves separately can overshoot (16.67
   // split 50/50 rounds to 8.34 + 8.34 = 16.68), which left the player at
   // -0.01 available. Deriving the remainder makes main + secondary add up
   // to exactly what was available, every time.
-  const secPower = secT ? round2(avail - mainPower) : 0;
+  const secPower = secT ? round2(deployNow - mainPower) : 0;
 
   let updatedDoc = null;
   try{
     const { data,error }=await sbClient.rpc('rk_submit_deployment',{
       p_room:roomCode,p_main:mainT,p_secondary:secT,p_main_percent:mp,
-      p_energy:mystate.energyToday,p_boost:mystate.gstBoostPercent
+      p_energy:mystate.energyToday,p_boost:mystate.gstBoostPercent,p_amount:deployNow
     });
     if (error) throw error;
     updatedDoc=data;
   } catch(e){
     console.error('secure deploy failed:', e);
-    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct); } };
+    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct, deployNow); } };
     render();
     return;
   }
@@ -2442,13 +2496,15 @@ async function deployPower(mainT, secT, splitPct){
 
   mystate.deployedPower[mainT] = round2((mystate.deployedPower[mainT]||0) + mainPower);
   if (secT) mystate.deployedPower[secT] = round2((mystate.deployedPower[secT]||0) + secPower);
-  mystate.locked = true;
+  mystate.locked = false;
+  mystate.creditedEnergy = mystate.energyToday;
   lastSyncError = null;
+  await persistMyState();
   uiScreen = 'home';
   render();
 }
 async function followRally(){
-  if (mystate.locked) return;
+  if (remainingPower()<=0 || !deploymentOpen()) return;
   const r = activityDoc.rally[profile.faction];
   if (!r) return;
   mystate.followedRally = true;
@@ -2561,15 +2617,13 @@ async function publishRally(main, sec, split){
 // nothing is lost if the tab closes right after.
 let energySaveTimer = null;
 function setEnergy(v){
-  if (mystate.locked) return;
-  mystate.energyToday = parseFloat(v);
+  mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
   render();
   clearTimeout(energySaveTimer);
   energySaveTimer = setTimeout(persistMyState, 500);
 }
 function commitEnergy(v){
-  if (mystate.locked) return;
-  mystate.energyToday = parseFloat(v);
+  mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
   clearTimeout(energySaveTimer);
   persistMyState();
   render();
@@ -2578,7 +2632,7 @@ async function persistMyState(){
   await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
 }
 async function setGST(pct){
-  if (mystate.locked) return;
+  if (totalDeployedMine()>0) return;
   mystate.gstBoostPercent = pct;
   await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
   render();
@@ -2596,7 +2650,7 @@ function ownerBadge(owner){
 }
 function statusPill(status){
   if (!status) return '';
-  const cls = status.toLowerCase();
+  const cls = status.toLowerCase().replace(/\s+/g,'-');
   return `<span class="pill ${cls}">${tr(status)}</span>`;
 }
 
@@ -2614,21 +2668,31 @@ function renderSyncError(){
 function retryLastSync(){ if (lastSyncError && lastSyncError.retry) lastSyncError.retry(); }
 function dismissSyncError(){ lastSyncError = null; render(); }
 
+function uiIcon(name){
+  const paths = {
+    bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-8z"/>',
+    map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
+    target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
+    flag:'<path d="M5 22V3c5-4 9 4 15 0v11c-6 4-10-4-15 0"/>',
+    trophy:'<path d="M7 3h10v7a5 5 0 0 1-10 0zM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 3v6m-4 0h8"/>'
+  };
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]||paths.bolt}</svg>`;
+}
+
 function renderTopbar(){
   const standings = FACTIONS.map(f=>({f, vp: world.vp[f]})).sort((a,b)=>b.vp-a.vp);
   const rs = rosterStats();
   return `
   <div class="topbar">
     <div class="topbar-row">
-      <div class="season-label"><span class="live-dot"></span>${tr('RUN KINGDOM · SEASON 01')}</div>
+      <div class="rk-brand">${uiIcon('bolt')}<div>RUN KINGDOM<small>LITE</small></div></div>
       <div class="day-label">R${world.round}·D${world.currentDay}/${CONFIG.roundDays}</div>
     </div>
-    <div class="row-between" style="margin-top:4px;">
-      <div class="muted" style="font-size:11px;">${tr('{n} online', {n: rs.online})}</div>
+    <div class="row-between top-meta">
+      <div class="muted" style="font-size:12px;"><span class="live-dot"></span>${tr('{n} online', {n: rs.online})}</div>
       <div class="topbar-tools">
-        ${isRoomAdmin
-          ? `<button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>`
-          : `<button class="room-code-btn" onclick="recoverAdminAccess(roomCode)" aria-label="Recover admin access" title="Recover admin access">🔑 ADMIN</button>`}
+        <button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>
+        ${isRoomAdmin ? `<span class="chip-small" style="color:var(--gold);">ADMIN</span>` : ''}
         <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option><option value="ru" ${LANG==='ru'?'selected':''}>Русский</option></select>
       </div>
     </div>
@@ -2645,15 +2709,15 @@ function renderTopbar(){
 }
 function renderBottomNav(){
   const items = [
-    {id:'home', icon:'🗺️', label:tr('HOME')},
-    {id:'run', icon:'⚡', label:tr('RUN')},
-    {id:'deploy', icon:'🎯', label:tr('DEPLOY')},
-    {id:'rally', icon:'📯', label:tr('RALLY')},
-    {id:'season', icon:'🏆', label:tr('SEASON')},
+    {id:'home', icon:'map', label:tr('HOME')},
+    {id:'run', icon:'bolt', label:tr('RUN')},
+    {id:'deploy', icon:'target', label:tr('DEPLOY')},
+    {id:'rally', icon:'flag', label:world.rallyEnabled===false?`${tr('RALLY')} · OFF`:tr('RALLY')},
+    {id:'season', icon:'trophy', label:tr('SEASON')},
   ];
   return `<div class="bottomnav">
     ${items.map(it => `<div class="navitem ${uiScreen===it.id?'active':''}" onclick="goScreen('${it.id}')">
-      <span class="navicon">${it.icon}</span>${it.label}</div>`).join('')}
+      <span class="navicon">${uiIcon(it.icon)}</span>${it.label}</div>`).join('')}
   </div>`;
 }
 function renderMap(){
@@ -2746,38 +2810,36 @@ function eliminatedBanner(){
 /* ---------- HOME ---------- */
 function screenHome(){
   const avail = remainingPower();
-  const rs = rosterStats();
   return `
   ${eliminatedBanner()}
   ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
     <span class="muted" style="font-size:11px;">${tr('⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles')}</span>
   </div>` : ''}
+  <div class="card row-between home-power">
+    <div><div class="card-title" style="margin-bottom:2px;">${tr('YOUR POWER')}</div><div class="big-num mono">${fmt1(avail)} <span class="power-unit">${tr('Available')}</span></div></div>
+    <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${!deploymentOpen()||avail<=0?'disabled':''}>
+      ${avail<=0 && totalDeployedMine()>0 ? tr('DEPLOYED') : tr('DEPLOY')} →
+    </button>
+  </div>
+  <div class="row-between home-day"><h2>${tr('Day {n}', {n:world.currentDay})} <span class="muted">/ ${CONFIG.roundDays}</span></h2><span class="phase-chip">${world.phase==='fog'?tr('BATTLE FOG'):tr('OPEN — awaiting resolve')}</span></div>
+  <div class="card active-summary"><span><i class="battle-line"></i>${battlesDoc.activeBattles.length} ${tr("TODAY'S ACTIVE BATTLES").toLowerCase()}</span><span class="muted">${tr('View ›')}</span></div>
   ${kingmakerBanner()}
-  <div class="card" style="text-align:center; padding:10px 16px;">
-    <span>${tr('👥 <b>{n}</b> players online', {n: rs.online})}</span>
+  ${phaseBanner()}
+  <div class="card map-card">
+    <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
+    ${renderMap()}
+    <div class="muted" style="text-align:center; margin-top:11px;">${tr("Tap a glowing tile to view today's battle.")}</div>
   </div>
   <div class="prize-box row-between">
     <div><div class="prize-label">${tr('🏆 PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
     <div style="text-align:right;" class="muted">${tr('Round {n} Fund<br>Growing', {n: world.round})}</div>
   </div>
-  ${phaseBanner()}
   ${settlementDoc ? `<div class="card" style="cursor:pointer;" onclick="goScreen('report')">
     <div class="row-between"><span class="card-title" style="margin:0;">${tr('📰 LATEST REPORT')}</span><span class="muted">${tr('View ›')}</span></div>
   </div>` : ''}
   ${(world.currentDay > 1 || roundIsOver()) ? `<div class="card" style="cursor:pointer;" onclick="goScreen('history')">
     <div class="row-between"><span class="card-title" style="margin:0;">${tr('📜 TERRITORY HISTORY')}</span><span class="muted">${tr('View ›')}</span></div>
   </div>` : ''}
-  <div class="card">
-    <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
-    ${renderMap()}
-    <div class="muted" style="text-align:center; margin-top:10px;">${tr("Tap a glowing tile to view today's battle.")}</div>
-  </div>
-  <div class="card row-between">
-    <div><div class="card-title" style="margin-bottom:2px;">${tr('YOUR POWER')}</div><div class="big-num mono">${fmt1(avail)}</div></div>
-    <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${mystate.locked||avail<=0?'disabled':''}>
-      ${mystate.locked ? tr('DEPLOYED') : tr('DEPLOY')}
-    </button>
-  </div>
   <div class="card">
     <div class="card-title">${tr("TODAY'S ACTIVE BATTLES")}</div>
     ${battlesDoc.activeBattles.map(t => `
@@ -2793,7 +2855,7 @@ function modalTerritory(t){
   const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
   const bLvl = getBountyLevel(world.holdDays[t]||0);
   const eligible = effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay);
-  let statusMap = {};
+  let statusMap = {}; let hasAnyPower = false;
   if (isActive && world.phase !== 'fog'){
     const powerMap = {};
     eligible.forEach(f => {
@@ -2801,6 +2863,7 @@ function modalTerritory(t){
       const dep = (activityDoc.deployed[t] && activityDoc.deployed[t][f]) || 0;
       powerMap[f] = round2(base+dep);
     });
+    hasAnyPower = Object.values(powerMap).some(p => p > 0);
     statusMap = calculateBattleStatus(powerMap);
   }
   return `
@@ -2822,9 +2885,9 @@ function modalTerritory(t){
           </div>`;
         }).join('')}
         <div class="divider"></div>
-        <div class="row-between" style="margin-bottom:12px;"><span class="muted">${tr('Status')}</span><span class="mono">${world.phase==='fog' ? tr('FOG — awaiting resolve') : tr('OPEN — awaiting resolve')}</span></div>
-        <button class="btn btn-primary" onclick="closeModal(); goScreen('deploy'); prefillDeploy('${t}')" ${mystate.locked?'disabled':''}>
-          ${mystate.locked ? tr('POWER ALREADY DEPLOYED') : tr('DEPLOY POWER HERE')}
+        <div class="row-between" style="margin-bottom:12px;"><span class="muted">${tr('Status')}</span><span class="mono">${world.phase==='fog' ? tr('FOG — awaiting resolve') : (hasAnyPower ? tr('OPEN — awaiting resolve') : tr('AWAITING DEPLOYMENT'))}</span></div>
+        <button class="btn btn-primary" onclick="closeModal(); goScreen('deploy'); prefillDeploy('${t}')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>
+          ${remainingPower()<=0 && totalDeployedMine()>0 ? tr('POWER ALREADY DEPLOYED') : tr('DEPLOY POWER HERE')}
         </button>
       ` : `<div class="empty-note">${tr('Not an active battle today.')}</div>`}
     </div>
@@ -2835,55 +2898,68 @@ function modalTerritory(t){
 function screenRun(){
   const base = energyToPower(mystate.energyToday); const boosted = computeAvailablePower();
   return `
-  <div class="card">
-    <div class="card-title">${tr("SIMULATE TODAY'S RUN")}</div>
+  <div class="screen-head"><div><h1>${tr("SIMULATE TODAY'S RUN")}</h1><p>${tr('Exercise remains mandatory — GST cannot generate Power from zero.')}</p></div><span class="phase-chip">${tr('Day {n}', {n:world.currentDay})} / ${CONFIG.roundDays}</span></div>
+  ${totalDeployedMine()>0 ? `<div class="card" style="border-color:var(--mint);"><div class="muted">${tr('Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.')}</div></div>` : ''}
+  <div class="card run-energy">
+    <div class="card-title">${tr('ENERGY TODAY')}</div>
     <div class="energy-readout"><div class="muted">${tr('ENERGY TODAY')}</div><div class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
-    <input type="range" min="${CONFIG.energy.min}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
-      value="${mystate.energyToday}" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)" ${mystate.locked?'disabled':''}>
-    <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>0</span><span>${tr('90 Energy')}</span></div>
-    <div class="divider"></div>
-    <div class="row-between"><span class="muted">${tr('Base Power')}</span><span class="mono">⚡ ${fmt1(base)}</span></div>
-    ${mystate.gstBoostPercent>0 ? `<div class="row-between"><span class="muted">${tr('GST Boost')}</span><span class="mono" style="color:var(--gold)">+${mystate.gstBoostPercent}%</span></div>` : ''}
-    <div class="row-between" style="margin-top:6px;"><span><b>${tr('POWER EARNED')}</b></span><span class="big-num mono" style="font-size:22px;">⚡ ${fmt1(boosted)}</span></div>
+    <input type="range" min="${Number(mystate.creditedEnergy||CONFIG.energy.min)}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
+      value="${mystate.energyToday}" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)">
+    <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>${fmt1(Number(mystate.creditedEnergy||0))}</span><span>${tr('90 Energy')}</span></div>
   </div>
-  <div class="card">
-    <div class="card-title">${tr('BOOST WITH GST (SIMULATED)')}</div>
+  <div class="card boost-card">
+    <div class="card-title boost-title"><img class="gst-logo" src="data:image/png;base64,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" alt="GST">${tr('BOOST WITH GST (SIMULATED)')}</div>
     <div class="muted" style="margin-bottom:8px;">${tr('Exercise remains mandatory — GST cannot generate Power from zero.')}</div>
     <div class="debug-grid">
-      ${CONFIG.gstTiers.map(pct => `<div class="gst-tier ${mystate.gstBoostPercent===pct?'selected':''}" onclick="setGST(${pct})">${pct===0?tr('None'):'+'+pct+'%'}</div>`).join('')}
+      ${CONFIG.gstTiers.map(pct => `<div class="gst-tier ${mystate.gstBoostPercent===pct?'selected':''} ${totalDeployedMine()>0?'disabled':''}" onclick="setGST(${pct})">${pct===0?tr('None'):'+'+pct+'%'}</div>`).join('')}
     </div>
   </div>
   <div class="card">
-    <div class="row-between"><span class="muted">${tr('Power available to deploy')}</span><span class="mono">${fmt1(remainingPower())}</span></div>
+    <div class="row-between"><span class="muted">${tr('Base Power')}</span><span class="mono">${fmt1(base)}</span></div>
+    <div class="row-between" style="margin-top:8px;"><span class="muted">${tr('GST Boost')}</span><span class="mono" style="color:var(--purple)">${mystate.gstBoostPercent>0?'+'+fmt1(boosted-base):'—'}</span></div>
+    <div class="row-between power-total"><span><b>${tr('POWER EARNED')}</b></span><span class="big-num mono">${fmt1(boosted)}</span></div>
     <div class="muted" style="margin-top:6px; font-size:12px;">${tr('Unused Power expires at settlement.')}</div>
-    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>${tr('GO TO DEPLOY')}</button>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('GO TO DEPLOY')}</button>
   </div>`;
 }
 
 /* ---------- DEPLOY ---------- */
-let deployState = { main: null, secondary: null, splitIdx: 1 };
+let deployState = { main: null, secondary: null, splitIdx: 1, amount: null };
 function prefillDeploy(t){ deployState.main = t; render(); }
 function screenDeploy(){
   const avail = remainingPower();
-  if (mystate.locked){
-    return `<div class="card" style="text-align:center;">
-      <div class="card-title">${tr('DEPLOYMENT LOCKED')}</div>
-      <div class="muted">${tr('Power cannot be withdrawn after deployment.')}</div><div class="divider"></div>
+  const head = `<div class="screen-head"><div><h1>${tr('DEPLOY')}</h1><p>${tr('Unused Power expires at settlement.')}</p></div><span class="phase-chip">${fmt1(avail)} POWER</span></div>`;
+  if (avail<=0){
+    return `${head}<div class="card home-power" style="text-align:center;">
+      <div class="card-title">${tr('NO POWER AVAILABLE NOW')}</div>
+      <div class="muted">${tr('New Energy earned before settlement creates additional Power you can deploy later.')}</div><div class="divider"></div>
       ${Object.entries(mystate.deployedPower).map(([t,p]) => `<div class="row-between"><span>${territoryLabel(t)}</span><span class="mono">⚡ ${fmt1(p)}</span></div>`).join('')}
     </div>`;
   }
-  if (!battlesDoc.activeBattles.length) return `<div class="card"><div class="empty-note">${tr('No active battles to deploy to today.')}</div></div>`;
+  if (!battlesDoc.activeBattles.length) return `${head}<div class="card"><div class="empty-note">${tr('No active battles to deploy to today.')}</div></div>`;
 
   const eliminated = iAmEliminated();
-  const battles = eliminated
+  const eligibleBattles = eliminated
     ? battlesDoc.activeBattles
     : battlesDoc.activeBattles.filter(t => getEligibleFactions(t, world.ownership).includes(profile.faction));
-  if (!battles.length) return `<div class="card"><div class="empty-note">${tr('Your faction has no eligible battles today (no adjacent access).')}</div></div>`;
+  const usedTargets = Object.entries(mystate.deployedPower).filter(([,p])=>Number(p)>0).map(([t])=>t);
+  const battles = eligibleBattles.filter(t => eliminated ? (!usedTargets.length || usedTargets.includes(t)) : (usedTargets.length<2 || usedTargets.includes(t)));
+  if (!battles.length) return `${head}<div class="card"><div class="empty-note">${tr('Your faction has no eligible battles today (no adjacent access).')}</div></div>`;
 
   const main = deployState.main && battles.includes(deployState.main) ? deployState.main : battles[0];
+  const amount = round2(Math.min(avail, Math.max(.1, deployState.amount===null ? avail : Number(deployState.amount)||.1)));
+  const amountCard = `<div class="card run-energy">
+    <div class="row-between"><div class="card-title">${tr('POWER TO DEPLOY NOW')}</div><div class="big-num mono">${fmt1(amount)}</div></div>
+    <input class="energy-slider" type="range" min="0.1" max="${avail}" step="0.1" value="${amount}" oninput="setDeployAmount(this.value)">
+    <div class="debug-grid" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
+      ${[25,50,75,100].map(p=>`<div class="split-opt" onclick="setDeployAmountPct(${p})">${p===100?'MAX':p+'%'}</div>`).join('')}
+    </div>
+    <div class="row-between" style="margin-top:10px;"><span class="muted">${tr('Left after this deployment')}</span><span class="mono">${fmt1(round2(avail-amount))}</span></div>
+  </div>`;
   if (eliminated){
-    const mainPower = avail;
-    return `
+    const mainPower = amount;
+    return `${head}
+    ${amountCard}
     <div class="elim-banner"><div class="et">${tr('⚔ LAST STAND COMEBACK')}</div>
       <div class="muted" style="margin-top:4px;">${tr('Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).')}</div></div>
     <div class="card">
@@ -2893,21 +2969,22 @@ function screenDeploy(){
     </div>
     <div class="card">
       <div class="row-between"><span>${tr('Available')}</span><span class="mono">${fmt1(avail)}</span></div>
-      <div class="row-between"><span>${territoryLabel(main)} ${tr('(all power)')}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
+      <div class="row-between"><span>${territoryLabel(main)}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
       <div class="divider"></div>
       <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0])" ${avail<=0?'disabled':''}>${tr('CONFIRM DEPLOYMENT')}</button>
+      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0], ${amount})">${tr('CONFIRM DEPLOYMENT')}</button>
     </div>`;
   }
-  const secondaryOptions = battles.filter(t=>t!==main);
+  const secondaryOptions = battles.filter(t=>t!==main && new Set([...usedTargets,main,t]).size<=2);
   const secondary = deployState.secondary && secondaryOptions.includes(deployState.secondary) ? deployState.secondary : null;
   // The secondary can also be invalidated without any click — e.g. a realtime
   // sync changes which battles are open. Derive the split from whether a
   // secondary actually survived, so the ratio shown and the ratio deployed
   // can never disagree.
   const split = secondary ? CONFIG.splitPresets[deployState.splitIdx] : [100, 0];
-  const mainPower = round2(avail*split[0]/100); const secPower = secondary ? round2(avail*split[1]/100) : 0;
-  return `
+  const mainPower = round2(amount*split[0]/100); const secPower = secondary ? round2(amount-mainPower) : 0;
+  return `${head}
+  ${amountCard}
   <div class="card"><div class="card-title">${tr('MAIN BATTLE')}</div>
     ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
       <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
@@ -2921,13 +2998,13 @@ function screenDeploy(){
     <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
       ${CONFIG.splitPresets.map((p,i) => `<div class="split-opt ${deployState.splitIdx===i?'selected':''}" onclick="setSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
     </div></div>` : ''}
-  <div class="card"><div class="card-title">${tr('RESULT')}</div>
-    <div class="row-between"><span>${tr('Available')}</span><span class="mono">${fmt1(avail)}</span></div>
+  <div class="card prize-box"><div class="card-title" style="color:var(--gold)">${tr('RESULT')}</div>
+    <div class="row-between"><span>${tr('Deploy now')}</span><span class="mono">${fmt1(amount)}</span></div>
     <div class="row-between"><span>${territoryLabel(main)} ${tr('(Main)')}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
     ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} ${tr('(Secondary)')}</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
     <div class="divider"></div>
     <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])" ${avail<=0?'disabled':''}>${tr('CONFIRM DEPLOYMENT')}</button>
+    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}], ${amount})">${tr('CONFIRM DEPLOYMENT')}</button>
   </div>`;
 }
 function setDeployMain(t){
@@ -2940,16 +3017,20 @@ function setDeployMain(t){
 }
 function setDeploySecondary(t){ deployState.secondary = t; if(!t) deployState.splitIdx = 0; else if(deployState.splitIdx===0) deployState.splitIdx=1; render(); }
 function setSplit(i){ deployState.splitIdx = i; render(); }
-function confirmDeploy(main, sec, split){ deployPower(main, sec, split); deployState = {main:null, secondary:null, splitIdx:1}; }
+function setDeployAmount(v){ deployState.amount=Math.max(.1,Math.min(remainingPower(),Number(v)||.1)); render(); }
+function setDeployAmountPct(pct){ deployState.amount=round2(remainingPower()*pct/100); render(); }
+function confirmDeploy(main, sec, split, amount){ deployPower(main, sec, split, amount); deployState = {main:null, secondary:null, splitIdx:1, amount:null}; }
 
 /* ---------- RALLY ---------- */
 let rallyPublishState = { main:null, secondary:null, splitIdx:1 };
 let commanderMsgInput = '';
 function screenRally(){
+  const head = `<div class="screen-head"><div><h1>${tr('RALLY')}</h1></div><span class="phase-chip">${tr('ROUND {n}', {n:world.round})}</span></div>`;
   if (world.rallyEnabled === false){
-    return `<div class="card" style="text-align:center;">
+    return `${head}<div class="card season-progress" style="text-align:center; padding:24px 18px;">
       <div class="card-title">${tr('RALLY IS OFF')}</div>
       <div class="muted">${tr('The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.')}</div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="goScreen('deploy')">${tr('GO TO DEPLOY')}</button>
     </div>`;
   }
   const m = FACTION_META[profile.faction];
@@ -2964,7 +3045,7 @@ function screenRally(){
     const eligible = isEligibleToNominate();
     const threshold = commanderEnergyThreshold();
     const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
-    return `
+    return `${head}
     <div class="card">
       <div class="card-title">${tr('👑 COMMANDER ELECTION — ROUND {n}', {n: world.round})}</div>
       <div class="muted" style="line-height:1.6;">${tr('Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.', {p: Math.round(CONFIG.commanderTopPercent*100), faction: m.name})}</div>
@@ -2987,7 +3068,7 @@ function screenRally(){
   const isMe = commander.playerId === LOCAL_PLAYER_ID;
   const rally = activityDoc.rally[profile.faction];
 
-  const commanderCard = `
+  const commanderCard = `${head}
   <div class="rally-card" style="border-color:${m.color};">
     <div class="row-between" style="margin-bottom:6px;">
       <span class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px;">👑 ${commander.name}${isMe?' '+tr('(you)'):''}</span>
@@ -3046,10 +3127,10 @@ function screenRally(){
     ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">${tr('(auto-generated)')}</div>` : ''}
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary" onclick="followRally()" ${mystate.locked?'disabled':''}>${tr('FOLLOW RALLY')}</button>
-    <button class="btn btn-outline" onclick="goScreen('deploy')" ${mystate.locked?'disabled':''}>${tr('CUSTOM DEPLOY')}</button>
+    <button class="btn btn-primary" onclick="followRally()" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('FOLLOW RALLY')}</button>
+    <button class="btn btn-outline" onclick="goScreen('deploy')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('CUSTOM DEPLOY')}</button>
   </div>
-  ${mystate.locked ? `<div class="muted" style="text-align:center; margin-top:10px;">${tr('Power already deployed today.')}</div>` : ''}`;
+  ${remainingPower()<=0 ? `<div class="muted" style="text-align:center; margin-top:10px;">${tr('No Power is available now. New Energy can be deployed before settlement.')}</div>` : ''}`;
 }
 // Surgical update so typing in the broadcast box doesn't re-render the whole
 // screen and yank focus out of the input after every character.
@@ -3145,8 +3226,9 @@ function screenHistory(){
 
 function screenSeason(){
   const pct = (x) => Math.round(x*100);
+  const head = `<div class="screen-head"><div><h1>${tr('SEASON')}</h1><p>${tr('Round wins so far — your team is locked for the whole season.')}</p></div><span class="phase-chip">R${world.round} / ${CONFIG.roundsPerSeason}</span></div>`;
   const walletCard = `
-  <div class="card">
+  <div class="card wallet-card">
     <div class="card-title">${tr('YOUR WALLET (MOCK)')}</div>
     <div class="row-between"><span class="muted">${tr('GMT Balance')}</span><span class="mono">${fmt(seasonProgress.gmtBalance)} GMT</span></div>
     <div class="row-between"><span class="muted">${tr('Season Entry Fee Paid')}</span><span class="mono">-${CONFIG.seasonEntryFeeGMT} GMT</span></div>
@@ -3159,7 +3241,7 @@ function screenSeason(){
   </div>`;
 
   const seasonCard = `
-  <div class="card">
+  <div class="card season-progress">
     <div class="card-title">${tr('SEASON 01 · ROUND {n} / {total}', {n: world.round, total: CONFIG.roundsPerSeason})}</div>
     <div class="muted" style="font-size:12px; margin-bottom:8px;">${tr('Round wins so far — your team is locked for the whole season.')}</div>
     ${FACTIONS.map(f=>{const m=FACTION_META[f]; const me = f===profile.faction;
@@ -3168,9 +3250,9 @@ function screenSeason(){
   </div>`;
 
   if (!roundIsOver()){
-    return `${seasonCard}<div class="card"><div class="card-title">${tr('ROUND {n} — IN PROGRESS', {n: world.round})}</div>
+    return `${head}${seasonCard}<div class="prize-box row-between"><div><div class="prize-label">${tr('🏆 ROUND PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div><span class="chip-small">MOCK</span></div><div class="card"><div class="card-title">${tr('ROUND {n} — IN PROGRESS', {n: world.round})}</div>
       <div class="muted" style="margin-bottom:8px;">${tr('Live VP · settles after Day {n}.', {n: CONFIG.roundDays})}</div>
-      ${rankFactions(world.vp, world.ownership).map((s,idx)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${idx+1}. <span class="dot" style="background:${m.color}"></span>${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
+      ${rankFactions(world.vp, world.ownership).map((s,idx)=>{const m=FACTION_META[s.f]; return `<div class="row-between season-rank-row"><span>${idx+1}. <span class="dot" style="background:${m.color}"></span>${m.name}${s.f===profile.faction?' '+tr('(you)'):''}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
     </div>${walletCard}`;
   }
 
@@ -3178,7 +3260,7 @@ function screenSeason(){
   const r = roundResult; const champ = r.standings[0]; const cm = FACTION_META[champ.f];
   const seasonChamp = r.seasonStandings ? FACTION_META[r.seasonStandings[0].f] : null;
 
-  return `
+  return `${head}
   <div class="card" style="text-align:center;">
     <div class="card-title">${tr('🏁 ROUND {n} WINNER', {n: world.round})}</div>
     <div class="big-num display" style="color:${cm.color};">${cm.emoji} ${cm.name}</div>
@@ -3187,7 +3269,7 @@ function screenSeason(){
     ${r.standings.map((s,i)=>{const m=FACTION_META[s.f]; return `<div class="row-between"><span>${i+1}. ${m.emoji} ${m.name}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
   </div>
   <div class="prize-box"><div class="prize-label">${tr('🏆 ROUND PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
-  <div class="card"><div class="card-title">${tr('YOUR RESULT THIS ROUND')}</div>
+  <div class="card season-you"><div class="card-title">${tr('YOUR RESULT THIS ROUND')}</div>
     <div class="row-between"><span>${tr('Team Placing')}</span><span class="mono">#${r.myRank} — ${r.rankTitle ? tr(r.rankTitle) : '-'}</span></div>
     <div class="row-between"><span>${tr('Contribution Rank')}</span><span class="mono">#${progress.contributionRank}</span></div>
     <div class="row-between"><span>${tr('Participation Days')}</span><span class="mono">${progress.participationDays} / ${CONFIG.roundDays}</span></div>
