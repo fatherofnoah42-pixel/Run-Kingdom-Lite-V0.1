@@ -202,7 +202,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.5.2-community-admin-recovery-atomic-settlement-6lang-2026-09-10';
+const APP_BUILD = 'rk-v0.5.3-community-pilot-config-lock-6lang-2026-09-11';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1183,9 +1183,11 @@ function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 // This mirrors the same get/set-by-key model the rest of the game already
 // expects, so none of the game logic below had to change — only this layer.
 //
-// ---- Resolve Supabase config: saved in this browser > embedded in an
-// invite link's URL params (first visit) > the optional hardcoded constants
-// above. This is what lets deployment work with zero file editing.
+// ---- Resolve Supabase config. For a public community build, valid embedded
+// constants are authoritative. This prevents an old project URL/key left in a
+// returning visitor's localStorage from silently sending them to a stale demo.
+// Invite-link and manually saved config remain the fallback for unconfigured
+// copies of this file.
 // ---- Resolve config from an invite link, if this is a first visit via one ----
 // All of sb_url/sb_key/room are read from ONE combined pass over the URL, and
 // the cleanup (removing them from the visible address) happens exactly once
@@ -1259,6 +1261,19 @@ function normalizeSupabaseProjectUrl(raw){
 }
 
 function readSupabaseConfig(){
+  if (SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
+      && !SUPABASE_URL_HARDCODED.startsWith('YOUR_') && !SUPABASE_ANON_KEY_HARDCODED.startsWith('YOUR_')){
+    const hardcodedUrl = normalizeSupabaseProjectUrl(SUPABASE_URL_HARDCODED);
+    const hardcodedKey = SUPABASE_ANON_KEY_HARDCODED.trim();
+    if (hardcodedUrl && hardcodedKey){
+      // Keep browser storage aligned too, so invite links copied by this build
+      // always carry the current production project rather than stale values.
+      localStorage.setItem('rk_supabase_url', hardcodedUrl);
+      localStorage.setItem('rk_supabase_key', hardcodedKey);
+      return { url: hardcodedUrl, key: hardcodedKey };
+    }
+  }
+
   const savedUrlRaw = localStorage.getItem('rk_supabase_url');
   const savedKey = (localStorage.getItem('rk_supabase_key') || '').trim();
   const savedUrl = normalizeSupabaseProjectUrl(savedUrlRaw);
@@ -1268,11 +1283,6 @@ function readSupabaseConfig(){
     return { url: savedUrl, key: savedKey };
   }
 
-  if (SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
-      && !SUPABASE_URL_HARDCODED.startsWith('YOUR_') && !SUPABASE_ANON_KEY_HARDCODED.startsWith('YOUR_')){
-    const hardcodedUrl = normalizeSupabaseProjectUrl(SUPABASE_URL_HARDCODED);
-    if (hardcodedUrl) return { url: hardcodedUrl, key: SUPABASE_ANON_KEY_HARDCODED.trim() };
-  }
   return null;
 }
 
@@ -3309,7 +3319,7 @@ function renderDebug(){
     <div class="debug-section">
       <h4>Season State</h4>
       <div class="muted">Season R${world.round}/${CONFIG.roundsPerSeason} · Day ${world.currentDay}/${CONFIG.roundDays} · Phase: ${({battles:'Battles',fog:'Fog',roundEnd:'Round End',seasonEnd:'Season End'})[world.phase]||world.phase}</div>
-      <div class="muted" style="margin-top:4px; font-size:11px;">Fog and Resolve Day are now on the Home screen — any player can trigger them.</div>
+      <div class="muted" style="margin-top:4px; font-size:11px;">Fog and Resolve Day are on the Home screen for room admins only.</div>
     </div>
     <div class="debug-section">
       <h4>Rally (affects all players)</h4>
