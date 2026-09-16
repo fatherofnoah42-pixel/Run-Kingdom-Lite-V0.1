@@ -213,7 +213,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.6.3-admin-player-overview-6lang-2026-09-11';
+const APP_BUILD = 'rk-v0.6.5-idempotent-max-deploy-6lang-2026-09-16';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -880,6 +880,16 @@ Object.assign(JA,{'ROOM PLAYERS':'ルームのプレイヤー','View players ›
 Object.assign(KO,{'ROOM PLAYERS':'방 플레이어','View players ›':'플레이어 보기 ›','PLAYER OVERVIEW':'플레이어 현황','REFRESH':'새로고침','ONLINE':'온라인','OFFLINE':'오프라인','MOCK POWER':'모의 전투력','REMAINING':'남음','Not deployed':'미배치','Targets':'대상 지역','No players found.':'플레이어가 없습니다.','Could not load player data.':'플레이어 데이터를 불러올 수 없습니다.','ADMIN':'관리자'});
 Object.assign(TR,{'ROOM PLAYERS':'ODA OYUNCULARI','View players ›':'Oyuncuları gör ›','PLAYER OVERVIEW':'OYUNCU ÖZETİ','REFRESH':'YENİLE','ONLINE':'ÇEVRİMİÇİ','OFFLINE':'ÇEVRİMDIŞI','MOCK POWER':'SİMÜLE GÜÇ','REMAINING':'KALAN','Not deployed':'Konuşlandırılmadı','Targets':'Hedefler','No players found.':'Oyuncu bulunamadı.','Could not load player data.':'Oyuncu verileri yüklenemedi.','ADMIN':'YÖNETİCİ'});
 Object.assign(RU,{'ROOM PLAYERS':'ИГРОКИ КОМНАТЫ','View players ›':'Открыть игроков ›','PLAYER OVERVIEW':'ОБЗОР ИГРОКОВ','REFRESH':'ОБНОВИТЬ','ONLINE':'ОНЛАЙН','OFFLINE':'ОФЛАЙН','MOCK POWER':'ТЕСТОВАЯ СИЛА','REMAINING':'ОСТАЛОСЬ','Not deployed':'Не размещено','Targets':'Цели','No players found.':'Игроки не найдены.','Could not load player data.':'Не удалось загрузить данные игроков.','ADMIN':'АДМИН'});
+Object.assign(ZH,{"TODAY'S DEPLOYMENT":'今日部署','Total deployed':'已部署总量','Available now':'当前可用','DEPLOY MORE':'继续部署','ALL DEPLOYED':'已全部部署',"Territory History contains resolved days only. Today’s live deployment is shown on Home.":'领土历史仅显示已结算日期。今天的实时部署显示在主页。','Deployed targets':'已部署区域'});
+Object.assign(JA,{"TODAY'S DEPLOYMENT":'本日の配置','Total deployed':'配置済み合計','Available now':'現在利用可能','DEPLOY MORE':'さらに配置','ALL DEPLOYED':'すべて配置済み',"Territory History contains resolved days only. Today’s live deployment is shown on Home.":'領土履歴には決着済みの日だけが表示されます。今日のリアルタイム配置はホームに表示されます。','Deployed targets':'配置先'});
+Object.assign(KO,{"TODAY'S DEPLOYMENT":'오늘의 배치','Total deployed':'총 배치량','Available now':'현재 사용 가능','DEPLOY MORE':'추가 배치','ALL DEPLOYED':'모두 배치됨',"Territory History contains resolved days only. Today’s live deployment is shown on Home.":'영토 기록에는 결산된 날짜만 표시됩니다. 오늘의 실시간 배치는 홈에서 확인할 수 있습니다.','Deployed targets':'배치 지역'});
+Object.assign(TR,{"TODAY'S DEPLOYMENT":'BUGÜNKÜ KONUŞLANDIRMA','Total deployed':'Toplam konuşlandırılan','Available now':'Şimdi kullanılabilir','DEPLOY MORE':'DAHA FAZLA KONUŞLANDIR','ALL DEPLOYED':'TÜMÜ KONUŞLANDIRILDI',"Territory History contains resolved days only. Today’s live deployment is shown on Home.":'Bölge Geçmişi yalnızca sonuçlanmış günleri gösterir. Bugünün canlı konuşlandırması Ana Sayfada gösterilir.','Deployed targets':'Konuşlandırılan bölgeler'});
+Object.assign(RU,{"TODAY'S DEPLOYMENT":'РАЗМЕЩЕНИЕ СЕГОДНЯ','Total deployed':'Всего размещено','Available now':'Доступно сейчас','DEPLOY MORE':'РАЗМЕСТИТЬ ЕЩЁ','ALL DEPLOYED':'ВСЁ РАЗМЕЩЕНО',"Territory History contains resolved days only. Today’s live deployment is shown on Home.":'История территорий показывает только завершённые дни. Размещение за сегодня отображается на главной.','Deployed targets':'Территории размещения'});
+Object.assign(ZH,{'SUBMITTING…':'提交中…'});
+Object.assign(JA,{'SUBMITTING…':'送信中…'});
+Object.assign(KO,{'SUBMITTING…':'제출 중…'});
+Object.assign(TR,{'SUBMITTING…':'GÖNDERİLİYOR…'});
+Object.assign(RU,{'SUBMITTING…':'ОТПРАВКА…'});
 
 function tr(key, vars){
   const table = I18N[LANG];
@@ -1557,7 +1567,7 @@ let adminPlayers = null;
 let adminPlayersLoading = false;
 let adminPlayersError = '';
 let flashTiles = {};
-let inFlightResolve = false, inFlightFogToggle = false;
+let inFlightResolve = false, inFlightFogToggle = false, inFlightDeploy = false;
 let lastSyncError = null; // {message, retry: () => Promise}
 let roomCodeCopied = false;
 
@@ -1589,7 +1599,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.7.0') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.0 is required.' };
+    if (data !== '0.7.2') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.2 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -2461,16 +2471,18 @@ function computeRoundResult(){
    PLAYER ACTIONS
 ========================================================= */
 function computeAvailablePower(){ return applyGSTBoost(energyToPower(mystate.energyToday), mystate.gstBoostPercent); }
-function totalDeployedMine(){ return Object.values(mystate.deployedPower).reduce((a,b)=>a+b,0); }
+function totalDeployedMine(){ return round2(Object.values(mystate.deployedPower||{}).reduce((a,b)=>a+(Number(b)||0),0)); }
 function remainingPower(){ return Math.max(0, round2(computeAvailablePower() - totalDeployedMine())); }
 function deploymentOpen(){ return world && world.phase==='battles' && !roundIsOver(); }
 function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownership); }
 
 async function deployPower(mainT, secT, splitPct, amount=null){
-  if (!deploymentOpen()) return;
+  if (!deploymentOpen() || inFlightDeploy) return;
   const avail = remainingPower();
   const deployNow = round2(Math.min(avail, amount===null ? avail : Number(amount)));
   if (!Number.isFinite(deployNow) || deployNow<=0) return;
+  inFlightDeploy = true;
+  render();
   let [mp, sp] = splitPct;
   // AUTHORITATIVE GUARD: with no secondary target there is nowhere for the
   // secondary share to go, so the main target must take 100%. Without this,
@@ -2497,18 +2509,30 @@ async function deployPower(mainT, secT, splitPct, amount=null){
     updatedDoc=data;
   } catch(e){
     console.error('secure deploy failed:', e);
-    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: () => { lastSyncError = null; deployPower(mainT, secT, splitPct, deployNow); } };
+    inFlightDeploy = false;
+    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: async () => {
+      lastSyncError = null;
+      const freshState = await ensureMyState(world.currentDay);
+      if (freshState) mystate = freshState;
+      deployPower(mainT, secT, splitPct, deployNow);
+    } };
     render();
     return;
   }
-  if (updatedDoc) activityDoc = updatedDoc;
+  if (updatedDoc && updatedDoc.activity) activityDoc = updatedDoc.activity;
+  else if (updatedDoc) activityDoc = updatedDoc;
 
-  mystate.deployedPower[mainT] = round2((mystate.deployedPower[mainT]||0) + mainPower);
-  if (secT) mystate.deployedPower[secT] = round2((mystate.deployedPower[secT]||0) + secPower);
+  if (updatedDoc && updatedDoc.deployedPower){
+    mystate.deployedPower = updatedDoc.deployedPower;
+  } else {
+    mystate.deployedPower[mainT] = round2((Number(mystate.deployedPower[mainT])||0) + mainPower);
+    if (secT) mystate.deployedPower[secT] = round2((Number(mystate.deployedPower[secT])||0) + secPower);
+  }
   mystate.locked = false;
   mystate.creditedEnergy = mystate.energyToday;
   lastSyncError = null;
   await persistMyState();
+  inFlightDeploy = false;
   uiScreen = 'home';
   render();
 }
@@ -2817,8 +2841,28 @@ function eliminatedBanner(){
 }
 
 /* ---------- HOME ---------- */
+function todayDeploymentCard(){
+  const total = totalDeployedMine();
+  if (total <= 0) return '';
+  const targets = Object.entries(mystate.deployedPower||{})
+    .filter(([,power]) => Number(power) > 0)
+    .sort(([a],[b]) => a.localeCompare(b));
+  return `<div class="card" style="border-color:#315348;background:linear-gradient(135deg,rgba(78,218,190,.10),rgba(151,111,255,.04));">
+    <div class="row-between"><div class="card-title" style="margin:0;">${tr("TODAY'S DEPLOYMENT")}</div><span class="admin-status done">${tr('DEPLOYED')}</span></div>
+    <div class="admin-player-metrics" style="margin-top:12px;">
+      <div class="admin-player-metric"><b class="mono">${fmt1(total)}</b><span>${tr('Total deployed')}</span></div>
+      <div class="admin-player-metric"><b class="mono">${fmt1(remainingPower())}</b><span>${tr('Available now')}</span></div>
+      <div class="admin-player-metric"><b class="mono">${fmt1(computeAvailablePower())}</b><span>${tr('POWER EARNED')}</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="muted" style="font-size:11px;margin-bottom:7px;">${tr('Deployed targets')}</div>
+    ${targets.map(([t,power]) => `<div class="row-between" style="padding:4px 0;"><span><span class="chip-small">${t}</span> ${territoryLabel(t)}</span><b class="mono">${fmt1(Number(power))}</b></div>`).join('')}
+  </div>`;
+}
 function screenHome(){
   const avail = remainingPower();
+  const deployed = totalDeployedMine();
+  const deployButtonLabel = avail <= 0 && deployed > 0 ? tr('ALL DEPLOYED') : deployed > 0 ? tr('DEPLOY MORE')+' →' : tr('DEPLOY')+' →';
   return `
   ${eliminatedBanner()}
   ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
@@ -2827,9 +2871,10 @@ function screenHome(){
   <div class="card row-between home-power">
     <div><div class="card-title" style="margin-bottom:2px;">${tr('YOUR POWER')}</div><div class="big-num mono">${fmt1(avail)} <span class="power-unit">${tr('Available')}</span></div></div>
     <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${!deploymentOpen()||avail<=0?'disabled':''}>
-      ${avail<=0 && totalDeployedMine()>0 ? tr('DEPLOYED') : tr('DEPLOY')} →
+      ${deployButtonLabel}
     </button>
   </div>
+  ${todayDeploymentCard()}
   <div class="row-between home-day"><h2>${tr('Day {n}', {n:world.currentDay})} <span class="muted">/ ${CONFIG.roundDays}</span></h2><span class="phase-chip">${world.phase==='fog'?tr('BATTLE FOG'):tr('OPEN — awaiting resolve')}</span></div>
   <div class="card active-summary"><span><i class="battle-line"></i>${battlesDoc.activeBattles.length} ${tr("TODAY'S ACTIVE BATTLES").toLowerCase()}</span><span class="muted">${tr('View ›')}</span></div>
   ${isRoomAdmin ? `<div class="card active-summary" style="cursor:pointer;border-color:#3f3553;" onclick="openAdminPlayers()"><span>👥 ${tr('ROOM PLAYERS')}</span><span style="color:var(--purple);">${tr('View players ›')}</span></div>` : ''}
@@ -2982,7 +3027,7 @@ function screenDeploy(){
       <div class="row-between"><span>${territoryLabel(main)}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
       <div class="divider"></div>
       <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0], ${amount})">${tr('CONFIRM DEPLOYMENT')}</button>
+      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0], ${amount})" ${inFlightDeploy?'disabled':''}>${inFlightDeploy?tr('SUBMITTING…'):tr('CONFIRM DEPLOYMENT')}</button>
     </div>`;
   }
   const secondaryOptions = battles.filter(t=>t!==main && new Set([...usedTargets,main,t]).size<=2);
@@ -3014,7 +3059,7 @@ function screenDeploy(){
     ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} ${tr('(Secondary)')}</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
     <div class="divider"></div>
     <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}], ${amount})">${tr('CONFIRM DEPLOYMENT')}</button>
+    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}], ${amount})" ${inFlightDeploy?'disabled':''}>${inFlightDeploy?tr('SUBMITTING…'):tr('CONFIRM DEPLOYMENT')}</button>
   </div>`;
 }
 function setDeployMain(t){
@@ -3201,8 +3246,9 @@ function screenReport(){
 /* ---------- HISTORY (look back at past days' territory ownership) ---------- */
 function screenHistory(){
   const maxDay = roundIsOver() ? world.currentDay : world.currentDay - 1;
+  const liveDayNote = `<div class="card" style="border-color:#315348;"><div class="muted">${tr("Territory History contains resolved days only. Today’s live deployment is shown on Home.")}</div></div>`;
   if (maxDay < 1){
-    return `<div class="card"><div class="empty-note">${tr('No days have been resolved yet — check back after Day 1 is settled.')}</div></div>
+    return `${liveDayNote}<div class="card"><div class="empty-note">${tr('No days have been resolved yet — check back after Day 1 is settled.')}</div></div>
     <button class="btn btn-outline" onclick="goScreen('home')">${tr('BACK TO HOME')}</button>`;
   }
   const days = Array.from({length: maxDay}, (_, i) => i + 1);
@@ -3224,6 +3270,7 @@ function screenHistory(){
     }
   }
   return `
+  ${liveDayNote}
   <div class="card">
     <div class="card-title">${tr('PICK A DAY')}</div>
     <div class="debug-grid" style="grid-template-columns:repeat(4,1fr);">
