@@ -213,7 +213,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.6.5-idempotent-max-deploy-6lang-2026-09-16';
+const APP_BUILD = 'rk-v0.6.6-comeback-and-headcount-balance-6lang-2026-09-17';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -400,7 +400,7 @@ const ZH = {
   // --- onboarding / setup ---
   'RUN KINGDOM · SEASON 01': '奔跑王国 · 第一赛季',
   'Join the Battlefield': '加入战场',
-  'Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>': '你的阵营是<b>系统分配</b>的，不可自选——按近期总能量平衡分配，确保没有一方开局更强。<b>阵营在整个 6 周赛季内锁定。</b>',
+  'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>': '你的阵营是<b>系统分配</b>的，不可自选——优先确保三队人数均衡，人数相同时才用近期能量作为判断。<b>阵营在整个 6 周赛季内锁定。</b>',
   'Runner name': '跑者昵称',
   'Leave blank for a random one': '留空则随机生成',
   'Your last-7-day energy (mock STEPN data)': '你近 7 天的能量（模拟 STEPN 数据）',
@@ -583,7 +583,7 @@ const JA = {
   "Day {n}": "Day {n}",
   "Ownership after Day {n} settlement": "Day {n}決着後の所有状況",
   "Join the Battlefield": "戦場に参加",
-  "Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>": "チームは選択ではなく<b>自動割り当て</b>です。直近エナジー総量でバランスされ、<b>6週間のシーズン中は固定</b>されます。",
+  "Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>": "チームは選択ではなく<b>自動割り当て</b>です。人数を優先して均等化し、同数の場合のみ直近エナジーを使用します。<b>6週間のシーズン中は固定</b>されます。",
   "Runner name": "ランナー名",
   "Leave blank for a random one": "空欄でランダム生成",
   "Your last-7-day energy (mock STEPN data)": "直近7日間のエナジー（STEPNモック）",
@@ -890,6 +890,9 @@ Object.assign(JA,{'SUBMITTING…':'送信中…'});
 Object.assign(KO,{'SUBMITTING…':'제출 중…'});
 Object.assign(TR,{'SUBMITTING…':'GÖNDERİLİYOR…'});
 Object.assign(RU,{'SUBMITTING…':'ОТПРАВКА…'});
+Object.assign(KO,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'팀은 선택이 아닌 <b>자동 배정</b>입니다. 인원수를 우선 균등하게 맞추고, 인원수가 같을 때만 최근 에너지를 사용합니다. <b>6주 시즌 동안 팀은 고정됩니다.</b>'});
+Object.assign(TR,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'Takımınız seçilmez, <b>otomatik atanır</b>. Önce oyuncu sayısı dengelenir; son Enerji yalnızca eşitlik durumunda kullanılır. <b>Takımınız 6 haftalık sezon boyunca kilitlidir.</b>'});
+Object.assign(RU,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'Команда не выбирается, а <b>назначается автоматически</b>. Сначала выравнивается число игроков; недавняя Энергия используется только при равенстве. <b>Команда закреплена на весь 6-недельный сезон.</b>'});
 
 function tr(key, vars){
   const table = I18N[LANG];
@@ -1117,7 +1120,13 @@ function weightedPickWithoutReplacement(items, n, rng){
   return picked;
 }
 function selectActiveBattles(day, ownership, holdDays, repHistory){
-  const candidates = getEligibleFrontlines(ownership);
+  let candidates = getEligibleFrontlines(ownership);
+  // If one faction owns the whole map there are no borders, so the old
+  // frontline-only selector returned zero battles and permanently locked the
+  // other two factions out. A monopoly now opens the whole board as possible
+  // comeback targets; zero-land factions may attack any selected battle.
+  const owners = new Set(TERRITORIES.map(t => ownership[t]).filter(Boolean));
+  if (!candidates.length && owners.size === 1) candidates = TERRITORIES.slice();
   if (!candidates.length) return [];
   const weighted = candidates.map(t => {
     const level = getBountyLevel(holdDays[t] || 0);
@@ -1137,7 +1146,8 @@ function selectActiveBattles(day, ownership, holdDays, repHistory){
   // distinction, a faction boxed into a single starting Capital could be
   // "covered" purely because it can defend that Capital, even when none of
   // today's picks touch its border — leaving it with nothing to actually do.
-  const offensiveEligible = (f, t) => ownership[t] !== f && getEligibleFactions(t, ownership).includes(f);
+  const offensiveEligible = (f, t) => ownership[t] !== f &&
+    (!factionOwnsAny(f, ownership) || getEligibleFactions(t, ownership).includes(f));
   const coverageOf = (battleList) => {
     const covered = new Set();
     battleList.forEach(t => FACTIONS.forEach(f => { if (offensiveEligible(f, t)) covered.add(f); }));
@@ -1588,7 +1598,7 @@ async function copyRoomCode(){
    ONBOARDING
 ========================================================= */
 let onboardName = '';
-// Faction is assigned by the balancer, never picked — see assignFaction().
+// Faction is assigned by the server-side balancer, never picked.
 let onboardRecentEnergy = 30;
 
 // Verifies the database has the schema this build requires. Without this the
@@ -1599,7 +1609,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.7.2') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.2 is required.' };
+    if (data !== '0.7.3') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.3 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -1713,19 +1723,9 @@ function submitSetupForm(){
   localStorage.setItem('rk_supabase_key', key);
   location.reload(); // simplest, safest way to cleanly re-init everything with the new config
 }
-// Faction is ASSIGNED, never chosen. Self-selection reliably produces a death
-// spiral (everyone piles onto last round's winner → strong gets stronger →
-// weak factions quit). We balance by TOTAL RECENT ENERGY rather than by
-// headcount, because energy is the real input to battle power — three equal
-// headcounts with wildly different energy is not a fair board.
-// Note this is entry-side fairness only; it is NOT the "secretly boost the
-// losing faction" balancing that the design principles rule out.
-function assignFaction(recentEnergy, factionEnergy){
-  const totals = { ...(factionEnergy || { cinder:0, surge:0, bloom:0 }) };
-  let best = FACTIONS[0];
-  FACTIONS.forEach(f => { if ((totals[f] || 0) < (totals[best] || 0)) best = f; });
-  return best;
-}
+// Faction is assigned atomically by the database. Community-test rooms first
+// balance PLAYER COUNT; recent Energy is only the tie-breaker when two teams
+// have the same number of members.
 async function submitOnboarding(){
   try { await submitOnboardingInner(); }
   catch(e){
@@ -1746,7 +1746,8 @@ async function submitOnboardingInner(){
     bootPhase = 'onboarding'; render(); return;
   }
   const recentEnergy = onboardRecentEnergy;
-  // Pick the lightest faction AND book our energy into it in a single atomic
+  // Pick the smallest faction (Energy breaks a headcount tie) AND book our
+  // energy into it in a single atomic
   // database call. Doing this as read-then-write in the client meant two
   // people joining at the same instant both saw the same "lightest" faction
   // and both got put there, and one of the two energy writes was then lost.
@@ -1777,9 +1778,8 @@ function makeInitialWorld(){
     round: 1,
     ...freshRoundState(),
     // Season-level state (persists across all 6 rounds):
-    // factionEnergy tracks each faction's total recent energy, used to keep
-    // auto-assignment balanced by ENERGY (the real input to power) rather than
-    // by headcount. roundWins tracks the season-long scoreboard.
+    // factionEnergy tracks each faction's total recent energy as the tie-break
+    // after player count. roundWins tracks the season-long scoreboard.
     factionEnergy: { cinder:0, surge:0, bloom:0 },
     roundWins: { cinder:0, surge:0, bloom:0 },
     rallyEnabled: false,
@@ -1810,7 +1810,12 @@ function freshRoundState(){
 async function ensureBattlesDoc(day){
   const key = dayKey(world.runId, 'battles', day);
   let doc = await safeGet(key, true);
-  if (doc && doc !== STORAGE_RETRY_LATER) return doc;
+  const ownerCount = new Set(TERRITORIES.map(t => world.ownership[t]).filter(Boolean)).size;
+  const monopolyLockout = doc && doc !== STORAGE_RETRY_LATER && ownerCount === 1 &&
+    (!Array.isArray(doc.activeBattles) || doc.activeBattles.length === 0);
+  if (doc && doc !== STORAGE_RETRY_LATER && !monopolyLockout) return doc;
+  // Repair an already-created empty battle document from an older build, so
+  // the current day becomes playable immediately after upgrading.
   // Battle generation is a pure function (same inputs always produce the same
   // result), so recomputing it here after a transient read failure is safe —
   // it can't conflict with a copy another player already saved.
@@ -3360,7 +3365,7 @@ function renderOnboarding(){
   return `<div class="onboard-wrap"><div class="onboard-card">
     <div class="card-title" style="margin-bottom:4px;">${tr('RUN KINGDOM · SEASON 01')}</div>
     <div class="display" style="font-size:20px; font-weight:700; margin-bottom:6px;">${tr('Join the Battlefield')}</div>
-    <div class="muted" style="line-height:1.6;">${tr('Your team is <b>assigned</b>, not chosen — teams are balanced by total recent energy so no side starts stronger. <b>Your team is locked for the whole 6-week season.</b>')}</div>
+    <div class="muted" style="line-height:1.6;">${tr('Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>')}</div>
     <div class="muted" style="margin:12px 0 4px; font-size:12px;">${tr('Runner name')}</div>
     <input class="name-input" placeholder="${tr('Leave blank for a random one')}" value="${onboardName}" oninput="onboardName=this.value" />
     <div class="muted" style="margin:12px 0 4px; font-size:12px;">${tr('Your last-7-day energy (mock STEPN data)')}</div>
