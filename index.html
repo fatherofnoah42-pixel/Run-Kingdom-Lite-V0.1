@@ -213,7 +213,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.6.6-comeback-and-headcount-balance-6lang-2026-09-17';
+const APP_BUILD = 'rk-v0.6.7-member-removal-and-i18n-2026-09-19';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -893,6 +893,143 @@ Object.assign(RU,{'SUBMITTING…':'ОТПРАВКА…'});
 Object.assign(KO,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'팀은 선택이 아닌 <b>자동 배정</b>입니다. 인원수를 우선 균등하게 맞추고, 인원수가 같을 때만 최근 에너지를 사용합니다. <b>6주 시즌 동안 팀은 고정됩니다.</b>'});
 Object.assign(TR,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'Takımınız seçilmez, <b>otomatik atanır</b>. Önce oyuncu sayısı dengelenir; son Enerji yalnızca eşitlik durumunda kullanılır. <b>Takımınız 6 haftalık sezon boyunca kilitlidir.</b>'});
 Object.assign(RU,{'Your team is <b>assigned</b>, not chosen — teams are balanced by player count, with recent Energy used only to break a tie. <b>Your team is locked for the whole 6-week season.</b>':'Команда не выбирается, а <b>назначается автоматически</b>. Сначала выравнивается число игроков; недавняя Энергия используется только при равенстве. <b>Команда закреплена на весь 6-недельный сезон.</b>'});
+
+// Complete the player-facing Korean, Turkish and Russian dictionaries.
+// Existing Chinese/Japanese entries remain unchanged.
+const translationCompletion = [
+["✅ CAPTURED","✅ 점령","✅ ELE GEÇİRİLDİ","✅ ЗАХВАЧЕНО"],
+["🛡️ HELD","🛡️ 방어 성공","🛡️ KORUNDU","🛡️ УДЕРЖАНО"],
+["❌ LOST","❌ 상실","❌ KAYBEDİLDİ","❌ ПОТЕРЯНО"],
+["Room not found. Check the code, or create a new room.","방을 찾을 수 없습니다. 코드를 확인하거나 새 방을 만드세요.","Oda bulunamadı. Kodu kontrol edin veya yeni oda oluşturun.","Комната не найдена. Проверьте код или создайте новую."],
+["Could not check that room. Please try again.","방을 확인하지 못했습니다. 다시 시도하세요.","Oda kontrol edilemedi. Tekrar deneyin.","Не удалось проверить комнату. Повторите попытку."],
+["All 6 rounds are done — see the season champion and your rewards.","6개 라운드가 모두 종료되었습니다. 시즌 우승팀과 보상을 확인하세요.","6 turun tamamı bitti. Sezon şampiyonunu ve ödüllerinizi görün.","Все 6 раундов завершены. Посмотрите чемпиона сезона и свои награды."],
+["Round {n} is over — check standings, then start Round {m} when ready.","라운드 {n} 종료. 순위를 확인하고 준비되면 라운드 {m}을 시작하세요.","{n}. tur bitti. Sıralamayı kontrol edip hazır olduğunuzda {m}. turu başlatın.","Раунд {n} завершён. Проверьте таблицу и начните раунд {m}, когда будете готовы."],
+["Final troop movements are hidden. You can still deploy remaining power.","최종 배치는 숨겨집니다. 배치 가능 여부는 현재 단계에 따릅니다.","Son konuşlandırmalar gizlidir. Konuşlandırma mevcut aşamaya bağlıdır.","Последние размещения скрыты. Возможность размещения зависит от текущей фазы."],
+["Deploy your power, then resolve the day whenever your group is ready.","전투력을 배치한 후 팀이 준비되면 하루를 결산하세요.","Gücünüzü konuşlandırın; grubunuz hazır olduğunda günü sonuçlandırın.","Разместите Силу и подведите итоги дня, когда группа будет готова."],
+["🔥 FINAL DAY — {name} ×{n}","🔥 마지막 날 — {name} ×{n}","🔥 SON GÜN — {name} ×{n}","🔥 ПОСЛЕДНИЙ ДЕНЬ — {name} ×{n}"],
+["{name} is worth {vp} VP today and is open to every team, adjacent or not. This is the decider.","오늘 {name}의 가치는 {vp} VP이며 인접 여부와 관계없이 모든 팀이 공격할 수 있습니다. 결정적인 전투입니다.","Bugün {name}, {vp} VP değerinde ve komşuluk şartı olmadan tüm takımlara açık. Bu, belirleyici savaş.","Сегодня {name} приносит {vp} VP и открыт всем командам независимо от соседства. Это решающая битва."],
+['🔥 <b style="color:var(--gold);">Day {d} showdown:</b> {name} will be worth ×{n} VP and open to all teams — {left} away.','🔥 <b style="color:var(--gold);">{d}일 차 결전:</b> {name}의 VP가 ×{n}이 되고 모든 팀에 개방됩니다. 남은 시간: {left}.','🔥 <b style="color:var(--gold);">{d}. gün finali:</b> {name}, ×{n} VP değerinde ve tüm takımlara açık olacak — kalan: {left}.','🔥 <b style="color:var(--gold);">Решающая битва в день {d}:</b> {name} даст ×{n} VP и откроется всем — осталось: {left}.'],
+["Your faction holds no territory — you may attack any one of today's open battles (adjacency not required, one target only).","보유 영토가 없습니다. 오늘 열린 전장 중 하나를 공격할 수 있습니다. 인접 조건 없이 대상은 하나만 선택하세요.","Takımınızın bölgesi yok. Bugünün açık savaşlarından birine saldırabilirsiniz; komşuluk gerekmez, yalnızca tek hedef.","У вашей команды нет территорий. Можно атаковать один любой открытый участок без требования соседства."],
+["⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles","⚙️ 테스트: NPC 전투력 꺼짐 — 실제 배치된 전투력만 전투를 결정합니다","⚙️ TEST: NPC gücü KAPALI — savaşları yalnızca oyuncuların konuşlandırdığı Güç belirler","⚙️ ТЕСТ: Сила NPC отключена — битвы решает только размещённая игроками Сила"],
+["Day {n}","{n}일 차","Gün {n}","День {n}"],
+["BATTLE FOG","전장의 안개","SAVAŞ SİSİ","ТУМАН ВОЙНЫ"],
+["TERRITORY MAP (today's open battles keep pulsing)","영토 지도 (오늘 열린 전장은 깜박입니다)","BÖLGE HARİTASI (bugünün açık savaşları yanıp söner)","КАРТА ТЕРРИТОРИЙ (открытые битвы пульсируют)"],
+["Tap a glowing tile to view today's battle.","빛나는 타일을 눌러 오늘의 전투를 확인하세요.","Bugünün savaşını görmek için parlayan bölgeye dokunun.","Нажмите на светящуюся клетку, чтобы открыть сегодняшнюю битву."],
+["Round {n} Fund<br>Growing","라운드 {n} 기금<br>증가 중","{n}. Tur Fonu<br>Büyüyor","Фонд раунда {n}<br>Растёт"],
+["No active battles today.","오늘 활성 전장이 없습니다.","Bugün aktif savaş yok.","Сегодня нет активных битв."],
+["BATTLE FOR {name}","{name} 쟁탈전","{name} İÇİN SAVAŞ","БИТВА ЗА {name}"],
+["· HIGH-VALUE TERRITORY","· 고가치 영토","· YÜKSEK DEĞERLİ BÖLGE","· ЦЕННАЯ ТЕРРИТОРИЯ"],
+["Exercise remains mandatory — GST cannot generate Power from zero.","운동은 필수입니다. GST만으로는 전투력을 만들 수 없습니다.","Egzersiz zorunludur; GST sıfırdan Güç üretemez.","Движение обязательно: GST не создаёт Силу с нуля."],
+["BOOST WITH GST (SIMULATED)","GST로 강화 (시뮬레이션)","GST İLE GÜÇLENDİR (SİMÜLASYON)","УСИЛЕНИЕ GST (СИМУЛЯЦИЯ)"],
+["Unused Power expires at settlement.","사용하지 않은 전투력은 결산 시 소멸합니다.","Kullanılmayan Güç, sonuçlandırmada silinir.","Неиспользованная Сила сгорает при подведении итогов."],
+["No active battles to deploy to today.","오늘 배치할 활성 전장이 없습니다.","Bugün konuşlandırılabilecek aktif savaş yok.","Сегодня нет активных битв для размещения."],
+["Your faction has no eligible battles today (no adjacent access).","오늘 팀이 참여할 전장이 없습니다 (인접 영토 없음).","Takımınız için bugün uygun savaş yok (komşu erişimi yok).","Сегодня у вашей команды нет доступных битв (нет соседних территорий)."],
+["Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).","현재 보유 영토가 없습니다. 열린 전장 하나를 선택하세요. 대상은 하나이며 배치 전투력이 모두 그곳으로 갑니다.","Takımınızın bölgesi yok. Saldırmak için tek açık savaş seçin; konuşlandırılan tüm Güç oraya gider.","У команды нет территорий. Выберите одну открытую битву: вся размещаемая Сила пойдёт туда."],
+["Deployment is final. Power cannot be withdrawn after deployment.","배치는 최종 결정이며 전투력을 회수할 수 없습니다.","Konuşlandırma kesindir. Güç geri çekilemez.","Размещение окончательное. Отозвать Силу нельзя."],
+["None — 100% to Main","없음 — 주 대상에 100%","Yok — ana hedefe %100","Нет — 100% на основную цель"],
+["ALLOCATION SPLIT","배분 비율","DAĞILIM ORANI","РАСПРЕДЕЛЕНИЕ"],
+["(Main)","(주 대상)","(Ana)","(Основная)"],
+["(Secondary)","(보조 대상)","(İkincil)","(Дополнительная)"],
+["The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.","이번 라운드의 지휘관/집결 기능은 관리자가 껐습니다. 팀원이 한 명인 테스트에 유용합니다. 배치 탭에서 직접 전투력을 배치하세요.","Bu tur Komutan/Rally özelliği yönetici tarafından kapatıldı. Tek oyunculu takım testleri için uygundur. Gücünüzü Konuşlandır sekmesinden doğrudan yerleştirin.","Администратор отключил командира и Rally на этот раунд. Это удобно для теста с одним игроком в команде. Размещайте Силу напрямую во вкладке размещения."],
+["👑 COMMANDER ELECTION — ROUND {n}","👑 지휘관 선출 — 라운드 {n}","👑 KOMUTAN SEÇİMİ — TUR {n}","👑 ВЫБОР КОМАНДИРА — РАУНД {n}"],
+["Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.","지휘관 임기는 <b>라운드 전체 (7일)</b>입니다. 최근 에너지 기준 {faction} 상위 {p}%가 출마할 수 있으며 후보 중 에너지가 가장 높은 사람이 선출됩니다.","Komutan <b>tüm tur (7 gün)</b> görev yapar. Son Enerjiye göre {faction} takımının ilk %{p} dilimi aday olabilir. Adaylar arasında en yüksek Enerji kazanır.","Командир служит <b>весь раунд (7 дней)</b>. Кандидатами могут стать лучшие {p}% команды {faction} по недавней Энергии. Побеждает кандидат с наибольшей Энергией."],
+["{n} energy","에너지 {n}","{n} Enerji","{n} Энергии"],
+['Your recent energy: <b class="mono">{mine}</b> · Needed to stand: <b class="mono">{need}</b>','최근 에너지: <b class="mono">{mine}</b> · 출마 기준: <b class="mono">{need}</b>','Son Enerjiniz: <b class="mono">{mine}</b> · Adaylık için: <b class="mono">{need}</b>','Ваша недавняя Энергия: <b class="mono">{mine}</b> · Для кандидатуры: <b class="mono">{need}</b>'],
+["You've served {n} rounds in a row — sit this one out (max {max}).","연속 {n}라운드 재임했습니다. 이번 라운드는 쉬어야 합니다 (최대 {max}).","Üst üste {n} tur görev yaptınız. Bu tur ara verin (en fazla {max}).","Вы служили {n} раундов подряд. Пропустите этот раунд (максимум {max})."],
+["✅ You're standing. The winner is decided once elections resolve.","✅ 출마 완료. 선출 종료 시 당선자가 결정됩니다.","✅ Aday oldunuz. Kazanan seçim sonuçlandığında belirlenir.","✅ Вы кандидат. Победитель определится по итогам выборов."],
+["Record this round: {w}W – {l}L","이번 라운드: {w}승 – {l}패","Bu tur: {w} galibiyet – {l} mağlubiyet","Этот раунд: побед — {w}, поражений — {l}"],
+["— posted day {n}","— {n}일 차 게시","— {n}. gün yayınlandı","— опубликовано в день {n}"],
+["BROADCAST TO YOUR TEAM","팀에게 공지","TAKIMINA DUYUR","ОБЪЯВЛЕНИЕ КОМАНДЕ"],
+["One short message your whole team sees. Update it any day of the round.","팀 전체가 보는 짧은 메시지입니다. 라운드 중 언제든 수정할 수 있습니다.","Tüm takımın göreceği kısa bir mesaj. Tur boyunca istediğiniz gün güncelleyin.","Короткое сообщение для всей команды. Можно обновлять в любой день раунда."],
+["{n} characters left","{n}자 남음","{n} karakter kaldı","Осталось символов: {n}"],
+["No eligible battles to rally today.","오늘 집결 가능한 전장이 없습니다.","Bugün Rally için uygun savaş yok.","Сегодня нет доступных битв для Rally."],
+["TODAY'S RALLY — MAIN TERRITORY","오늘의 집결 — 주 영토","BUGÜNÜN RALLY HEDEFİ — ANA BÖLGE","RALLY СЕГОДНЯ — ОСНОВНАЯ ТЕРРИТОРИЯ"],
+["SECONDARY (OPTIONAL)","보조 (선택)","İKİNCİL (İSTEĞE BAĞLI)","ДОПОЛНИТЕЛЬНАЯ (НЕОБЯЗАТЕЛЬНО)"],
+["PUBLISH RALLY","집결 공표","RALLY YAYINLA","ОПУБЛИКОВАТЬ RALLY"],
+["Today's rally is published and locked.","오늘의 집결이 공표되어 변경할 수 없습니다.","Bugünün Rally planı yayınlandı ve kilitlendi.","Сегодняшний Rally опубликован и зафиксирован."],
+["{name} hasn't published today's Rally yet — check back shortly.","{name}님이 아직 오늘의 집결을 공표하지 않았습니다. 잠시 후 확인하세요.","{name} henüz bugünün Rally planını yayınlamadı. Biraz sonra kontrol edin.","{name} ещё не опубликовал Rally на сегодня. Загляните позже."],
+["TODAY'S RALLY","오늘의 집결","BUGÜNÜN RALLY PLANI","RALLY СЕГОДНЯ"],
+["(auto-generated)","(자동 생성)","(otomatik oluşturuldu)","(создан автоматически)"],
+["DAY {n} SETTLEMENT REPORT","{n}일 차 결산 보고서","{n}. GÜN SONUÇ RAPORU","ИТОГИ ДНЯ {n}"],
+["{faction} HOLDS {name}","{faction}: {name} 방어 성공","{faction}, {name} BÖLGESİNİ KORUDU","{faction} УДЕРЖИВАЕТ {name}"],
+["{faction} CAPTURES {name}","{faction}: {name} 점령","{faction}, {name} BÖLGESİNİ ELE GEÇİRDİ","{faction} ЗАХВАТЫВАЕТ {name}"],
+["{name} REMAINS NEUTRAL","{name}: 중립 유지","{name} TARAFSIZ KALDI","{name} ОСТАЁТСЯ НЕЙТРАЛЬНОЙ"],
+["VP EARNED THAT DAY","해당 일 획득 VP","O GÜN KAZANILAN VP","VP ЗА ЭТОТ ДЕНЬ"],
+["{faction} RALLY RESULT","{faction} 집결 결과","{faction} RALLY SONUCU","РЕЗУЛЬТАТ RALLY: {faction}"],
+["No days have been resolved yet — check back after Day 1 is settled.","아직 결산된 날이 없습니다. 1일 차 결산 후 확인하세요.","Henüz hiçbir gün sonuçlanmadı. 1. günün ardından kontrol edin.","Пока нет завершённых дней. Загляните после итогов дня 1."],
+["Loading Day {n}…","{n}일 차 불러오는 중…","{n}. gün yükleniyor…","Загрузка дня {n}…"],
+["TERRITORY OWNERSHIP — END OF DAY {n}","영토 소유 — {n}일 차 종료","BÖLGE SAHİPLİĞİ — {n}. GÜN SONU","ВЛАДЕНИЕ ТЕРРИТОРИЯМИ — КОНЕЦ ДНЯ {n}"],
+["No record found for Day {n}.","{n}일 차 기록이 없습니다.","{n}. gün için kayıt yok.","Нет записи за день {n}."],
+["PICK A DAY","날짜 선택","GÜN SEÇ","ВЫБЕРИТЕ ДЕНЬ"],
+["Round wins so far — your team is locked for the whole season.","현재까지 라운드 승리 수 — 팀은 시즌 동안 고정됩니다.","Şimdiye kadarki tur galibiyetleri. Takımınız sezon boyunca sabittir.","Победы в раундах. Ваша команда закреплена на весь сезон."],
+["Season Entry Fee Paid","납부한 시즌 참가비","Ödenen Sezon Giriş Ücreti","Взнос за сезон оплачен"],
+["Donated to War Fund","전쟁 기금 기부액","Savaş Fonuna Bağış","Взнос в военный фонд"],
+["Donate to the War Fund — grows the Prize Pool (split {p}% prize / {b}% burn / {r}% protocol, same as the daily mock economy).","전쟁 기금에 기부하여 상금 풀을 늘리세요. 상금 {p}% / 소각 {b}% / 프로토콜 {r}%로 배분됩니다 (일일 모의 경제와 동일).","Savaş Fonuna bağış yaparak ödül havuzunu büyütün: %{p} ödül / %{b} yakım / %{r} protokol (günlük simülasyonla aynı).","Взнос в военный фонд увеличивает призовой фонд: {p}% — призы / {b}% — сжигание / {r}% — протокол, как в ежедневной тестовой экономике."],
+["SEASON 01 · ROUND {n} / {total}","시즌 01 · 라운드 {n} / {total}","SEZON 01 · TUR {n} / {total}","СЕЗОН 01 · РАУНД {n} / {total}"],
+["win","승","galibiyet","победа"],
+["wins","승","galibiyet","победы"],
+["🏆 ROUND PRIZE POOL","🏆 라운드 상금 풀","🏆 TUR ÖDÜL HAVUZU","🏆 ПРИЗОВОЙ ФОНД РАУНДА"],
+["ROUND {n} — IN PROGRESS","라운드 {n} — 진행 중","TUR {n} — DEVAM EDİYOR","РАУНД {n} — ИДЁТ"],
+["Live VP · settles after Day {n}.","실시간 VP · {n}일 차 후 결산.","Canlı VP · {n}. günün ardından sonuçlanır.","Текущие VP · итоги после дня {n}."],
+["🏁 ROUND {n} WINNER","🏁 라운드 {n} 우승","🏁 {n}. TUR GALİBİ","🏁 ПОБЕДИТЕЛЬ РАУНДА {n}"],
+["ROUND {n} STANDINGS","라운드 {n} 순위","{n}. TUR SIRALAMASI","ТАБЛИЦА РАУНДА {n}"],
+["YOUR RESULT THIS ROUND","이번 라운드 내 결과","BU TURDAKİ SONUCUNUZ","ВАШ РЕЗУЛЬТАТ В РАУНДЕ"],
+["Team Placing","팀 순위","Takım Sırası","Место команды"],
+["Requires active participation on {n}+ days.","{n}일 이상 적극적으로 참여해야 합니다.","En az {n} gün aktif katılım gerekir.","Нужно активно участвовать не менее {n} дней."],
+["👑 SEASON 01 CHAMPION","👑 시즌 01 우승팀","👑 SEZON 01 ŞAMPİYONU","👑 ЧЕМПИОН СЕЗОНА 01"],
+["Most round wins across {n} rounds","{n}개 라운드 중 최다 승리","{n} turda en çok galibiyet","Больше всего побед за {n} раундов"],
+["🎖 SEASON REWARDS UNLOCKED","🎖 시즌 보상 해금","🎖 SEZON ÖDÜLLERİ AÇILDI","🎖 НАГРАДЫ СЕЗОНА ОТКРЫТЫ"],
+["STEPN VIP — 30 Days","STEPN VIP — 30일","STEPN VIP — 30 Gün","STEPN VIP — 30 дней"],
+["Polygon Locked Sneaker — {t} Design","Polygon 잠금 스니커 — {t} 디자인","Polygon Kilitli Sneaker — {t} Tasarımı","Заблокированный кроссовок Polygon — дизайн {t}"],
+["Season rewards need {n}+ active days in the final round.","시즌 보상은 마지막 라운드에서 {n}일 이상 활동해야 받을 수 있습니다.","Sezon ödülleri için son turda en az {n} gün aktif olmak gerekir.","Для наград сезона нужно не менее {n} активных дней в последнем раунде."],
+["START ROUND {n}","라운드 {n} 시작","{n}. TURU BAŞLAT","НАЧАТЬ РАУНД {n}"],
+["New map, new prize pool, new commander election — same teams.","새 지도, 새 상금 풀, 새 지휘관 선출 — 팀은 유지됩니다.","Yeni harita, ödül havuzu ve komutan seçimi; takımlar aynı.","Новая карта, призовой фонд и выбор командира — команды прежние."],
+["Leave blank for a random one","비워 두면 무작위 이름 사용","Rastgele isim için boş bırakın","Оставьте пустым для случайного имени"],
+["Your last-7-day energy (mock STEPN data)","최근 7일 에너지 (모의 STEPN 데이터)","Son 7 günlük Enerjiniz (test STEPN verisi)","Энергия за 7 дней (тестовые данные STEPN)"],
+["In the real product this comes straight from STEPN. Here you can set it to test how balancing assigns teams.","실제 제품에서는 STEPN에서 가져옵니다. 여기서는 팀 배정 테스트를 위해 직접 설정할 수 있습니다.","Gerçek üründe bu veri STEPN'den gelir. Burada takım atamasını test etmek için ayarlayabilirsiniz.","В реальном продукте данные поступят из STEPN. Здесь их можно задать для проверки распределения команд."],
+["Not assigned","미배정","Atanmadı","Не назначена"],
+["Everyone in the same room shares one map and one season — this keeps your game separate from anyone else's, even if they're using the same Supabase project.","같은 방의 플레이어는 지도와 시즌을 공유합니다. 같은 Supabase 프로젝트를 사용해도 다른 방의 게임과는 분리됩니다.","Aynı odadaki herkes bir harita ve sezonu paylaşır. Aynı Supabase projesindeki diğer odalardan ayrıdır.","Игроки комнаты делят одну карту и сезон. Другие комнаты изолированы, даже в том же проекте Supabase."],
+["Or enter a room code someone shared with you","또는 공유받은 방 코드를 입력하세요","Veya sizinle paylaşılan oda kodunu girin","Или введите код комнаты, которым с вами поделились"],
+["Connecting to the Run Kingdom world…","Run Kingdom에 연결 중…","Run Kingdom dünyasına bağlanılıyor…","Подключение к миру Run Kingdom…"],
+["A new day just began — loading the new battlefield…","새로운 날이 시작되었습니다. 새 전장을 불러오는 중…","Yeni gün başladı; yeni savaş alanı yükleniyor…","Начался новый день — загружается новое поле боя…"]
+];
+translationCompletion.forEach(([key,ko,tr,ru])=>{
+  if (!(key in KO)) KO[key]=ko;
+  if (!(key in TR)) TR[key]=tr;
+  if (!(key in RU)) RU[key]=ru;
+});
+const extraGameTranslations = [
+["{n} day","{n}일","{n} gün","{n} день"],
+["{n} days","{n}일","{n} gün","{n} дней"],
+["👥 <b>{n}</b> players online","👥 <b>{n}</b>명 접속 중","👥 <b>{n}</b> oyuncu çevrimiçi","👥 Игроков онлайн: <b>{n}</b>"],
+["Power cannot be withdrawn after deployment.","배치 후 전투력을 회수할 수 없습니다.","Konuşlandırılan Güç geri çekilemez.","Размещённую Силу нельзя отозвать."],
+["No battles available to deploy to today.","오늘 배치 가능한 전장이 없습니다.","Bugün konuşlandırılacak savaş yok.","Сегодня нет доступных битв."],
+["(all power)","(모든 전투력)","(tüm Güç)","(вся Сила)"],
+["Power already deployed today.","오늘 전투력이 이미 배치되었습니다.","Güç bugün zaten konuşlandırıldı.","Сегодня Сила уже размещена."],
+["held","방어 성공","korundu","удержано"],["captured","점령","ele geçirildi","захвачено"],["stays neutral","중립 유지","tarafsız kalır","остаётся нейтральной"],
+["VP GAINED TODAY","오늘 획득 VP","BUGÜN KAZANILAN VP","VP ЗА СЕГОДНЯ"],
+["RALLY RESULT","집결 결과","RALLY SONUCU","РЕЗУЛЬТАТ RALLY"],
+["TERRITORY HISTORY","영토 기록","BÖLGE GEÇMİŞİ","ИСТОРИЯ ТЕРРИТОРИЙ"],
+["No settled days yet.","아직 결산된 날이 없습니다.","Henüz sonuçlanmış gün yok.","Пока нет завершённых дней."],
+["Ownership after Day {n} settlement","{n}일 차 결산 후 소유 현황","{n}. gün sonrası bölge sahipliği","Владение после итогов дня {n}"]
+];
+extraGameTranslations.forEach(([key,...values])=>[KO,TR,RU].forEach((t,i)=>{if(!(key in t))t[key]=values[i];}));
+const moderationTranslations = [
+["BATTLE FOG","战场迷雾","戦場の霧","전장의 안개","SAVAŞ SİSİ","ТУМАН ВОЙНЫ"],
+["MAX","最大","最大","최대","MAKS","МАКС"],
+["POWER","战力","パワー","전투력","GÜÇ","СИЛА"],
+["COPIED","已复制","コピー済み","복사됨","KOPYALANDI","СКОПИРОВАНО"],
+["Deployment is open until the admin enters Fog or resolves the day.","管理员进入迷雾或结算当天之前，可以继续部署。","管理者が霧を開始するかその日を決算するまで配置できます。","관리자가 안개를 시작하거나 하루를 결산하기 전까지 배치할 수 있습니다.","Yönetici Sisi başlatana veya günü sonuçlandırana kadar konuşlandırabilirsiniz.","Размещение открыто, пока администратор не включит туман или не подведёт итоги дня."],
+["Remove player","移出玩家","プレイヤーを退出させる","플레이어 내보내기","Oyuncuyu çıkar","Удалить игрока"],
+["Remove {name} from this room? They can rejoin and will be assigned to the smallest team. Existing deployments are kept.","将 {name} 移出房间？该玩家可以重新加入，届时分配到人数最少的队伍。已有部署保留。","{name}を退出させますか？再参加時は人数が最も少ないチームに割り当てられます。既存の配置は維持されます。","{name}님을 내보낼까요? 다시 참가하면 인원이 가장 적은 팀에 배정됩니다. 기존 배치는 유지됩니다。","{name} odadan çıkarılsın mı? Yeniden katılabilir ve en küçük takıma atanır. Mevcut konuşlandırmalar korunur.","Удалить {name} из комнаты? Игрок сможет вернуться и получит команду с наименьшим числом участников. Прежние размещения сохранятся."],
+["Could not remove player. Please retry.","未能移出玩家，请重试。","退出処理に失敗しました。再試行してください。","플레이어를 내보내지 못했습니다. 다시 시도하세요.","Oyuncu çıkarılamadı. Tekrar deneyin.","Не удалось удалить игрока. Повторите попытку."],
+["You were removed from this room. You may join again; your team will be reassigned.","管理员已将你移出房间。你可以重新加入，系统将重新分配队伍。","このルームから退出されました。再参加できますが、チームは再割り当てされます。","방에서 내보내졌습니다. 다시 참가할 수 있으며 팀은 재배정됩니다.","Bu odadan çıkarıldınız. Yeniden katılabilirsiniz; takımınız yeniden atanır.","Вас удалили из комнаты. Можно войти снова; команда будет назначена заново."],
+["Not assigned","未分队","未割り当て","미배정","Atanmadı","Не назначена"],
+["SYNC FAILED","同步失败","同期失敗","동기화 실패","SENKRONİZASYON BAŞARISIZ","ОШИБКА СИНХРОНИЗАЦИИ"],
+["RETRY","重试","再試行","재시도","TEKRAR DENE","ПОВТОРИТЬ"],
+["DISMISS","关闭提示","閉じる","닫기","KAPAT","ЗАКРЫТЬ"]
+];
+moderationTranslations.forEach(([key,...values])=>[ZH,JA,KO,TR,RU].forEach((t,i)=>t[key]=values[i]));
 
 function tr(key, vars){
   const table = I18N[LANG];
@@ -1609,7 +1746,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.7.3') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.3 is required.' };
+    if (data !== '0.7.4') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.4 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -2093,6 +2230,19 @@ let settlementFetchedForDay = null; // reportDay we last fetched settlementDoc f
 let progressLoaded = false;
 
 async function syncAll(){
+  if (!roomCode || !profile) return;
+  const {data:member,error:memberError}=await sbClient.rpc('rk_is_member',{p_room:roomCode});
+  if (memberError) return; // Network failure must not be treated as removal.
+  if (member === false){
+    if (realtimeChannel){ await sbClient.removeChannel(realtimeChannel); realtimeChannel=null; }
+    profile=null; world=null; mystate=null; battlesDoc=null; activityDoc=null;
+    isRoomAdmin=false; activeModal=null; debugOpen=false; dataStale=false;
+    cachedDocsForDay=null; progressLoaded=false; settlementFetchedForDay=null;
+    localStorage.removeItem('rk_room_code'); roomCode=null;
+    bootPhase='room_form';
+    alert(tr('You were removed from this room. You may join again; your team will be reassigned.'));
+    render(); return;
+  }
   const fresh = await safeGet(worldKey(), true);
   if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
   const day = world.currentDay;
@@ -2695,11 +2845,11 @@ function statusPill(status){
 function renderSyncError(){
   if (!lastSyncError) return '';
   return `<div class="sync-error">
-    <div class="se-title">⚠ SYNC FAILED</div>
+    <div class="se-title">⚠ ${tr('SYNC FAILED')}</div>
     <div class="muted">${lastSyncError.message}</div>
     <div class="se-row">
-      <button class="btn btn-primary btn-small" onclick="retryLastSync()">RETRY</button>
-      <button class="btn btn-outline btn-small" onclick="dismissSyncError()">DISMISS</button>
+      <button class="btn btn-primary btn-small" onclick="retryLastSync()">${tr('RETRY')}</button>
+      <button class="btn btn-outline btn-small" onclick="dismissSyncError()">${tr('DISMISS')}</button>
     </div>
   </div>`;
 }
@@ -2729,8 +2879,8 @@ function renderTopbar(){
     <div class="row-between top-meta">
       <div class="muted" style="font-size:12px;"><span class="live-dot"></span>${tr('{n} online', {n: rs.online})}</div>
       <div class="topbar-tools">
-        <button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ COPIED':`#${roomCode} ⧉`}</button>
-        ${isRoomAdmin ? `<span class="chip-small" style="color:var(--gold);">ADMIN</span>` : ''}
+        <button class="room-code-btn" onclick="copyRoomCode()" aria-label="Copy room code" title="Copy room code">${roomCodeCopied?'✓ '+tr('COPIED'):`#${roomCode} ⧉`}</button>
+        ${isRoomAdmin ? `<span class="chip-small" style="color:var(--gold);">${tr('ADMIN')}</span>` : ''}
         <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option><option value="ru" ${LANG==='ru'?'selected':''}>Русский</option></select>
       </div>
     </div>
@@ -2812,7 +2962,7 @@ function phaseBanner(){
         <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
       </div>` : `<div class="muted" style="margin-top:10px;">Waiting for the room admin to resolve the day.</div>`}</div>`;
   }
-  if (!isRoomAdmin) return `<div class="card" style="text-align:center; padding:12px;"><div class="muted">Deploy your Power at any time. The room admin controls Fog and settlement.</div></div>`;
+  if (!isRoomAdmin) return `<div class="card" style="text-align:center; padding:12px;"><div class="muted">${tr('Deployment is open until the admin enters Fog or resolves the day.')}</div></div>`;
   return `<div class="card" style="text-align:center; padding:12px;">
     <div class="muted" style="margin-bottom:10px;">${tr('Deploy your power, then resolve the day whenever your group is ready.')}</div>
     <div class="btn-row">
@@ -2988,7 +3138,7 @@ let deployState = { main: null, secondary: null, splitIdx: 1, amount: null };
 function prefillDeploy(t){ deployState.main = t; render(); }
 function screenDeploy(){
   const avail = remainingPower();
-  const head = `<div class="screen-head"><div><h1>${tr('DEPLOY')}</h1><p>${tr('Unused Power expires at settlement.')}</p></div><span class="phase-chip">${fmt1(avail)} POWER</span></div>`;
+  const head = `<div class="screen-head"><div><h1>${tr('DEPLOY')}</h1><p>${tr('Unused Power expires at settlement.')}</p></div><span class="phase-chip">${fmt1(avail)} ${tr('POWER')}</span></div>`;
   if (avail<=0){
     return `${head}<div class="card home-power" style="text-align:center;">
       <div class="card-title">${tr('NO POWER AVAILABLE NOW')}</div>
@@ -3012,7 +3162,7 @@ function screenDeploy(){
     <div class="row-between"><div class="card-title">${tr('POWER TO DEPLOY NOW')}</div><div class="big-num mono">${fmt1(amount)}</div></div>
     <input class="energy-slider" type="range" min="0.1" max="${avail}" step="0.1" value="${amount}" oninput="setDeployAmount(this.value)">
     <div class="debug-grid" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
-      ${[25,50,75,100].map(p=>`<div class="split-opt" onclick="setDeployAmountPct(${p})">${p===100?'MAX':p+'%'}</div>`).join('')}
+      ${[25,50,75,100].map(p=>`<div class="split-opt" onclick="setDeployAmountPct(${p})">${p===100?tr('MAX'):p+'%'}</div>`).join('')}
     </div>
     <div class="row-between" style="margin-top:10px;"><span class="muted">${tr('Left after this deployment')}</span><span class="mono">${fmt1(round2(avail-amount))}</span></div>
   </div>`;
@@ -3400,6 +3550,21 @@ async function refreshAdminPlayers(){
     adminPlayersError = tr('Could not load player data.');
   } finally { adminPlayersLoading = false; render(); }
 }
+let kickingPlayer = null;
+async function kickPlayer(userId){
+  if (!isRoomAdmin || kickingPlayer) return;
+  const p=(adminPlayers||[]).find(p=>p.userId===userId);
+  if (!p || p.role==='admin' || userId===LOCAL_PLAYER_ID) return;
+  if (!confirm(tr('Remove {name} from this room? They can rejoin and will be assigned to the smallest team. Existing deployments are kept.',{name:p.name||'Runner'}))) return;
+  kickingPlayer=userId; render();
+  try{
+    const {error}=await sbClient.rpc('rk_kick_player',{p_room:roomCode,p_user:userId});
+    if (error) throw error;
+    await joinRoster();
+    await refreshAdminPlayers();
+  } catch(e){ adminPlayersError=tr('Could not remove player. Please retry.'); }
+  finally{ kickingPlayer=null; render(); }
+}
 function modalAdminPlayers(){
   const players = adminPlayers || [];
   const rows = players.map(p=>{
@@ -3417,6 +3582,7 @@ function modalAdminPlayers(){
       </div>
       <div class="muted" style="font-size:11px;margin-top:9px;">${tr('ENERGY TODAY')}: ${fmt1(Number(p.energyToday||0))}${p.gstBoostPercent?` · GST +${p.gstBoostPercent}%`:''}</div>
       ${targets?`<div class="muted" style="font-size:11px;margin-top:3px;">${tr('Targets')}: ${escapeHTML(targets)}</div>`:''}
+      ${p.role!=='admin' && p.userId!==LOCAL_PLAYER_ID ? `<button class="btn btn-outline btn-small" style="margin-top:10px;color:var(--danger)" onclick="kickPlayer('${escapeHTML(p.userId)}')" ${kickingPlayer?'disabled':''}>${tr(kickingPlayer===p.userId?'SUBMITTING…':'Remove player')}</button>`:''}
     </div>`;
   }).join('');
   return `<div class="modal-backdrop" onclick="closeModalIfBackdrop(event)"><div class="modal-sheet">
