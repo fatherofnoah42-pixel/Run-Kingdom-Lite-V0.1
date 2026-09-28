@@ -189,6 +189,16 @@ body{background:#080c12;font-size:16px;line-height:1.45}#root{background:radial-
 
 .tile.active-battle{padding-top:8px;padding-bottom:10px}.tile-team-line{font-size:9px;color:var(--mint);margin-top:4px;white-space:nowrap;font-weight:700}.sheet-close{position:absolute;right:16px;top:14px;background:transparent;border:0;color:var(--text-dim);font-size:22px;padding:8px;cursor:pointer}.tile-deploy-sheet{position:relative;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}.tile-deploy-title{display:flex;align-items:center;gap:10px;font-size:23px;line-height:1.25;margin:8px 32px 24px 0}.tile-deploy-title>span{font-size:14px;color:var(--mint);background:#41d7b719;border:1px solid #41d7b740;border-radius:9px;display:grid;place-items:center;min-width:34px;height:34px}.tile-balance{margin:0 0 22px;color:var(--text-dim)}.tile-balance b{font-size:20px;color:var(--text)}.amount-label{font-size:13px;color:var(--text-dim)}.tile-amount-box{display:flex;align-items:center;gap:12px;border:1px solid #396055;border-radius:12px;background:#132c27;padding:12px 16px;margin:8px 0 10px}.tile-amount-box input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:34px;font-weight:700}.tile-amount-box>span{color:var(--mint);font-size:13px}.tile-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tile-presets button{color:var(--text);font-family:inherit;font-size:13px}.tile-remainder{font-size:12px;color:var(--text-dim);margin:18px 0 20px}.tile-deploy-note{font-size:11px;line-height:1.5;color:var(--text-dim);margin:10px 0 20px}.tile-deploy-error,.tile-deploy-message{font-size:13px;color:#ffb8ac;padding:12px;border:1px solid #713c3c;border-radius:8px}.team-tile-details{border-top:1px solid var(--border);padding:15px 0 0;font-size:12px}.team-tile-details summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.team-tile-details summary:after{content:'⌄';color:var(--text-dim)}.team-tile-details summary strong{margin-left:auto;color:var(--mint)}.team-tile-members{margin-top:12px}.team-tile-members .row-between{padding:8px 0;border-top:1px solid #ffffff09;gap:14px}.team-tile-members .row-between>span{overflow-wrap:anywhere}.team-tile-members b{white-space:nowrap}.team-sync{font-size:11px;line-height:1.5;text-align:center;margin:10px 0}.deploy-success{display:flex;gap:10px;justify-content:space-between;align-items:center;background:#16372f;border:1px solid #315c4a;color:var(--mint);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px}.deploy-success button{background:none;border:0;color:inherit;padding:6px}.chat-private{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mint);white-space:nowrap;padding-top:6px}.chat-private svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5}.chat-intro{font-size:13px;line-height:1.5;margin:0 0 16px}.team-chat-card{background:#111b25;border:1px solid var(--border);border-radius:16px;overflow:hidden}.team-chat-log{min-height:210px;height:42dvh;max-height:460px;overflow:auto;padding:16px;overscroll-behavior:contain;scrollbar-gutter:stable}.chat-message{max-width:91%;margin-bottom:18px}.chat-message.mine{margin-left:auto}.chat-meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin:0 3px 6px;font-size:11px}.chat-meta b{overflow-wrap:anywhere}.chat-meta time{color:var(--text-dim2);font-size:10px}.chat-message.mine .chat-meta{justify-content:flex-end}.chat-bubble{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14px;background:#212b3d;border:1px solid #343d51;border-radius:3px 13px 13px 13px;padding:10px 13px}.chat-message.mine .chat-bubble{background:#173c33;border-color:#2b5d4d;border-radius:13px 3px 13px 13px}.chat-composer{padding:14px;background:#141f2b;border-top:1px solid var(--border)}.chat-composer label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:8px}.chat-composer label b{color:var(--mint)}.chat-composer textarea{display:block;resize:vertical;min-height:78px;width:100%;box-sizing:border-box;background:#0d151e;border:1px solid #364054;border-radius:10px;color:var(--text);padding:11px;font:inherit;font-size:16px;line-height:1.4;margin-bottom:10px}.chat-composer textarea:focus{outline:1px solid var(--mint)}.chat-composer .row-between>span{font-size:11px}.chat-error{font-size:12px;color:#ffb8ac;line-height:1.5;margin-bottom:10px}.chat-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;color:var(--text-dim);font-size:12px}.chat-empty svg{width:40px;height:40px;stroke:var(--purple);fill:none;stroke-width:1.4}.chat-empty b{color:var(--text);font-size:15px}.chat-older{display:block;margin:0 auto 14px;border:0;background:transparent;color:var(--mint);font:inherit;font-size:12px;cursor:pointer}.chat-composer .btn{min-width:94px}
 
+
+/* Map is the visual center; gold motion marks active battles, fill marks owner. */
+.map-card .tile.owner-cinder{background:linear-gradient(145deg,#ad352b,#72261f);border-color:#ff826a;}
+.map-card .tile.owner-surge{background:linear-gradient(145deg,#126eaa,#104674);border-color:#59c4ff;}
+.map-card .tile.owner-bloom{background:linear-gradient(145deg,#147948,#115033);border-color:#66e493;}
+.map-card .tile .tname{color:#fff;text-shadow:0 1px 2px #0005;}
+.map-card .tile .tvp{color:#fff;opacity:.94;}
+.map-card .tile .tile-team-line{color:#fff;font-size:10px;}
+.map-card .tile .cap{opacity:.9;color:#fff;}
+.map-card .tile .tid{opacity:.8!important;color:#fff;}
 </style>
 </head>
 <body>
@@ -221,7 +231,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.7.1-team-chat-and-simple-tile-deploy-2026-09-28';
+const APP_BUILD = 'rk-v0.7.2-map-focus-fixed-vp-2026-09-28';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1111,14 +1121,7 @@ const CONFIG = {
   splitPresets: [[100,0],[75,25],[50,50]],
   maxActiveBattlesPerDay: 3,
   vpBase: { normal: 1, center: 2 },
-  // Smoothed for a 7-day round: gentle 1.0 -> 2.0x ramp instead of big 1/2/3/4x jumps.
-  vpMultiplier: (day) => day <= 2 ? 1.0 : day <= 4 ? 1.25 : day <= 6 ? 1.5 : 2.0,
-  // ---- Final-day structural comeback point ----
-  // On the last day of a round, Kingmaker (E) is worth 3x and is FORCED to be
-  // an active battle. This is a transparent, published rule (shown from day 1)
-  // rather than a hidden balancing nudge — it creates one genuine "all in"
-  // decisive fight instead of secretly boosting whoever is losing.
-  finalDayKingmakerMultiplier: 3,
+  // Fixed test scoring: every owned tile awards exactly its displayed VP.
   bountyThresholds: [
     { min: 2, max: 3, level: 1, bonus: 1,   mult: 1.15 },
     { min: 4, max: 5, level: 2, bonus: 1.5, mult: 1.3 },
@@ -1264,7 +1267,7 @@ function getBountyLevel(holdDays){
   return 0;
 }
 function bountyMultiplier(level){ return level === 0 ? 1.0 : CONFIG.bountyThresholds[level-1].mult; }
-function bountyBonusVP(level){ return level === 0 ? 0 : CONFIG.bountyThresholds[level-1].bonus; }
+
 
 function weightedPickWithoutReplacement(items, n, rng){
   const pool = items.map(i => ({...i})); const picked = [];
@@ -1382,22 +1385,13 @@ function isFinalDay(day){ return day >= CONFIG.roundDays; }
 // True once the round's 7 days are fully settled — covers BOTH 'roundEnd'
 // (rounds 1-5, next round still to come) and 'seasonEnd' (after round 6).
 function roundIsOver(){ return world && (world.phase === 'roundEnd' || world.phase === 'seasonEnd'); }
-// On the final day, Kingmaker (E) is worth finalDayKingmakerMultiplier x its
-// base value. Kept as a standalone helper so both VP scoring and the UI
-// (which advertises this from day 1) read from exactly the same rule.
-function vpValueOf(t, day){
-  const base = baseVPof(t);
-  if (t === 'E' && isFinalDay(day)) return base * CONFIG.finalDayKingmakerMultiplier;
-  return base;
-}
+// One value for map, modal and settlement on every day of the test round.
+function vpValueOf(t, day){ return baseVPof(t); }
 function calculateDailyVP(ownership, day){
-  const mult = CONFIG.vpMultiplier(day); const totals = { cinder:0, surge:0, bloom:0 };
+  const totals = { cinder:0, surge:0, bloom:0 };
   TERRITORIES.forEach(t => {
-    const o = ownership[t]; if (!o) return;
-    // Final-day Kingmaker already includes its published ×3 value in vpValueOf().
-    // Do not apply the day multiplier a second time, otherwise the UI says 6 VP
-    // while settlement awards 12 VP on Day 7.
-    totals[o] += (t === 'E' && isFinalDay(day)) ? vpValueOf(t, day) : baseVPof(t) * mult;
+    const owner = ownership[t];
+    if (Object.hasOwn(totals, owner)) totals[owner] += vpValueOf(t, day);
   });
   return totals;
 }
@@ -1768,7 +1762,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.8.1') return { ok:false, why:'missing_functions', detail:'Community schema v0.8.1 is required.' };
+    if (data !== '0.8.2') return { ok:false, why:'missing_functions', detail:'Community schema v0.8.2 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -2417,8 +2411,7 @@ async function settleCurrentDay(){
     const prevOwner = world.ownership[t];
     const { winner, tie } = resolveBattle(powerMap, prevOwner);
     const prevHold = world.holdDays[t] || 0;
-    let bonusVP = 0;
-    if (winner !== prevOwner && winner) bonusVP = bountyBonusVP(getBountyLevel(prevHold));
+    const bonusVP = 0; // No hidden capture bonus in fixed-VP testing.
     results.push({ t, powerMap, prevOwner, winner, tie, bonusVP });
     newOwnership[t] = winner;
     FACTIONS.forEach(f => {
@@ -2729,7 +2722,7 @@ function renderTopbar(){
         <select class="lang-toggle" onchange="setLang(this.value)" aria-label="Language"><option value="en" ${LANG==='en'?'selected':''}>EN</option><option value="zh" ${LANG==='zh'?'selected':''}>中文</option><option value="ja" ${LANG==='ja'?'selected':''}>日本語</option><option value="ko" ${LANG==='ko'?'selected':''}>한국어</option><option value="tr" ${LANG==='tr'?'selected':''}>Türkçe</option><option value="ru" ${LANG==='ru'?'selected':''}>Русский</option></select>
       </div>
     </div>
-    <div class="standings-row">
+    ${['home','season'].includes(uiScreen)?`<div class="standings-row">
       ${standings.map(s=>{
         const m = FACTION_META[s.f]; const isMe = s.f === profile.faction;
         return `<div class="standing-chip ${isMe?'me':''}" style="${isMe?`color:${m.color}`:''}">
@@ -2737,7 +2730,7 @@ function renderTopbar(){
           <span class="mono">${fmt1(s.vp)}</span>
         </div>`;
       }).join('')}
-    </div>
+    </div>`:''}
   </div>`;
 }
 function renderBottomNav(){
@@ -2761,7 +2754,6 @@ function renderMap(){
     // while still held by the original owning faction, so the CAP badge
     // would misleadingly vanish the moment a Capital changed hands.)
     const cap = (t==='A'||t==='C'||t==='G');
-    const bounty = getBountyLevel(world.holdDays[t]||0);
     const flash = flashTiles[t] ? 'flash' : '';
     const ownerClass = owner ? `owner-${owner}` : '';
     const [gx,gy] = POS[t];
@@ -2772,7 +2764,6 @@ function renderMap(){
       <span class="tname">${territoryLabel(t)}</span>
       <span class="tvp">${vpValueOf(t, world.currentDay)} VP</span>
       ${isActive?`<span class="tile-team-line">${tr('Team')} ⚡ ${freshTeamData()?powerText(tileTeamTotal(t)):'—'}</span>`:''}
-      ${bounty>0 ? `<span class="bounty-pip">🎯${bounty}</span>` : ''}
       ${canDeployHere?`<span class="deploy-corner" aria-hidden="true">↗</span>`:''}
     </div>`;
   }).join('');
@@ -2816,24 +2807,6 @@ function phaseBanner(){
       <button class="btn btn-outline btn-small" onclick="enterFogManually()" ${inFlightFogToggle?'disabled':''}>${tr('ENTER BATTLE FOG')}</button>
       <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
     </div>
-  </div>`;
-}
-// Advertised from DAY 1, not sprung as a surprise on day 7 — players only
-// get to plan around the final showdown (securing an adjacent tile, saving
-// energy) if they can see it coming.
-function kingmakerBanner(){
-  const finalDay = CONFIG.roundDays;
-  const isToday = isFinalDay(world.currentDay);
-  const mult = CONFIG.finalDayKingmakerMultiplier;
-  if (isToday){
-    return `<div class="elim-banner" style="border-color:rgba(242,194,69,0.5); background:linear-gradient(135deg, rgba(242,194,69,0.16), rgba(242,194,69,0.02));">
-      <div class="et" style="color:var(--gold);">${tr('🔥 FINAL DAY — {name} ×{n}', {name: territoryLabel('E').toUpperCase(), n: mult})}</div>
-      <div class="muted" style="margin-top:4px;">${tr('{name} is worth {vp} VP today and is open to every team, adjacent or not. This is the decider.', {name: territoryLabel('E'), vp: vpValueOf('E', world.currentDay)})}</div>
-    </div>`;
-  }
-  const daysLeft = finalDay - world.currentDay;
-  return `<div class="card" style="padding:10px 14px; border-color:rgba(242,194,69,0.25);">
-    <div class="muted" style="font-size:12px;">${tr('🔥 <b style="color:var(--gold);">Day {d} showdown:</b> {name} will be worth ×{n} VP and open to all teams — {left} away.', {d: finalDay, name: territoryLabel('E'), n: mult, left: tr(daysLeft===1?'{n} day':'{n} days', {n: daysLeft})})}</div>
   </div>`;
 }
 function eliminatedBanner(){
@@ -2880,9 +2853,7 @@ function screenHome(){
   </div>
   ${todayDeploymentCard()}
   <div class="row-between home-day"><h2>${tr('Day {n}', {n:world.currentDay})} <span class="muted">/ ${CONFIG.roundDays}</span></h2><span class="phase-chip">${world.phase==='fog'?tr('BATTLE FOG'):tr('OPEN — awaiting resolve')}</span></div>
-  <div class="card active-summary"><span><i class="battle-line"></i>${battlesDoc.activeBattles.length} ${tr("TODAY'S ACTIVE BATTLES").toLowerCase()}</span><span class="muted">${tr('View ›')}</span></div>
   ${isRoomAdmin ? `<div class="card active-summary" style="cursor:pointer;border-color:#3f3553;" onclick="openAdminPlayers()"><span>👥 ${tr('ROOM PLAYERS')}</span><span style="color:var(--purple);">${tr('View players ›')}</span></div>` : ''}
-  ${kingmakerBanner()}
   ${phaseBanner()}
   <div class="card map-card" id="home-territory-map">
     <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
@@ -2900,20 +2871,12 @@ function screenHome(){
   ${(world.currentDay > 1 || roundIsOver()) ? `<div class="card" style="cursor:pointer;" onclick="goScreen('history')">
     <div class="row-between"><span class="card-title" style="margin:0;">${tr('📜 TERRITORY HISTORY')}</span><span class="muted">${tr('View ›')}</span></div>
   </div>` : ''}
-  <div class="card">
-    <div class="card-title">${tr("TODAY'S ACTIVE BATTLES")}</div>
-    ${battlesDoc.activeBattles.map(t => `
-      <div class="terr-select" onclick="openTerritory('${t}')">
-        <div><b class="display">${territoryLabel(t)}</b> <span class="chip-small">${t}</span> &nbsp;${ownerBadge(world.ownership[t])}</div>
-        <div class="muted">${vpValueOf(t, world.currentDay)} VP ${t==='E'&&isFinalDay(world.currentDay)?'🔥':''} ${getBountyLevel(world.holdDays[t]||0)>0?'· 🎯 '+tr('Bounty'):''}</div>
-      </div>`).join('') || `<div class="empty-note">${tr('No active battles today.')}</div>`}
-  </div>`;
+  `;
 }
 
 /* ---------- TERRITORY MODAL ---------- */
 function modalTerritory(t){
   const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
-  const bLvl = getBountyLevel(world.holdDays[t]||0);
   const eligible = effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay);
   let statusMap = {}; let hasAnyPower = false;
   if (isActive && world.phase !== 'fog'){
@@ -2931,8 +2894,7 @@ function modalTerritory(t){
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="card-title">${tr('BATTLE FOR {name}', {name: territoryLabel(t)})} ${t==='E'?tr('· HIGH-VALUE TERRITORY'):''}</div>
-      <div class="row-between" style="margin-bottom:10px;"><div>${tr('VP today')}: <b>${vpValueOf(t, world.currentDay)}</b>${t==='E'&&isFinalDay(world.currentDay)?` <span class="chip-small" style="color:var(--gold);">FINAL DAY ×${CONFIG.finalDayKingmakerMultiplier}</span>`:''}</div>${ownerBadge(owner)}</div>
-      ${bLvl>0 ? `<div class="muted" style="margin-bottom:10px;">🎯 BOUNTY Lv${bLvl} — held ${world.holdDays[t]} days. Capture reward: +${bountyBonusVP(bLvl)} VP</div>` : ''}
+      <div class="row-between" style="margin-bottom:10px;"><div>${tr('VP today')}: <b>${vpValueOf(t, world.currentDay)}</b></div>${ownerBadge(owner)}</div>
       <div class="divider"></div>
       ${teamTileDetails(t)}
       ${isActive ? `
@@ -3061,9 +3023,9 @@ async function confirmTileDeploy(){
 /* ---------- TEAM CHAT AND TEAM DEPLOYMENTS ---------- */
 let teamDeployment=null,teamDeploymentError=false,teamDeploymentBusy=false;
 let chatMessages=[],chatDraft='',chatRequest=null,chatSending=false,chatLoading=false,chatError='',chatLoaded=false,chatHasOlder=false;
-let chatComposing=false,chatRenderPending=false,chatTimer=null,chatForceBottom=false,chatPrepending=false,chatCursor=null;
+let chatComposing=false,chatRenderPending=false,chatTimer=null,chatForceBottom=false,chatPrepending=false,chatCursor=null,chatContextKey=null;
 function teamContext(){ return `${roomCode}:${LOCAL_PLAYER_ID}:${profile&&profile.faction}`; }
-function clearTeamState(){teamDeployment=null;teamDeploymentError=false;chatMessages=[];chatDraft='';chatRequest=null;chatLoaded=false;chatError='';chatHasOlder=false;chatCursor=null;}
+function clearTeamState(){teamDeployment=null;teamDeploymentError=false;chatMessages=[];chatDraft='';chatRequest=null;chatLoaded=false;chatError='';chatHasOlder=false;chatCursor=null;chatContextKey=null;}
 async function refreshOwnDayState(){
   if(!world||!mystate||myStateWriting||energySaveTimer)return;
   const key=dayKey(world.runId,'mystate',world.currentDay);
@@ -3082,15 +3044,19 @@ function mergeChatMessages(messages){
   const byId=new Map(chatMessages.map(m=>[m.id,m]));messages.forEach(m=>byId.set(m.id,m));
   chatMessages=[...byId.values()].sort((a,b)=>BigInt(a.id)<BigInt(b.id)?-1:1);
 }
-async function refreshTeamChat(older=false){
+async function refreshTeamChat(older=false, reloadHistory=false){
   if(!roomCode||!profile||chatLoading)return;
-  const context=teamContext();chatLoading=true;
+  const context=teamContext();
+  if(chatContextKey!==context){clearTeamState();chatContextKey=context;}
+  // Entering Team always reads server history; a polling cursor is never a login cursor.
+  const after=older||reloadHistory?null:chatCursor;
+  chatLoading=true;
   if(older)render();
   try{
     const before=older&&chatMessages.length?chatMessages[0].id:null;
-    const {data,error}=await sbClient.rpc('rk_get_team_chat',{p_room:roomCode,p_before:before,p_after:older?null:chatCursor});if(error)throw error;
+    const {data,error}=await sbClient.rpc('rk_get_team_chat',{p_room:roomCode,p_before:before,p_after:after});if(error)throw error;
     if(context!==teamContext()||data.faction!==profile.faction)return;
-    if(older||!chatCursor)chatHasOlder=data.messages.length===50;
+    if(older||!chatMessages.length)chatHasOlder=data.messages.length===50;
     if(!older&&data.messages.length)chatCursor=data.messages[data.messages.length-1].id;
     chatPrepending=older;mergeChatMessages(data.messages);chatLoaded=true;chatError='';
   }catch(e){chatError=tr('Chat could not sync. Your draft is kept.');}
@@ -3415,7 +3381,7 @@ function goScreen(id){
     document.getElementById('home-territory-map')?.scrollIntoView({behavior:'smooth',block:'center'});return;
   }
   uiScreen=id;activeModal=null;if(id==='team')chatForceBottom=true;render();
-  if(id==='team'){refreshTeamChat();startChatLoop();}
+  if(id==='team'){refreshTeamChat(false,true);startChatLoop();}
 }
 function openTerritoryInfo(t){activeModal=t;render();refreshTeamDeployments().then(render);}
 function openTerritory(t){if(eligibleDeployTiles().includes(t))openDeployForTile(t);else openTerritoryInfo(t);}
