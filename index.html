@@ -181,6 +181,11 @@ body{background:#080c12;font-size:16px;line-height:1.45}#root{background:radial-
 .admin-player-entry{border:1px solid var(--border);border-radius:12px;padding:13px;margin-top:10px;background:#121a24}.admin-player-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.admin-player-name{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-player-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.admin-player-metric{padding:8px 5px;border-radius:8px;background:#1a2531;text-align:center}.admin-player-metric b{display:block;font-size:16px;color:var(--text)}.admin-player-metric span{display:block;margin-top:2px;font-size:10px;color:var(--text-dim2);text-transform:uppercase}.admin-status{font-size:10px;padding:4px 8px;border-radius:12px;white-space:nowrap;background:#202b37;color:var(--text-dim)}.admin-status.done{background:#17372f;color:var(--mint)}
 @media(max-width:370px){.topbar{padding:16px 14px 0}.content{padding:15px 12px 92px}.card{padding:14px}.standing-chip{padding:8px}.standing-chip>span:last-child{font-size:18px}.screen-head h1{font-size:24px}.tile .tname{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.tile.active-battle,.live-dot{animation:none!important}.tile.active-battle{box-shadow:0 0 0 1px #ebc76b88;border-color:var(--gold)}}
+
+.player-identity{display:flex;align-items:center;gap:12px;border:1px solid color-mix(in srgb,var(--player-team) 45%,#27333e);background:linear-gradient(110deg,color-mix(in srgb,var(--player-team) 19%,#14202a),#151d29 70%);border-radius:16px;padding:14px 16px;margin-bottom:14px;box-shadow:inset 3px 0 var(--player-team)}
+.player-monogram{width:44px;height:44px;flex:none;border-radius:13px;background:color-mix(in srgb,var(--player-team) 26%,#17232d);color:var(--player-team);display:grid;place-items:center;font-size:23px;font-weight:800}
+.player-identity-text{min-width:0;display:flex;flex-direction:column;gap:1px}.player-identity-text small{font-size:10px;letter-spacing:1.3px;color:var(--text-dim)}.player-identity-text b{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player-identity-text span{font-size:12px;color:var(--player-team)}.player-team-dot{margin-left:auto;width:10px;height:10px;flex:none;border-radius:50%;background:var(--player-team);box-shadow:0 0 15px var(--player-team)}
+.deploy-sheet{max-height:min(88dvh,850px);overflow-y:auto;padding:22px 16px calc(22px + env(safe-area-inset-bottom))}.deploy-sheet .screen-head{padding-right:32px}.deploy-sheet .card{margin-bottom:12px}.invite-result{border-color:var(--mint)}.tile.deployable{cursor:pointer}.tile.deployable .deploy-corner{position:absolute;right:5px;bottom:4px;font-size:13px;color:var(--mint);font-weight:800}.tile.deployable:focus-visible{outline:2px solid var(--mint)}
 </style>
 </head>
 <body>
@@ -213,7 +218,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.6.7-member-removal-and-i18n-2026-09-19';
+const APP_BUILD = 'rk-v0.7.0-private-invites-tile-deploy-2026-09-28';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1031,6 +1036,12 @@ const moderationTranslations = [
 ];
 moderationTranslations.forEach(([key,...values])=>[ZH,JA,KO,TR,RU].forEach((t,i)=>t[key]=values[i]));
 
+
+Object.assign(ZH,{'PLAYING AS':'当前玩家','Personal invitation code':'个人邀请码','Enter your personal invitation code to join this room.':'请输入个人邀请码才能加入房间。','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'点击发光区域直接部署战力，其他区域可查看战况。','Name for the new player:':'新玩家姓名：','Create / rotate invitation':'创建／更换邀请码','Invite a new player':'邀请新玩家','PERSONAL INVITATION':'个人邀请码','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'把房间号和此人专属邀请码交给该玩家。请现在保存；重新生成后旧码失效。','COPY INVITATION':'复制邀请码','Pending':'待领取','Rotate code':'更换邀请码','Tap to deploy':'点击部署','View battle':'查看战况'});
+Object.assign(JA,{'PLAYING AS':'プレイヤー','Personal invitation code':'個人招待コード','Enter your personal invitation code to join this room.':'入室には個人招待コードを入力してください。','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'光る領土をタップしてパワーを配置。他の領土では戦況を確認できます。','Name for the new player:':'新しいプレイヤーの名前：','Create / rotate invitation':'招待コードを発行／更新','Invite a new player':'新しいプレイヤーを招待','PERSONAL INVITATION':'個人招待','COPY INVITATION':'招待コードをコピー','Pending':'未参加','Rotate code':'コードを更新','Tap to deploy':'タップして配置','View battle':'戦況を見る','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'ルームコードと本人専用の招待コードを渡してください。今すぐ保存してください。再発行すると古いコードは無効になります。'});
+Object.assign(KO,{'PLAYING AS':'플레이어','Personal invitation code':'개인 초대 코드','Enter your personal invitation code to join this room.':'방에 들어가려면 개인 초대 코드를 입력하세요.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'빛나는 영토를 탭해 전투력을 배치하세요. 다른 영토는 전투 정보를 보여 줍니다.','Name for the new player:':'새 플레이어 이름:','Create / rotate invitation':'초대 코드 발급 / 변경','Invite a new player':'새 플레이어 초대','PERSONAL INVITATION':'개인 초대','COPY INVITATION':'초대 코드 복사','Pending':'대기 중','Rotate code':'코드 변경','Tap to deploy':'탭하여 배치','View battle':'전투 보기','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'방 코드와 개인 초대 코드를 전달하세요. 지금 저장하세요. 다시 발급하면 이전 코드는 무효화됩니다.'});
+Object.assign(TR,{'PLAYING AS':'OYUNCU','Personal invitation code':'Kişisel davet kodu','Enter your personal invitation code to join this room.':'Odaya girmek için kişisel davet kodunuzu yazın.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'Güç yerleştirmek için parlayan bölgeye dokunun. Diğer bölgeler savaş bilgilerini gösterir.','Name for the new player:':'Yeni oyuncunun adı:','Create / rotate invitation':'Davet oluştur / yenile','Invite a new player':'Yeni oyuncu davet et','PERSONAL INVITATION':'KİŞİSEL DAVET','COPY INVITATION':'DAVETİ KOPYALA','Pending':'Bekliyor','Rotate code':'Kodu yenile','Tap to deploy':'Yerleştirmek için dokun','View battle':'Savaşı görüntüle','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'Oda kodunu ve kişisel davet kodunu oyuncuya verin. Şimdi kaydedin; yeni kod oluşturulursa önceki kod geçersiz olur.'});
+Object.assign(RU,{'PLAYING AS':'ВЫ ИГРАЕТЕ КАК','Personal invitation code':'Личный код приглашения','Enter your personal invitation code to join this room.':'Введите личный код приглашения, чтобы войти в комнату.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'Нажмите на светящуюся область для размещения Силы. Остальные области показывают сведения о битве.','Name for the new player:':'Имя нового игрока:','Create / rotate invitation':'Создать / обновить приглашение','Invite a new player':'Пригласить нового игрока','PERSONAL INVITATION':'ЛИЧНОЕ ПРИГЛАШЕНИЕ','COPY INVITATION':'КОПИРОВАТЬ ПРИГЛАШЕНИЕ','Pending':'Ожидает','Rotate code':'Обновить код','Tap to deploy':'Нажмите для размещения','View battle':'Открыть битву','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'Передайте игроку код комнаты и его личный код. Сохраните его сейчас: после выпуска нового старый перестанет действовать.'});
 function tr(key, vars){
   const table = I18N[LANG];
   let s = (table && table[key] !== undefined) ? table[key] : key;
@@ -1541,6 +1552,7 @@ function forgetSupabaseConfig(){
   location.reload();
 }
 function forgetRoomCode(){
+  if (roomCode) sessionStorage.removeItem('rk_player_invite:'+roomCode);
   localStorage.removeItem('rk_room_code');
   location.reload();
 }
@@ -1746,7 +1758,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.7.4') return { ok:false, why:'missing_functions', detail:'Community schema v0.7.4 is required.' };
+    if (data !== '0.8.0') return { ok:false, why:'missing_functions', detail:'Community schema v0.8.0 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -1759,14 +1771,17 @@ async function boot(){
   if (!schema.ok){ schemaProblem = schema; bootPhase = 'schema_outdated'; render(); return; }
   if (!roomCode){ bootPhase = 'room_form'; render(); return; }
   try{
-    const { error:joinError } = await sbClient.rpc('rk_join_room', { p_code:roomCode });
+    const personalCode = sessionStorage.getItem('rk_player_invite:'+roomCode) || '';
+    const { error:joinError } = await sbClient.rpc('rk_join_room', { p_code:roomCode, p_invite_code:personalCode });
     if (joinError) throw joinError;
     const { data:info, error:infoError } = await sbClient.rpc('rk_session_info', { p_room:roomCode });
     if (infoError) throw infoError;
     isRoomAdmin = !!(info && info.role === 'admin');
+    LOCAL_PLAYER_ID = info.user_id; // canonical ID from the server; shared across devices
+    if (info.name) onboardName = info.name;
   } catch(e){
-    localStorage.removeItem('rk_room_code'); roomCode=null;
-    lastSyncError={ message:tr('Room not found. Check the code, or create a new room.'), retry:()=>{ lastSyncError=null; } };
+    joinRoomInput=roomCode; roomCode=null;
+    lastSyncError={ message:tr('Enter your personal invitation code to join this room.'), retry:()=>{ lastSyncError=null; } };
     bootPhase='room_form'; render(); return;
   }
   const p = await safeGet(profileKey(), false);
@@ -1785,6 +1800,10 @@ async function boot(){
   await enterWorld();
 }
 let joinRoomInput = '';
+let joinInviteInput = '';
+let issuedInvite = null;
+let inviteBusy = false;
+let issuedInvites = [];
 async function submitCreateRoom(){
   bootPhase='loading'; render();
   for (let i=0;i<5;i++){
@@ -1819,15 +1838,18 @@ async function rotateAdminRecoveryCode(){
 }
 async function submitJoinRoom(){
   const code = (joinRoomInput || '').trim().toUpperCase();
-  if (!code) return;
+  const invite=(joinInviteInput||'').trim().toUpperCase();
+  if (!code || !invite) return;
   bootPhase = 'loading'; render();
-  const { data:joined, error:joinError } = await sbClient.rpc('rk_join_room',{p_code:code});
+  const { data:joined, error:joinError } = await sbClient.rpc('rk_join_room',{p_code:code,p_invite_code:invite});
   if (joinError){
     bootPhase = 'room_form';
-    lastSyncError = { message: joinError.message && joinError.message.includes('Room not found') ? tr('Room not found. Check the code, or create a new room.') : tr('Could not check that room. Please try again.'), retry: () => { lastSyncError=null; submitJoinRoom(); } };
+    lastSyncError = { message: joinError.message || tr('Could not check that room. Please try again.'), retry: () => { lastSyncError=null; submitJoinRoom(); } };
     render(); return;
   }
   roomCode = code;
+  sessionStorage.setItem('rk_player_invite:'+code,invite);
+  LOCAL_PLAYER_ID = joined.user_id;
   isRoomAdmin = !!(joined && joined.role === 'admin');
   saveRoomCode(roomCode);
   bootPhase = 'loading'; render();
@@ -1845,7 +1867,7 @@ function updateSetupButtonState(){
 }
 function updateJoinRoomButtonState(){
   const btn = document.getElementById('join-room-btn');
-  if (btn) btn.disabled = !joinRoomInput.trim();
+  if (btn) btn.disabled = !(joinRoomInput.trim() && joinInviteInput.trim());
 }
 function submitSetupForm(){
   const rawUrl = (setupUrlInput || '').trim();
@@ -2689,6 +2711,8 @@ async function deployPower(mainT, secT, splitPct, amount=null){
   await persistMyState();
   inFlightDeploy = false;
   uiScreen = 'home';
+  activeModal = null;
+  deployState = {main:null, secondary:null, splitIdx:1, amount:null};
   render();
 }
 async function followRally(){
@@ -2899,7 +2923,6 @@ function renderBottomNav(){
   const items = [
     {id:'home', icon:'map', label:tr('HOME')},
     {id:'run', icon:'bolt', label:tr('RUN')},
-    {id:'deploy', icon:'target', label:tr('DEPLOY')},
     {id:'rally', icon:'flag', label:world.rallyEnabled===false?`${tr('RALLY')} · OFF`:tr('RALLY')},
     {id:'season', icon:'trophy', label:tr('SEASON')},
   ];
@@ -2911,6 +2934,7 @@ function renderBottomNav(){
 function renderMap(){
   const tiles = TERRITORIES.map(t => {
     const owner = world.ownership[t]; const isActive = battlesDoc.activeBattles.includes(t);
+    const canDeployHere = eligibleDeployTiles().includes(t);
     // A/C/G are Capitals structurally — that identity doesn't change just
     // because someone else captured the tile. (Previously this only lit up
     // while still held by the original owning faction, so the CAP badge
@@ -2920,13 +2944,14 @@ function renderMap(){
     const flash = flashTiles[t] ? 'flash' : '';
     const ownerClass = owner ? `owner-${owner}` : '';
     const [gx,gy] = POS[t];
-    return `<div class="tile ${ownerClass} ${isActive?'active-battle':''} ${flash}"
-      style="grid-column:${gx+1}; grid-row:${gy+1};" onclick="openTerritory('${t}')">
+    return `<div class="tile ${ownerClass} ${isActive?'active-battle':''} ${canDeployHere?'deployable':''} ${flash}"
+      style="grid-column:${gx+1}; grid-row:${gy+1};" title="${canDeployHere?tr('Tap to deploy'):tr('View battle')}" onclick="openTerritory('${t}')">
       ${cap ? `<span class="cap">${tr('CAP')}</span>` : ''}
       <span class="tid" style="font-size:10px; opacity:0.6;">${t}</span>
       <span class="tname">${territoryLabel(t)}</span>
       <span class="tvp">${vpValueOf(t, world.currentDay)} VP</span>
       ${bounty>0 ? `<span class="bounty-pip">🎯${bounty}</span>` : ''}
+      ${canDeployHere?`<span class="deploy-corner" aria-hidden="true">↗</span>`:''}
     </div>`;
   }).join('');
   return `<div class="map-wrap"><div class="map-grid">${tiles}</div></div>`;
@@ -3020,12 +3045,13 @@ function screenHome(){
   const deployButtonLabel = avail <= 0 && deployed > 0 ? tr('ALL DEPLOYED') : deployed > 0 ? tr('DEPLOY MORE')+' →' : tr('DEPLOY')+' →';
   return `
   ${eliminatedBanner()}
+  <div class="player-identity" style="--player-team:${FACTION_META[profile.faction].color}"><div class="player-monogram">${escapeHTML((profile.name||'R').slice(0,1).toUpperCase())}</div><div class="player-identity-text"><small>${tr('PLAYING AS')}</small><b>${escapeHTML(profile.name||'Runner')}</b><span>${FACTION_META[profile.faction].name}</span></div><span class="player-team-dot"></span></div>
   ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
     <span class="muted" style="font-size:11px;">${tr('⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles')}</span>
   </div>` : ''}
   <div class="card row-between home-power">
     <div><div class="card-title" style="margin-bottom:2px;">${tr('YOUR POWER')}</div><div class="big-num mono">${fmt1(avail)} <span class="power-unit">${tr('Available')}</span></div></div>
-    <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${!deploymentOpen()||avail<=0?'disabled':''}>
+    <button class="btn btn-primary btn-small" onclick="goScreen('deploy')" ${!eligibleDeployTiles().length?'disabled':''}>
       ${deployButtonLabel}
     </button>
   </div>
@@ -3038,7 +3064,7 @@ function screenHome(){
   <div class="card map-card">
     <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
     ${renderMap()}
-    <div class="muted" style="text-align:center; margin-top:11px;">${tr("Tap a glowing tile to view today's battle.")}</div>
+    <div class="muted" style="text-align:center; margin-top:11px;">${tr('Tap a glowing tile to deploy your Power. Other tiles show battle details.')}</div>
   </div>
   <div class="prize-box row-between">
     <div><div class="prize-label">${tr('🏆 PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
@@ -3096,7 +3122,7 @@ function modalTerritory(t){
         }).join('')}
         <div class="divider"></div>
         <div class="row-between" style="margin-bottom:12px;"><span class="muted">${tr('Status')}</span><span class="mono">${world.phase==='fog' ? tr('FOG — awaiting resolve') : (hasAnyPower ? tr('OPEN — awaiting resolve') : tr('AWAITING DEPLOYMENT'))}</span></div>
-        <button class="btn btn-primary" onclick="closeModal(); goScreen('deploy'); prefillDeploy('${t}')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>
+        <button class="btn btn-primary" onclick="openDeployForTile('${t}')" ${!eligibleDeployTiles().includes(t)?'disabled':''}>
           ${remainingPower()<=0 && totalDeployedMine()>0 ? tr('POWER ALREADY DEPLOYED') : tr('DEPLOY POWER HERE')}
         </button>
       ` : `<div class="empty-note">${tr('Not an active battle today.')}</div>`}
@@ -3151,7 +3177,7 @@ function screenDeploy(){
   const eliminated = iAmEliminated();
   const eligibleBattles = eliminated
     ? battlesDoc.activeBattles
-    : battlesDoc.activeBattles.filter(t => getEligibleFactions(t, world.ownership).includes(profile.faction));
+    : battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(profile.faction));
   const usedTargets = Object.entries(mystate.deployedPower).filter(([,p])=>Number(p)>0).map(([t])=>t);
   const battles = eligibleBattles.filter(t => eliminated ? (!usedTargets.length || usedTargets.includes(t)) : (usedTargets.length<2 || usedTargets.includes(t)));
   if (!battles.length) return `${head}<div class="card"><div class="empty-note">${tr('Your faction has no eligible battles today (no adjacent access).')}</div></div>`;
@@ -3217,6 +3243,7 @@ function screenDeploy(){
     <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}], ${amount})" ${inFlightDeploy?'disabled':''}>${inFlightDeploy?tr('SUBMITTING…'):tr('CONFIRM DEPLOYMENT')}</button>
   </div>`;
 }
+function modalDeploy(){ return `<div class="modal-backdrop" onclick="closeModalIfBackdrop(event)"><div class="modal-sheet deploy-sheet"><span class="close-x" onclick="closeModal()">✕</span>${screenDeploy()}</div></div>`; }
 function setDeployMain(t){
   deployState.main = t;
   // If the new main was the secondary, the secondary is gone — reset the split
@@ -3229,7 +3256,7 @@ function setDeploySecondary(t){ deployState.secondary = t; if(!t) deployState.sp
 function setSplit(i){ deployState.splitIdx = i; render(); }
 function setDeployAmount(v){ deployState.amount=Math.max(.1,Math.min(remainingPower(),Number(v)||.1)); render(); }
 function setDeployAmountPct(pct){ deployState.amount=round2(remainingPower()*pct/100); render(); }
-function confirmDeploy(main, sec, split, amount){ deployPower(main, sec, split, amount); deployState = {main:null, secondary:null, splitIdx:1, amount:null}; }
+function confirmDeploy(main, sec, split, amount){ deployPower(main, sec, split, amount); }
 
 /* ---------- RALLY ---------- */
 let rallyPublishState = { main:null, secondary:null, splitIdx:1 };
@@ -3545,6 +3572,9 @@ async function refreshAdminPlayers(){
     const {data,error}=await sbClient.rpc('rk_admin_player_overview',{p_room:roomCode});
     if (error) throw error;
     adminPlayers = Array.isArray(data) ? data : [];
+    const {data:invites,error:inviteError}=await sbClient.rpc('rk_admin_invite_overview',{p_room:roomCode});
+    if (inviteError) throw inviteError;
+    issuedInvites = Array.isArray(invites) ? invites : [];
   } catch(e){
     console.error('admin player overview failed:',e);
     adminPlayersError = tr('Could not load player data.');
@@ -3565,6 +3595,27 @@ async function kickPlayer(userId){
   } catch(e){ adminPlayersError=tr('Could not remove player. Please retry.'); }
   finally{ kickingPlayer=null; render(); }
 }
+async function issuePlayerInvite(playerId=null){
+  if (!isRoomAdmin || inviteBusy) return;
+  const name=playerId ? null : prompt(tr('Name for the new player:'));
+  if (!playerId && !(name||'').trim()) return;
+  inviteBusy=true; render();
+  try{
+    const {data,error}=await sbClient.rpc('rk_admin_create_invite',{
+      p_room:roomCode,p_name:name,p_player:playerId
+    });
+    if (error) throw error;
+    issuedInvite=data;
+    await refreshAdminPlayers();
+  }catch(e){ adminPlayersError=e.message||tr('Could not create invitation.'); }
+  finally {inviteBusy=false;render();}
+}
+async function copyIssuedInvite(){
+  if (!issuedInvite) return;
+  const value=roomCode+' · '+issuedInvite.invite_code;
+  try{ await navigator.clipboard.writeText(value); }
+  catch(e){ prompt(tr('Copy invitation:'),value); }
+}
 function modalAdminPlayers(){
   const players = adminPlayers || [];
   const rows = players.map(p=>{
@@ -3582,18 +3633,41 @@ function modalAdminPlayers(){
       </div>
       <div class="muted" style="font-size:11px;margin-top:9px;">${tr('ENERGY TODAY')}: ${fmt1(Number(p.energyToday||0))}${p.gstBoostPercent?` · GST +${p.gstBoostPercent}%`:''}</div>
       ${targets?`<div class="muted" style="font-size:11px;margin-top:3px;">${tr('Targets')}: ${escapeHTML(targets)}</div>`:''}
-      ${p.role!=='admin' && p.userId!==LOCAL_PLAYER_ID ? `<button class="btn btn-outline btn-small" style="margin-top:10px;color:var(--danger)" onclick="kickPlayer('${escapeHTML(p.userId)}')" ${kickingPlayer?'disabled':''}>${tr(kickingPlayer===p.userId?'SUBMITTING…':'Remove player')}</button>`:''}
+      ${p.role!=='admin' && p.userId!==LOCAL_PLAYER_ID ? `<button class="btn btn-outline btn-small" style="margin-top:10px;" onclick="issuePlayerInvite('${escapeHTML(p.userId)}')" ${inviteBusy?'disabled':''}>${tr('Create / rotate invitation')}</button><button class="btn btn-outline btn-small" style="margin-top:10px;color:var(--danger)" onclick="kickPlayer('${escapeHTML(p.userId)}')" ${kickingPlayer?'disabled':''}>${tr(kickingPlayer===p.userId?'SUBMITTING…':'Remove player')}</button>`:''}
     </div>`;
   }).join('');
   return `<div class="modal-backdrop" onclick="closeModalIfBackdrop(event)"><div class="modal-sheet">
     <span class="close-x" onclick="closeModal()">✕</span>
     <div class="row-between" style="margin:4px 34px 12px 0;"><div><div class="card-title">${tr('PLAYER OVERVIEW')}</div><div class="muted" style="font-size:12px;">${players.length} ${tr('ROOM PLAYERS').toLowerCase()} · ${tr('Day {n}',{n:world.currentDay})}</div></div><button class="btn btn-outline btn-small" onclick="refreshAdminPlayers()" ${adminPlayersLoading?'disabled':''}>${tr('REFRESH')}</button></div>
+    <button class="btn btn-primary btn-small" style="margin-bottom:12px;" onclick="issuePlayerInvite()" ${inviteBusy?'disabled':''}>${tr('Invite a new player')}</button>
+    ${issuedInvites.filter(i=>!i.redeemed).map(i=>`<div class="row-between" style="gap:10px;padding:9px 0;"><span>${escapeHTML(i.name)} · ${tr('Pending')}</span><button class="btn btn-outline btn-small" onclick="issuePlayerInvite('${escapeHTML(i.playerId)}')">${tr('Rotate code')}</button></div>`).join('')}
+    ${issuedInvite?`<div class="card invite-result"><div class="card-title">${tr('PERSONAL INVITATION')} · ${escapeHTML(issuedInvite.name)}</div><div class="mono" style="font-size:15px;word-break:break-all;letter-spacing:1px;margin:10px 0;">${escapeHTML(issuedInvite.invite_code)}</div><div class="muted" style="font-size:12px;margin-bottom:10px;">${tr('Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.')}</div><button class="btn btn-outline btn-small" onclick="copyIssuedInvite()">${tr('COPY INVITATION')}</button></div>`:''}
     ${adminPlayersError?`<div class="sync-error">${adminPlayersError}</div>`:''}
     ${adminPlayersLoading && !adminPlayers?`<div class="empty-note">${tr('SYNCING')}</div>`:(rows||`<div class="empty-note">${tr('No players found.')}</div>`)}
   </div></div>`;
 }
-function goScreen(id){ uiScreen = id; activeModal = null; render(); }
-function openTerritory(t){ activeModal = t; render(); }
+function eligibleDeployTiles(){
+  if (!world || !battlesDoc || !profile || !mystate || !deploymentOpen() || remainingPower()<=0) return [];
+  const used=Object.entries(mystate.deployedPower||{}).filter(([,v])=>Number(v)>0).map(([t])=>t);
+  return battlesDoc.activeBattles.filter(t =>
+    (iAmEliminated() ? (!used.length || used.includes(t)) :
+      (used.length<2 || used.includes(t)) && effectiveEligibleFactions(t,world.ownership,battlesDoc.activeBattles,world.currentDay).includes(profile.faction)));
+}
+function openDeployForTile(t){
+  if (!eligibleDeployTiles().includes(t)) return openTerritoryInfo(t);
+  deployState={main:t,secondary:null,splitIdx:1,amount:null};
+  activeModal='deploy'; render();
+}
+function goScreen(id){
+  if (id==='deploy') { uiScreen='home'; activeModal=null; render();
+    const target=eligibleDeployTiles()[0]; if (target) openDeployForTile(target); return; }
+  uiScreen = id; activeModal = null; render();
+}
+function openTerritoryInfo(t){ activeModal=t; render(); }
+function openTerritory(t){
+  if (eligibleDeployTiles().includes(t)) openDeployForTile(t);
+  else openTerritoryInfo(t);
+}
 function closeModal(){ activeModal = null; render(); }
 function closeModalIfBackdrop(e){ if (e.target.classList.contains('modal-backdrop')) closeModal(); }
 
@@ -3635,7 +3709,7 @@ function dbgCopyInviteLink(){
   const link = buildInviteLink();
   if (!link) return;
   if (navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(link).then(() => alert('Invite link copied! Send it to colleagues — opening it auto-fills their Supabase connection.'));
+    navigator.clipboard.writeText(link).then(() => alert('Invite link copied! Send it to colleagues — opening it fills the connection and room code, then asks for a personal invitation.'));
   } else {
     prompt('Copy this invite link:', link);
   }
@@ -3700,13 +3774,13 @@ function renderDebug(){
     <div class="debug-section">
       <h4>Supabase Connection</h4>
       <button class="btn btn-outline btn-small" onclick="dbgCopyInviteLink()">Copy Invite Link (pre-configured)</button>
-      <div class="muted" style="margin:8px 0 4px; font-size:11px;">Copies a link with your Supabase details AND current room embedded, so colleagues who open it land straight in this room without filling in anything.</div>
+      <div class="muted" style="margin:8px 0 4px; font-size:11px;">Copies a link with your Supabase details AND current room embedded, so colleagues can load connection and room details; each player still enters their personal invitation code.</div>
       <button class="btn btn-outline btn-small" style="margin-top:6px;" onclick="forgetSupabaseConfig()">Forget This Connection</button>
     </div>
     <div class="debug-section">
       <h4>Room</h4>
       <div class="muted" style="margin-bottom:6px;">Current room code: <span class="mono" style="color:var(--gold); letter-spacing:2px;">${roomCode}</span></div>
-      <div class="muted" style="margin-bottom:8px; font-size:11px;">Share this code (or the invite link above) with anyone you want in THIS game. Different room codes on the same Supabase project never see each other's data.</div>
+      <div class="muted" style="margin-bottom:8px; font-size:11px;">Players also need their individual invitation code; the room code alone does not grant entry. Different room codes on the same Supabase project never see each other's data.</div>
       <button class="btn btn-outline btn-small" style="margin-bottom:8px;" onclick="rotateAdminRecoveryCode()">Generate / Rotate Admin Recovery Code</button>
       <div class="muted" style="margin-bottom:8px; font-size:11px;">Keep the recovery code private. It restores Admin access if this browser session is lost.</div>
       <button class="btn btn-outline btn-small" onclick="forgetRoomCode()">Leave This Room</button>
@@ -3772,7 +3846,8 @@ function renderInner(){
       <div class="divider"></div>
       <div class="muted" style="margin-bottom:4px; font-size:12px;">${tr('Or enter a room code someone shared with you')}</div>
       <input class="name-input" placeholder="e.g. AB3XY" value="${joinRoomInput}" oninput="joinRoomInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="text-transform:uppercase; letter-spacing:2px;" />
-      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!joinRoomInput.trim()?'disabled':''}>${tr('JOIN ROOM')}</button>
+      <input class="name-input" type="text" autocomplete="off" spellcheck="false" placeholder="${tr('Personal invitation code')}" value="${escapeHTML(joinInviteInput)}" oninput="joinInviteInput=this.value.toUpperCase(); updateJoinRoomButtonState();" style="margin-top:10px;text-transform:uppercase;letter-spacing:1px;" />
+      <button id="join-room-btn" class="btn btn-outline" style="margin-top:10px;" onclick="submitJoinRoom()" ${!(joinRoomInput.trim() && joinInviteInput.trim())?'disabled':''}>${tr('JOIN ROOM')}</button>
       <button class="btn btn-outline" style="margin-top:10px;" onclick="recoverAdminAccess()">🔑 RECOVER ADMIN ACCESS</button>
       <div style="text-align:center; margin-top:14px; font-size:10px; opacity:0.35; font-family:monospace;">${APP_BUILD}</div>
     </div></div>`;
@@ -3833,7 +3908,6 @@ function renderInner(){
   let body = '';
   if (uiScreen === 'home') body = screenHome();
   else if (uiScreen === 'run') body = screenRun();
-  else if (uiScreen === 'deploy') body = screenDeploy();
   else if (uiScreen === 'rally') body = screenRally();
   else if (uiScreen === 'report') body = screenReport();
   else if (uiScreen === 'season') body = screenSeason();
@@ -3845,7 +3919,7 @@ function renderInner(){
     <div class="content">${renderSyncError()}${body}</div>
     ${renderBottomNav()}
     ${isRoomAdmin ? `<div class="fab" onclick="toggleDebug()">⚙️</div>` : ''}
-    ${activeModal === 'adminPlayers' ? modalAdminPlayers() : (activeModal ? modalTerritory(activeModal) : '')}
+    ${activeModal === 'adminPlayers' ? modalAdminPlayers() : activeModal === 'deploy' ? modalDeploy() : (activeModal ? modalTerritory(activeModal) : '')}
     ${safeRenderDebug()}
   `;
 }
