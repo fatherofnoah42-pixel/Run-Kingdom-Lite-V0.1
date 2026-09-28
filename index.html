@@ -186,6 +186,9 @@ body{background:#080c12;font-size:16px;line-height:1.45}#root{background:radial-
 .player-monogram{width:44px;height:44px;flex:none;border-radius:13px;background:color-mix(in srgb,var(--player-team) 26%,#17232d);color:var(--player-team);display:grid;place-items:center;font-size:23px;font-weight:800}
 .player-identity-text{min-width:0;display:flex;flex-direction:column;gap:1px}.player-identity-text small{font-size:10px;letter-spacing:1.3px;color:var(--text-dim)}.player-identity-text b{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player-identity-text span{font-size:12px;color:var(--player-team)}.player-team-dot{margin-left:auto;width:10px;height:10px;flex:none;border-radius:50%;background:var(--player-team);box-shadow:0 0 15px var(--player-team)}
 .deploy-sheet{max-height:min(88dvh,850px);overflow-y:auto;padding:22px 16px calc(22px + env(safe-area-inset-bottom))}.deploy-sheet .screen-head{padding-right:32px}.deploy-sheet .card{margin-bottom:12px}.invite-result{border-color:var(--mint)}.tile.deployable{cursor:pointer}.tile.deployable .deploy-corner{position:absolute;right:5px;bottom:4px;font-size:13px;color:var(--mint);font-weight:800}.tile.deployable:focus-visible{outline:2px solid var(--mint)}
+
+.tile.active-battle{padding-top:8px;padding-bottom:10px}.tile-team-line{font-size:9px;color:var(--mint);margin-top:4px;white-space:nowrap;font-weight:700}.sheet-close{position:absolute;right:16px;top:14px;background:transparent;border:0;color:var(--text-dim);font-size:22px;padding:8px;cursor:pointer}.tile-deploy-sheet{position:relative;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}.tile-deploy-title{display:flex;align-items:center;gap:10px;font-size:23px;line-height:1.25;margin:8px 32px 24px 0}.tile-deploy-title>span{font-size:14px;color:var(--mint);background:#41d7b719;border:1px solid #41d7b740;border-radius:9px;display:grid;place-items:center;min-width:34px;height:34px}.tile-balance{margin:0 0 22px;color:var(--text-dim)}.tile-balance b{font-size:20px;color:var(--text)}.amount-label{font-size:13px;color:var(--text-dim)}.tile-amount-box{display:flex;align-items:center;gap:12px;border:1px solid #396055;border-radius:12px;background:#132c27;padding:12px 16px;margin:8px 0 10px}.tile-amount-box input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:34px;font-weight:700}.tile-amount-box>span{color:var(--mint);font-size:13px}.tile-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tile-presets button{color:var(--text);font-family:inherit;font-size:13px}.tile-remainder{font-size:12px;color:var(--text-dim);margin:18px 0 20px}.tile-deploy-note{font-size:11px;line-height:1.5;color:var(--text-dim);margin:10px 0 20px}.tile-deploy-error,.tile-deploy-message{font-size:13px;color:#ffb8ac;padding:12px;border:1px solid #713c3c;border-radius:8px}.team-tile-details{border-top:1px solid var(--border);padding:15px 0 0;font-size:12px}.team-tile-details summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.team-tile-details summary:after{content:'⌄';color:var(--text-dim)}.team-tile-details summary strong{margin-left:auto;color:var(--mint)}.team-tile-members{margin-top:12px}.team-tile-members .row-between{padding:8px 0;border-top:1px solid #ffffff09;gap:14px}.team-tile-members .row-between>span{overflow-wrap:anywhere}.team-tile-members b{white-space:nowrap}.team-sync{font-size:11px;line-height:1.5;text-align:center;margin:10px 0}.deploy-success{display:flex;gap:10px;justify-content:space-between;align-items:center;background:#16372f;border:1px solid #315c4a;color:var(--mint);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px}.deploy-success button{background:none;border:0;color:inherit;padding:6px}.chat-private{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mint);white-space:nowrap;padding-top:6px}.chat-private svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5}.chat-intro{font-size:13px;line-height:1.5;margin:0 0 16px}.team-chat-card{background:#111b25;border:1px solid var(--border);border-radius:16px;overflow:hidden}.team-chat-log{min-height:210px;height:42dvh;max-height:460px;overflow:auto;padding:16px;overscroll-behavior:contain;scrollbar-gutter:stable}.chat-message{max-width:91%;margin-bottom:18px}.chat-message.mine{margin-left:auto}.chat-meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin:0 3px 6px;font-size:11px}.chat-meta b{overflow-wrap:anywhere}.chat-meta time{color:var(--text-dim2);font-size:10px}.chat-message.mine .chat-meta{justify-content:flex-end}.chat-bubble{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14px;background:#212b3d;border:1px solid #343d51;border-radius:3px 13px 13px 13px;padding:10px 13px}.chat-message.mine .chat-bubble{background:#173c33;border-color:#2b5d4d;border-radius:13px 3px 13px 13px}.chat-composer{padding:14px;background:#141f2b;border-top:1px solid var(--border)}.chat-composer label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:8px}.chat-composer label b{color:var(--mint)}.chat-composer textarea{display:block;resize:vertical;min-height:78px;width:100%;box-sizing:border-box;background:#0d151e;border:1px solid #364054;border-radius:10px;color:var(--text);padding:11px;font:inherit;font-size:16px;line-height:1.4;margin-bottom:10px}.chat-composer textarea:focus{outline:1px solid var(--mint)}.chat-composer .row-between>span{font-size:11px}.chat-error{font-size:12px;color:#ffb8ac;line-height:1.5;margin-bottom:10px}.chat-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;color:var(--text-dim);font-size:12px}.chat-empty svg{width:40px;height:40px;stroke:var(--purple);fill:none;stroke-width:1.4}.chat-empty b{color:var(--text);font-size:15px}.chat-older{display:block;margin:0 auto 14px;border:0;background:transparent;color:var(--mint);font:inherit;font-size:12px;cursor:pointer}.chat-composer .btn{min-width:94px}
+
 </style>
 </head>
 <body>
@@ -218,7 +221,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.7.0-private-invites-tile-deploy-2026-09-28';
+const APP_BUILD = 'rk-v0.7.1-team-chat-and-simple-tile-deploy-2026-09-28';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1042,6 +1045,13 @@ Object.assign(JA,{'PLAYING AS':'プレイヤー','Personal invitation code':'個
 Object.assign(KO,{'PLAYING AS':'플레이어','Personal invitation code':'개인 초대 코드','Enter your personal invitation code to join this room.':'방에 들어가려면 개인 초대 코드를 입력하세요.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'빛나는 영토를 탭해 전투력을 배치하세요. 다른 영토는 전투 정보를 보여 줍니다.','Name for the new player:':'새 플레이어 이름:','Create / rotate invitation':'초대 코드 발급 / 변경','Invite a new player':'새 플레이어 초대','PERSONAL INVITATION':'개인 초대','COPY INVITATION':'초대 코드 복사','Pending':'대기 중','Rotate code':'코드 변경','Tap to deploy':'탭하여 배치','View battle':'전투 보기','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'방 코드와 개인 초대 코드를 전달하세요. 지금 저장하세요. 다시 발급하면 이전 코드는 무효화됩니다.'});
 Object.assign(TR,{'PLAYING AS':'OYUNCU','Personal invitation code':'Kişisel davet kodu','Enter your personal invitation code to join this room.':'Odaya girmek için kişisel davet kodunuzu yazın.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'Güç yerleştirmek için parlayan bölgeye dokunun. Diğer bölgeler savaş bilgilerini gösterir.','Name for the new player:':'Yeni oyuncunun adı:','Create / rotate invitation':'Davet oluştur / yenile','Invite a new player':'Yeni oyuncu davet et','PERSONAL INVITATION':'KİŞİSEL DAVET','COPY INVITATION':'DAVETİ KOPYALA','Pending':'Bekliyor','Rotate code':'Kodu yenile','Tap to deploy':'Yerleştirmek için dokun','View battle':'Savaşı görüntüle','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'Oda kodunu ve kişisel davet kodunu oyuncuya verin. Şimdi kaydedin; yeni kod oluşturulursa önceki kod geçersiz olur.'});
 Object.assign(RU,{'PLAYING AS':'ВЫ ИГРАЕТЕ КАК','Personal invitation code':'Личный код приглашения','Enter your personal invitation code to join this room.':'Введите личный код приглашения, чтобы войти в комнату.','Tap a glowing tile to deploy your Power. Other tiles show battle details.':'Нажмите на светящуюся область для размещения Силы. Остальные области показывают сведения о битве.','Name for the new player:':'Имя нового игрока:','Create / rotate invitation':'Создать / обновить приглашение','Invite a new player':'Пригласить нового игрока','PERSONAL INVITATION':'ЛИЧНОЕ ПРИГЛАШЕНИЕ','COPY INVITATION':'КОПИРОВАТЬ ПРИГЛАШЕНИЕ','Pending':'Ожидает','Rotate code':'Обновить код','Tap to deploy':'Нажмите для размещения','View battle':'Открыть битву','Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.':'Передайте игроку код комнаты и его личный код. Сохраните его сейчас: после выпуска нового старый перестанет действовать.'});
+
+// Team experience translations.
+Object.assign(ZH,{"TEAM": "队聊", "Team": "本队", "Team chat": "队内聊天室", "Team only": "仅本队可见", "Plan your next move together. Your name appears on every message.": "和队友商量下一步。每条消息都会显示你的名字。", "Team messages": "队内消息", "Load earlier messages": "查看更早消息", "Start your team conversation": "和队友开始聊聊吧", "Loading messages…": "正在读取消息…", "Discuss a tile, share your plan, or say hello.": "讨论区域、分享计划，或打个招呼。", "Message as": "发言身份", "Write to your team…": "给队友发消息…", "Send": "发送", "Sending…": "发送中…", "Chat could not sync. Your draft is kept.": "消息同步失败，草稿已保留。", "Message not confirmed. Retry sends the same message once.": "未确认发送结果。重试会核对同一条消息，不会重复发送。", "Please wait a moment before sending again": "请稍等片刻再发送", "Your team here": "本队在此投入", "players": "人", "You": "你", "No teammate has deployed here yet.": "还没有队友在这里投入。", "Loading team deployments…": "正在读取本队投入…", "Team data unavailable. Retrying…": "暂时无法读取本队数据，正在重试…", "Team data may be out of date. Retrying…": "本队数据可能未更新，正在重试…", "Deploy to this tile": "向此区域部署", "Close": "关闭", "The day changed. Close this panel and choose a tile again.": "日期已变化，请关闭弹窗后重新选择区域。", "The day changed. Open the tile again": "日期已变化，请重新打开区域。", "Available Power": "当前可用战力", "Power to deploy here": "本次向这里投入", "Power left after this": "投入后剩余", "Deploy {n} Power": "投入 {n} 战力", "This amount goes only to this tile. Deployed Power cannot be withdrawn.": "本次只投入当前区域。已投入的战力不可撤回。", "Deployed {n} Power to {tile}.": "已向 {tile} 投入 {n} 战力。", "Could not confirm deployment. Retry safely.": "无法确认投入结果，请重试核对。", "Choose a tile": "选择区域", "Tap a glowing tile to deploy. Team Power shows player contributions only.": "点击发光区域投入。本队战力只计算玩家实际投入。"});
+Object.assign(JA,{"TEAM": "チーム", "Team": "自軍", "Team chat": "チームチャット", "Team only": "チーム限定", "Plan your next move together. Your name appears on every message.": "仲間と次の一手を相談しましょう。各メッセージにはあなたの名前が表示されます。", "Team messages": "チームのメッセージ", "Load earlier messages": "以前のメッセージ", "Start your team conversation": "チームで会話を始めよう", "Loading messages…": "メッセージを読み込み中…", "Discuss a tile, share your plan, or say hello.": "領土や作戦の相談、挨拶に使いましょう。", "Message as": "投稿者", "Write to your team…": "チームにメッセージ…", "Send": "送信", "Sending…": "送信中…", "Chat could not sync. Your draft is kept.": "同期できませんでした。下書きは保持されています。", "Message not confirmed. Retry sends the same message once.": "送信を確認できません。再試行しても同じメッセージは重複しません。", "Please wait a moment before sending again": "少し待ってから再送してください", "Your team here": "この領土の自軍配置", "players": "人", "You": "あなた", "No teammate has deployed here yet.": "まだ味方の配置はありません。", "Loading team deployments…": "自軍の配置を読み込み中…", "Team data unavailable. Retrying…": "自軍データを取得できません。再試行中…", "Team data may be out of date. Retrying…": "自軍データが古い可能性があります。再試行中…", "Deploy to this tile": "この領土に配置", "Close": "閉じる", "The day changed. Close this panel and choose a tile again.": "日が変わりました。閉じて領土を選び直してください。", "The day changed. Open the tile again": "日が変わりました。領土を開き直してください。", "Available Power": "利用可能パワー", "Power to deploy here": "ここに配置するパワー", "Power left after this": "配置後の残り", "Deploy {n} Power": "{n} パワーを配置", "This amount goes only to this tile. Deployed Power cannot be withdrawn.": "この領土だけに配置します。配置後は取り消せません。", "Deployed {n} Power to {tile}.": "{tile} に {n} パワーを配置しました。", "Could not confirm deployment. Retry safely.": "配置を確認できません。再試行できます。", "Choose a tile": "領土を選ぶ", "Tap a glowing tile to deploy. Team Power shows player contributions only.": "光る領土をタップして配置。自軍パワーはプレイヤーの配置分のみです。"});
+Object.assign(KO,{"TEAM": "팀", "Team": "우리 팀", "Team chat": "팀 채팅", "Team only": "팀원 전용", "Plan your next move together. Your name appears on every message.": "팀원과 다음 행동을 상의하세요. 메시지에 내 이름이 표시됩니다.", "Team messages": "팀 메시지", "Load earlier messages": "이전 메시지 보기", "Start your team conversation": "팀원과 대화를 시작하세요", "Loading messages…": "메시지 불러오는 중…", "Discuss a tile, share your plan, or say hello.": "영토와 계획을 논의하거나 인사를 나누세요.", "Message as": "발신자", "Write to your team…": "팀원에게 메시지…", "Send": "보내기", "Sending…": "보내는 중…", "Chat could not sync. Your draft is kept.": "동기화하지 못했습니다. 초안은 유지됩니다.", "Message not confirmed. Retry sends the same message once.": "전송을 확인하지 못했습니다. 재시도해도 메시지가 중복되지 않습니다.", "Please wait a moment before sending again": "잠시 후 다시 보내세요", "Your team here": "이 영토의 팀 배치", "players": "명", "You": "나", "No teammate has deployed here yet.": "아직 이곳에 배치한 팀원이 없습니다.", "Loading team deployments…": "팀 배치 불러오는 중…", "Team data unavailable. Retrying…": "팀 데이터를 불러올 수 없습니다. 재시도 중…", "Team data may be out of date. Retrying…": "팀 데이터가 최신이 아닐 수 있습니다. 재시도 중…", "Deploy to this tile": "이 영토에 배치", "Close": "닫기", "The day changed. Close this panel and choose a tile again.": "날짜가 바뀌었습니다. 창을 닫고 영토를 다시 선택하세요.", "The day changed. Open the tile again": "날짜가 바뀌었습니다. 영토를 다시 여세요.", "Available Power": "사용 가능한 전투력", "Power to deploy here": "이곳에 배치할 전투력", "Power left after this": "배치 후 남은 전투력", "Deploy {n} Power": "전투력 {n} 배치", "This amount goes only to this tile. Deployed Power cannot be withdrawn.": "선택한 영토에만 배치됩니다. 배치 후 철회할 수 없습니다.", "Deployed {n} Power to {tile}.": "{tile}에 전투력 {n}을 배치했습니다.", "Could not confirm deployment. Retry safely.": "배치를 확인하지 못했습니다. 다시 시도하세요.", "Choose a tile": "영토 선택", "Tap a glowing tile to deploy. Team Power shows player contributions only.": "빛나는 영토를 탭해 배치하세요. 팀 전투력은 플레이어 배치량만 표시합니다."});
+Object.assign(TR,{"TEAM": "TAKIM", "Team": "Takım", "Team chat": "Takım sohbeti", "Team only": "Yalnızca takım", "Plan your next move together. Your name appears on every message.": "Sonraki hamleyi birlikte planlayın. Her mesajda adınız görünür.", "Team messages": "Takım mesajları", "Load earlier messages": "Önceki mesajları yükle", "Start your team conversation": "Takım sohbetini başlatın", "Loading messages…": "Mesajlar yükleniyor…", "Discuss a tile, share your plan, or say hello.": "Bir bölgeyi tartışın, planınızı paylaşın veya selam verin.", "Message as": "Gönderen", "Write to your team…": "Takımınıza yazın…", "Send": "Gönder", "Sending…": "Gönderiliyor…", "Chat could not sync. Your draft is kept.": "Sohbet eşitlenemedi. Taslağınız korundu.", "Message not confirmed. Retry sends the same message once.": "Mesaj onaylanamadı. Yeniden denemek aynı mesajı çoğaltmaz.", "Please wait a moment before sending again": "Tekrar göndermeden önce biraz bekleyin", "Your team here": "Takımınızın buradaki gücü", "players": "oyuncu", "You": "Siz", "No teammate has deployed here yet.": "Henüz buraya güç yerleştiren takım arkadaşı yok.", "Loading team deployments…": "Takım yerleşimleri yükleniyor…", "Team data unavailable. Retrying…": "Takım verileri alınamıyor. Tekrar deneniyor…", "Team data may be out of date. Retrying…": "Takım verileri güncel olmayabilir. Tekrar deneniyor…", "Deploy to this tile": "Bu bölgeye yerleştir", "Close": "Kapat", "The day changed. Close this panel and choose a tile again.": "Gün değişti. Paneli kapatıp yeniden bölge seçin.", "The day changed. Open the tile again": "Gün değişti. Bölgeyi yeniden açın.", "Available Power": "Kullanılabilir Güç", "Power to deploy here": "Buraya yerleştirilecek Güç", "Power left after this": "İşlem sonrası kalan Güç", "Deploy {n} Power": "{n} Güç yerleştir", "This amount goes only to this tile. Deployed Power cannot be withdrawn.": "Bu miktar yalnızca bu bölgeye gider. Yerleştirilen Güç geri alınamaz.", "Deployed {n} Power to {tile}.": "{tile} bölgesine {n} Güç yerleştirildi.", "Could not confirm deployment. Retry safely.": "Yerleşim onaylanamadı. Güvenle tekrar deneyin.", "Choose a tile": "Bölge seç", "Tap a glowing tile to deploy. Team Power shows player contributions only.": "Yerleştirmek için parlayan bölgeye dokunun. Takım Gücü yalnızca oyuncu katkılarını gösterir."});
+Object.assign(RU,{"TEAM": "КОМАНДА", "Team": "Команда", "Team chat": "Чат команды", "Team only": "Только команда", "Plan your next move together. Your name appears on every message.": "Обсудите следующий ход. Ваше имя видно рядом с каждым сообщением.", "Team messages": "Сообщения команды", "Load earlier messages": "Загрузить ранние сообщения", "Start your team conversation": "Начните разговор с командой", "Loading messages…": "Загрузка сообщений…", "Discuss a tile, share your plan, or say hello.": "Обсудите территорию, поделитесь планом или поздоровайтесь.", "Message as": "Отправитель", "Write to your team…": "Напишите команде…", "Send": "Отправить", "Sending…": "Отправка…", "Chat could not sync. Your draft is kept.": "Не удалось обновить чат. Черновик сохранён.", "Message not confirmed. Retry sends the same message once.": "Отправка не подтверждена. Повтор не создаст дубликат сообщения.", "Please wait a moment before sending again": "Подождите немного перед следующим сообщением", "Your team here": "Сила команды здесь", "players": "игроков", "You": "Вы", "No teammate has deployed here yet.": "Здесь ещё никто из команды не разместил Силу.", "Loading team deployments…": "Загрузка размещений команды…", "Team data unavailable. Retrying…": "Данные команды недоступны. Повторяем…", "Team data may be out of date. Retrying…": "Данные команды могут быть устаревшими. Повторяем…", "Deploy to this tile": "Разместить на этой территории", "Close": "Закрыть", "The day changed. Close this panel and choose a tile again.": "День сменился. Закройте панель и выберите территорию заново.", "The day changed. Open the tile again": "День сменился. Откройте территорию заново.", "Available Power": "Доступная Сила", "Power to deploy here": "Сила для размещения здесь", "Power left after this": "Сила после размещения", "Deploy {n} Power": "Разместить {n} Силы", "This amount goes only to this tile. Deployed Power cannot be withdrawn.": "Вся сумма направляется только сюда. Размещённую Силу нельзя отозвать.", "Deployed {n} Power to {tile}.": "На {tile} размещено {n} Силы.", "Could not confirm deployment. Retry safely.": "Не удалось подтвердить размещение. Повторите запрос.", "Choose a tile": "Выбрать территорию", "Tap a glowing tile to deploy. Team Power shows player contributions only.": "Нажмите на светящуюся территорию. Сила команды учитывает только вклад игроков."});
 function tr(key, vars){
   const table = I18N[LANG];
   let s = (table && table[key] !== undefined) ? table[key] : key;
@@ -1159,8 +1169,8 @@ const FACTION_META = new Proxy(FACTION_META_RAW, {
     if (!base) return base;
     return new Proxy(base, {
       get(b, prop){
-        if (prop === 'name')  return LANG === 'zh' ? b.zhName : LANG === 'ja' ? b.jaName : LANG === 'ko' ? b.koName : LANG === 'tr' ? b.trName : b.name;
-        if (prop === 'short') return LANG === 'zh' ? b.zhShort : LANG === 'ja' ? b.jaShort : LANG === 'ko' ? b.koShort : LANG === 'tr' ? b.trShort : b.short;
+        if (prop === 'name')  return LANG === 'zh' ? b.zhName : LANG === 'ja' ? b.jaName : LANG === 'ko' ? b.koName : LANG === 'tr' ? b.trName : LANG === 'ru' ? ({cinder:'Красная команда',surge:'Синяя команда',bloom:'Зелёная команда'})[f] : b.name;
+        if (prop === 'short') return LANG === 'zh' ? b.zhShort : LANG === 'ja' ? b.jaShort : LANG === 'ko' ? b.koShort : LANG === 'tr' ? b.trShort : LANG === 'ru' ? ({cinder:'Красные',surge:'Синие',bloom:'Зелёные'})[f] : b.short;
         return b[prop];
       }
     });
@@ -1758,7 +1768,7 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (data !== '0.8.0') return { ok:false, why:'missing_functions', detail:'Community schema v0.8.0 is required.' };
+    if (data !== '0.8.1') return { ok:false, why:'missing_functions', detail:'Community schema v0.8.1 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -2207,6 +2217,10 @@ function handleRealtimeChange(payload){
   if (!row || !row.key || !world) return;
   const key = row.key;
   const value = payload.new ? payload.new.value : null;
+  if(key===fullKey(dayKey(world.runId,'mystate',world.currentDay),false)){
+    if(!myStateWriting&&!energySaveTimer&&!inFlightDeploy&&value)mystate=value;
+    render();return;
+  }
   const roomPrefix = `room:${roomCode}:`;
   if (!key.startsWith(roomPrefix)) return; // ignore other rooms entirely
   if (key === worldKey()){
@@ -2222,7 +2236,7 @@ function handleRealtimeChange(payload){
       || value.runId !== world.runId;
     world = value;
     if (rolledOver){
-      dataStale = true;
+      dataStale = true;teamDeployment=null;deployNotice='';
       render();
       syncAll().then(() => { dataStale = false; render(); });
     } else {
@@ -2234,7 +2248,7 @@ function handleRealtimeChange(payload){
   // everyone else's personal keys and any leftover data from old runIds.
   if (!key.startsWith(roomPrefix + world.runId + '-')) return;
   if (key === dayKey(world.runId, 'activity', world.currentDay)){
-    if (value) { activityDoc = value; render(); }
+    if (value) { activityDoc = value; render();refreshTeamDeployments().then(render); }
   } else if (key === dayKey(world.runId, 'battles', world.currentDay)){
     if (value) { battlesDoc = value; render(); }
   } else if (key === `room:${roomCode}:${world.runId}-roster`){
@@ -2257,6 +2271,7 @@ async function syncAll(){
   if (memberError) return; // Network failure must not be treated as removal.
   if (member === false){
     if (realtimeChannel){ await sbClient.removeChannel(realtimeChannel); realtimeChannel=null; }
+    clearTeamState();
     profile=null; world=null; mystate=null; battlesDoc=null; activityDoc=null;
     isRoomAdmin=false; activeModal=null; debugOpen=false; dataStale=false;
     cachedDocsForDay=null; progressLoaded=false; settlementFetchedForDay=null;
@@ -2296,38 +2311,9 @@ async function syncAll(){
   if (!progressLoaded){ progress = await ensureProgress(); seasonProgress = await ensureSeasonProgress(); progressLoaded = true; }
 
   await refreshRoster();
-  await electCommanderIfNeeded();
-  await autoFallbackRally(day);
+  await refreshTeamDeployments();
+  if(!inFlightDeploy) await refreshOwnDayState();
   await reconcileProgress();
-}
-
-async function autoFallbackRally(day){
-  if (world.rallyEnabled === false) return; // Rally turned off for this round
-  if (world.phase !== 'fog') return;
-  let changed = false;
-  const pending = {};
-  for (const f of FACTIONS){
-    if (!activityDoc.rally[f]){
-      const myBattles = battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(f));
-      if (!myBattles.length) continue;
-      const rng = rngFor('rally', day, f);
-      const scored = myBattles.map(t => ({ t, score: vpValueOf(t, day)*2 + bountyMultiplier(getBountyLevel(world.holdDays[t]||0))*3 + rng() }));
-      scored.sort((a,b)=>b.score-a.score);
-      const main = scored[0].t; const secondary = scored[1] ? scored[1].t : null;
-      pending[f] = { main, secondary, split: secondary ? [75,25] : [100,0], auto: true };
-      changed = true;
-    }
-  }
-  if (!changed) return;
-  const res = await mutateShared(dayKey(world.runId, 'activity', day), (doc) => {
-    const d = doc || { deployed:{}, rally:{cinder:null,surge:null,bloom:null} };
-    let any = false;
-    const rally = { ...d.rally };
-    FACTIONS.forEach(f => { if (pending[f] && !rally[f]){ rally[f] = pending[f]; any = true; } });
-    if (!any) return null;
-    return { ...d, rally };
-  });
-  if (res.ok && res.value && !res.skipped) activityDoc = res.value;
 }
 
 async function reconcileProgress(){
@@ -2653,174 +2639,6 @@ function remainingPower(){ return Math.max(0, round2(computeAvailablePower() - t
 function deploymentOpen(){ return world && world.phase==='battles' && !roundIsOver(); }
 function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownership); }
 
-async function deployPower(mainT, secT, splitPct, amount=null){
-  if (!deploymentOpen() || inFlightDeploy) return;
-  const avail = remainingPower();
-  const deployNow = round2(Math.min(avail, amount===null ? avail : Number(amount)));
-  if (!Number.isFinite(deployNow) || deployNow<=0) return;
-  inFlightDeploy = true;
-  render();
-  let [mp, sp] = splitPct;
-  // AUTHORITATIVE GUARD: with no secondary target there is nowhere for the
-  // secondary share to go, so the main target must take 100%. Without this,
-  // a split like [50,50] arriving alongside secT === null silently discarded
-  // half the player's power — it was neither deployed nor left available,
-  // because deployment also locks for the day. That's how "I deployed 100%
-  // but still have power left, and the button is greyed out" happens.
-  if (!secT){ mp = 100; sp = 0; }
-  const mainPower = round2(deployNow * mp/100);
-  // Give the secondary the exact remainder rather than an independently
-  // rounded share. Rounding both halves separately can overshoot (16.67
-  // split 50/50 rounds to 8.34 + 8.34 = 16.68), which left the player at
-  // -0.01 available. Deriving the remainder makes main + secondary add up
-  // to exactly what was available, every time.
-  const secPower = secT ? round2(deployNow - mainPower) : 0;
-
-  let updatedDoc = null;
-  try{
-    const { data,error }=await sbClient.rpc('rk_submit_deployment',{
-      p_room:roomCode,p_main:mainT,p_secondary:secT,p_main_percent:mp,
-      p_energy:mystate.energyToday,p_boost:mystate.gstBoostPercent,p_amount:deployNow
-    });
-    if (error) throw error;
-    updatedDoc=data;
-  } catch(e){
-    console.error('secure deploy failed:', e);
-    inFlightDeploy = false;
-    lastSyncError = { message: 'Your deployment was not accepted: ' + ((e&&e.message)||'Please retry.'), retry: async () => {
-      lastSyncError = null;
-      const freshState = await ensureMyState(world.currentDay);
-      if (freshState) mystate = freshState;
-      deployPower(mainT, secT, splitPct, deployNow);
-    } };
-    render();
-    return;
-  }
-  if (updatedDoc && updatedDoc.activity) activityDoc = updatedDoc.activity;
-  else if (updatedDoc) activityDoc = updatedDoc;
-
-  if (updatedDoc && updatedDoc.deployedPower){
-    mystate.deployedPower = updatedDoc.deployedPower;
-  } else {
-    mystate.deployedPower[mainT] = round2((Number(mystate.deployedPower[mainT])||0) + mainPower);
-    if (secT) mystate.deployedPower[secT] = round2((Number(mystate.deployedPower[secT])||0) + secPower);
-  }
-  mystate.locked = false;
-  mystate.creditedEnergy = mystate.energyToday;
-  lastSyncError = null;
-  await persistMyState();
-  inFlightDeploy = false;
-  uiScreen = 'home';
-  activeModal = null;
-  deployState = {main:null, secondary:null, splitIdx:1, amount:null};
-  render();
-}
-async function followRally(){
-  if (remainingPower()<=0 || !deploymentOpen()) return;
-  const r = activityDoc.rally[profile.faction];
-  if (!r) return;
-  mystate.followedRally = true;
-  await deployPower(r.main, r.secondary, r.split);
-}
-/* =========================================================
-   COMMANDER — nominate, elect, broadcast
-   Term is one ROUND (7 days), not one day. A one-day term resets trust every
-   morning: the commander pays no price for a bad call and nobody has a reason
-   to remember them, which makes both the message board and any followership
-   worthless. A week-long term lets a commander build a record.
-   Selection is self-nomination + objective energy ranking (no voting) —
-   voting between strangers with zero social graph is noise, and being drafted
-   at random produces commanders who never wanted the job.
-========================================================= */
-function commanderEnergyThreshold(){
-  // Must be in the top N% of your faction by recent energy to stand. Uses the
-  // roster (everyone currently in this room) as the population.
-  const mine = Object.values(roster || {}).filter(r => r.faction === profile.faction && typeof r.recentEnergy === 'number');
-  if (!mine.length) return 0;
-  const sorted = mine.map(r => r.recentEnergy).sort((a,b) => b - a);
-  const idx = Math.max(0, Math.ceil(sorted.length * CONFIG.commanderTopPercent) - 1);
-  return sorted[idx];
-}
-function isEligibleToNominate(){
-  if (!world || !profile) return false;
-  const c = (world.commanders || {})[profile.faction];
-  if (c && c.playerId === LOCAL_PLAYER_ID) return false; // already commander
-  // Term limit: can't serve more than N consecutive rounds, so the single
-  // biggest runner in a faction can't hold the seat forever and freeze
-  // everyone else out.
-  const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
-  if (streak >= CONFIG.commanderMaxConsecutiveRounds) return false;
-  const myEnergy = (profile.recentEnergy || 0);
-  return myEnergy >= commanderEnergyThreshold();
-}
-function myNomination(){
-  const list = (world.commanderNominees || {})[profile.faction] || [];
-  return list.find(n => n.playerId === LOCAL_PLAYER_ID) || null;
-}
-async function nominateSelf(){
-  if (!isEligibleToNominate()) return;
-  const {data,error}=await sbClient.rpc('rk_nominate',{p_room:roomCode});
-  if (error){
-    lastSyncError = { message: 'Your nomination did not sync. Please retry.', retry: () => { lastSyncError = null; nominateSelf(); } };
-    render(); return;
-  }
-  if (data) world=data;
-  lastSyncError = null;
-  await electCommanderIfNeeded();
-  render();
-}
-// Highest recent energy among those who actually put their hand up wins.
-// Deterministic, so every client computes the same winner from the same data.
-function pickCommanderFrom(nominees){
-  if (!nominees || !nominees.length) return null;
-  const sorted = [...nominees].sort((a,b) => (b.energy - a.energy) || a.playerId.localeCompare(b.playerId));
-  return sorted[0];
-}
-// NOMINATION WINDOW.
-// Elections used to resolve the instant the first person nominated, which
-// made it "first to click wins" rather than "highest energy wins" — nobody
-// else ever got the chance to stand. Nominations now stay open for the whole
-// of Day 1 and the winner is only locked in from Day 2 onward.
-function nominationsOpen(){ return world && world.currentDay <= CONFIG.commanderNominationDays; }
-async function electCommanderIfNeeded(){
-  if (!world || nominationsOpen() || world.rallyEnabled===false) return;
-  const {data,error}=await sbClient.rpc('rk_elect_commanders',{p_room:roomCode});
-  if (!error&&data) world=data;
-  // Track our own consecutive-round streak locally, for the term limit.
-  const mine = (world.commanders || {})[profile.faction];
-  if (mine && mine.playerId === LOCAL_PLAYER_ID && seasonProgress && seasonProgress.lastCommanderRound !== world.round){
-    seasonProgress.commanderStreak = ((seasonProgress.lastCommanderRound === world.round - 1) ? (seasonProgress.commanderStreak || 0) : 0) + 1;
-    seasonProgress.lastCommanderRound = world.round;
-    await safeSet(seasonProgressKey(), seasonProgress, false);
-  }
-}
-function iAmCommander(){
-  const c = world && (world.commanders || {})[profile.faction];
-  return !!(c && c.playerId === LOCAL_PLAYER_ID);
-}
-async function publishCommanderMessage(text){
-  if (!iAmCommander()) return;
-  const msg = (text || '').slice(0, CONFIG.commanderMessageMaxChars);
-  const {data,error}=await sbClient.rpc('rk_publish_message',{p_room:roomCode,p_text:msg});
-  if (error){
-    lastSyncError = { message: 'Your message did not sync. Please retry.', retry: () => { lastSyncError = null; publishCommanderMessage(msg); } };
-    render(); return;
-  }
-  if (data) world=data;
-  lastSyncError = null; commanderMsgInput = ''; render();
-}
-async function publishRally(main, sec, split){
-  if (!iAmCommander()) return;
-  const {data,error}=await sbClient.rpc('rk_publish_rally',{p_room:roomCode,p_main:main,p_secondary:sec,p_main_percent:split[0]});
-  if (error){
-    lastSyncError = { message: 'Your Rally failed to publish. Please retry.', retry: () => { lastSyncError = null; publishRally(main, sec, split); } };
-    render();
-    return;
-  }
-  lastSyncError = null;
-  if (data) activityDoc=data;
-  render();
-}
 // The energy slider's oninput event fires on every pixel of drag movement —
 // potentially dozens of times per second. Writing to storage on every one of
 // those was the actual cause of hitting the message rate limit. Now input
@@ -2828,20 +2646,22 @@ async function publishRally(main, sec, split){
 // real write; a slider "release" (onchange) always flushes immediately so
 // nothing is lost if the tab closes right after.
 let energySaveTimer = null;
+let myStateWriting = 0;
 function setEnergy(v){
   mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
   render();
   clearTimeout(energySaveTimer);
-  energySaveTimer = setTimeout(persistMyState, 500);
+  energySaveTimer = setTimeout(()=>{energySaveTimer=null;persistMyState();}, 500);
 }
 function commitEnergy(v){
   mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
-  clearTimeout(energySaveTimer);
+  clearTimeout(energySaveTimer);energySaveTimer=null;
   persistMyState();
   render();
 }
 async function persistMyState(){
-  await safeSet(dayKey(world.runId, 'mystate', world.currentDay), mystate, false);
+  if(!world||!mystate)return;
+  myStateWriting++;try{await safeSet(dayKey(world.runId,'mystate',world.currentDay),mystate,false);}finally{myStateWriting--;}
 }
 async function setGST(pct){
   if (totalDeployedMine()>0) return;
@@ -2885,6 +2705,7 @@ function uiIcon(name){
     bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-8z"/>',
     map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
     target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
+    chat:'<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 3V11.5A8.5 8.5 0 0 1 9.5 3h3a8.5 8.5 0 0 1 8.5 8.5zM6 10h10M6 14h7"/>',
     flag:'<path d="M5 22V3c5-4 9 4 15 0v11c-6 4-10-4-15 0"/>',
     trophy:'<path d="M7 3h10v7a5 5 0 0 1-10 0zM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 3v6m-4 0h8"/>'
   };
@@ -2923,7 +2744,7 @@ function renderBottomNav(){
   const items = [
     {id:'home', icon:'map', label:tr('HOME')},
     {id:'run', icon:'bolt', label:tr('RUN')},
-    {id:'rally', icon:'flag', label:world.rallyEnabled===false?`${tr('RALLY')} · OFF`:tr('RALLY')},
+    {id:'team', icon:'chat', label:tr('TEAM')},
     {id:'season', icon:'trophy', label:tr('SEASON')},
   ];
   return `<div class="bottomnav">
@@ -2950,6 +2771,7 @@ function renderMap(){
       <span class="tid" style="font-size:10px; opacity:0.6;">${t}</span>
       <span class="tname">${territoryLabel(t)}</span>
       <span class="tvp">${vpValueOf(t, world.currentDay)} VP</span>
+      ${isActive?`<span class="tile-team-line">${tr('Team')} ⚡ ${freshTeamData()?powerText(tileTeamTotal(t)):'—'}</span>`:''}
       ${bounty>0 ? `<span class="bounty-pip">🎯${bounty}</span>` : ''}
       ${canDeployHere?`<span class="deploy-corner" aria-hidden="true">↗</span>`:''}
     </div>`;
@@ -3042,9 +2864,10 @@ function todayDeploymentCard(){
 function screenHome(){
   const avail = remainingPower();
   const deployed = totalDeployedMine();
-  const deployButtonLabel = avail <= 0 && deployed > 0 ? tr('ALL DEPLOYED') : deployed > 0 ? tr('DEPLOY MORE')+' →' : tr('DEPLOY')+' →';
+  const deployButtonLabel = avail <= 0 && deployed > 0 ? tr('ALL DEPLOYED') : tr('Choose a tile')+' ↓';
   return `
   ${eliminatedBanner()}
+  ${deployNotice?`<div class="deploy-success" role="status">${escapeHTML(deployNotice)}<button onclick="deployNotice='';render()">✕</button></div>`:''}
   <div class="player-identity" style="--player-team:${FACTION_META[profile.faction].color}"><div class="player-monogram">${escapeHTML((profile.name||'R').slice(0,1).toUpperCase())}</div><div class="player-identity-text"><small>${tr('PLAYING AS')}</small><b>${escapeHTML(profile.name||'Runner')}</b><span>${FACTION_META[profile.faction].name}</span></div><span class="player-team-dot"></span></div>
   ${world.npcPowerEnabled === false ? `<div class="card" style="text-align:center; padding:8px 16px; border-color:var(--danger);">
     <span class="muted" style="font-size:11px;">${tr('⚙️ DEBUG: Background NPC power is OFF — only real deployed power decides battles')}</span>
@@ -3061,10 +2884,11 @@ function screenHome(){
   ${isRoomAdmin ? `<div class="card active-summary" style="cursor:pointer;border-color:#3f3553;" onclick="openAdminPlayers()"><span>👥 ${tr('ROOM PLAYERS')}</span><span style="color:var(--purple);">${tr('View players ›')}</span></div>` : ''}
   ${kingmakerBanner()}
   ${phaseBanner()}
-  <div class="card map-card">
+  <div class="card map-card" id="home-territory-map">
     <div class="card-title">${tr("TERRITORY MAP (today's open battles keep pulsing)")}</div>
     ${renderMap()}
-    <div class="muted" style="text-align:center; margin-top:11px;">${tr('Tap a glowing tile to deploy your Power. Other tiles show battle details.')}</div>
+    ${teamDeploymentError?`<div class="muted team-sync">${tr('Team data may be out of date. Retrying…')}</div>`:''}
+    <div class="muted" style="text-align:center; margin-top:11px;">${tr('Tap a glowing tile to deploy. Team Power shows player contributions only.')}</div>
   </div>
   <div class="prize-box row-between">
     <div><div class="prize-label">${tr('🏆 PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div>
@@ -3110,6 +2934,7 @@ function modalTerritory(t){
       <div class="row-between" style="margin-bottom:10px;"><div>${tr('VP today')}: <b>${vpValueOf(t, world.currentDay)}</b>${t==='E'&&isFinalDay(world.currentDay)?` <span class="chip-small" style="color:var(--gold);">FINAL DAY ×${CONFIG.finalDayKingmakerMultiplier}</span>`:''}</div>${ownerBadge(owner)}</div>
       ${bLvl>0 ? `<div class="muted" style="margin-bottom:10px;">🎯 BOUNTY Lv${bLvl} — held ${world.holdDays[t]} days. Capture reward: +${bountyBonusVP(bLvl)} VP</div>` : ''}
       <div class="divider"></div>
+      ${teamTileDetails(t)}
       ${isActive ? `
         <div class="card-title">${tr('PARTICIPATING FACTIONS')}</div>
         ${eligible.map(f => {
@@ -3159,232 +2984,157 @@ function screenRun(){
   </div>`;
 }
 
-/* ---------- DEPLOY ---------- */
-let deployState = { main: null, secondary: null, splitIdx: 1, amount: null };
-function prefillDeploy(t){ deployState.main = t; render(); }
-function screenDeploy(){
-  const avail = remainingPower();
-  const head = `<div class="screen-head"><div><h1>${tr('DEPLOY')}</h1><p>${tr('Unused Power expires at settlement.')}</p></div><span class="phase-chip">${fmt1(avail)} ${tr('POWER')}</span></div>`;
-  if (avail<=0){
-    return `${head}<div class="card home-power" style="text-align:center;">
-      <div class="card-title">${tr('NO POWER AVAILABLE NOW')}</div>
-      <div class="muted">${tr('New Energy earned before settlement creates additional Power you can deploy later.')}</div><div class="divider"></div>
-      ${Object.entries(mystate.deployedPower).map(([t,p]) => `<div class="row-between"><span>${territoryLabel(t)}</span><span class="mono">⚡ ${fmt1(p)}</span></div>`).join('')}
-    </div>`;
-  }
-  if (!battlesDoc.activeBattles.length) return `${head}<div class="card"><div class="empty-note">${tr('No active battles to deploy to today.')}</div></div>`;
-
-  const eliminated = iAmEliminated();
-  const eligibleBattles = eliminated
-    ? battlesDoc.activeBattles
-    : battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(profile.faction));
-  const usedTargets = Object.entries(mystate.deployedPower).filter(([,p])=>Number(p)>0).map(([t])=>t);
-  const battles = eligibleBattles.filter(t => eliminated ? (!usedTargets.length || usedTargets.includes(t)) : (usedTargets.length<2 || usedTargets.includes(t)));
-  if (!battles.length) return `${head}<div class="card"><div class="empty-note">${tr('Your faction has no eligible battles today (no adjacent access).')}</div></div>`;
-
-  const main = deployState.main && battles.includes(deployState.main) ? deployState.main : battles[0];
-  const amount = round2(Math.min(avail, Math.max(.1, deployState.amount===null ? avail : Number(deployState.amount)||.1)));
-  const amountCard = `<div class="card run-energy">
-    <div class="row-between"><div class="card-title">${tr('POWER TO DEPLOY NOW')}</div><div class="big-num mono">${fmt1(amount)}</div></div>
-    <input class="energy-slider" type="range" min="0.1" max="${avail}" step="0.1" value="${amount}" oninput="setDeployAmount(this.value)">
-    <div class="debug-grid" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
-      ${[25,50,75,100].map(p=>`<div class="split-opt" onclick="setDeployAmountPct(${p})">${p===100?tr('MAX'):p+'%'}</div>`).join('')}
-    </div>
-    <div class="row-between" style="margin-top:10px;"><span class="muted">${tr('Left after this deployment')}</span><span class="mono">${fmt1(round2(avail-amount))}</span></div>
-  </div>`;
-  if (eliminated){
-    const mainPower = amount;
-    return `${head}
-    ${amountCard}
-    <div class="elim-banner"><div class="et">${tr('⚔ LAST STAND COMEBACK')}</div>
-      <div class="muted" style="margin-top:4px;">${tr('Your faction holds no territory right now. Choose one open battle to attack (one target only — all your power goes there).')}</div></div>
-    <div class="card">
-      <div class="card-title">${tr('CHOOSE YOUR TARGET')}</div>
-      ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
-        <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
-    </div>
-    <div class="card">
-      <div class="row-between"><span>${tr('Available')}</span><span class="mono">${fmt1(avail)}</span></div>
-      <div class="row-between"><span>${territoryLabel(main)}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
-      <div class="divider"></div>
-      <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-      <button class="btn btn-primary" onclick="confirmDeploy('${main}', null, [100,0], ${amount})" ${inFlightDeploy?'disabled':''}>${inFlightDeploy?tr('SUBMITTING…'):tr('CONFIRM DEPLOYMENT')}</button>
-    </div>`;
-  }
-  const secondaryOptions = battles.filter(t=>t!==main && new Set([...usedTargets,main,t]).size<=2);
-  const secondary = deployState.secondary && secondaryOptions.includes(deployState.secondary) ? deployState.secondary : null;
-  // The secondary can also be invalidated without any click — e.g. a realtime
-  // sync changes which battles are open. Derive the split from whether a
-  // secondary actually survived, so the ratio shown and the ratio deployed
-  // can never disagree.
-  const split = secondary ? CONFIG.splitPresets[deployState.splitIdx] : [100, 0];
-  const mainPower = round2(amount*split[0]/100); const secPower = secondary ? round2(amount-mainPower) : 0;
-  return `${head}
-  ${amountCard}
-  <div class="card"><div class="card-title">${tr('MAIN BATTLE')}</div>
-    ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="setDeployMain('${t}')">
-      <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
-  </div>
-  <div class="card"><div class="card-title">${tr('OPTIONAL SECONDARY BATTLE')}</div>
-    <div class="terr-select ${!secondary?'selected':''}" onclick="setDeploySecondary(null)"><div>${tr('None — 100% to Main')}</div></div>
-    ${secondaryOptions.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="setDeploySecondary('${t}')">
-      <div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
-  </div>
-  ${secondary ? `<div class="card"><div class="card-title">${tr('ALLOCATION SPLIT')}</div>
-    <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
-      ${CONFIG.splitPresets.map((p,i) => `<div class="split-opt ${deployState.splitIdx===i?'selected':''}" onclick="setSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
-    </div></div>` : ''}
-  <div class="card prize-box"><div class="card-title" style="color:var(--gold)">${tr('RESULT')}</div>
-    <div class="row-between"><span>${tr('Deploy now')}</span><span class="mono">${fmt1(amount)}</span></div>
-    <div class="row-between"><span>${territoryLabel(main)} ${tr('(Main)')}</span><span class="mono">⚡ ${fmt1(mainPower)}</span></div>
-    ${secondary ? `<div class="row-between"><span>${territoryLabel(secondary)} ${tr('(Secondary)')}</span><span class="mono">⚡ ${fmt1(secPower)}</span></div>` : ''}
-    <div class="divider"></div>
-    <div class="muted" style="font-size:12px; margin-bottom:10px;">${tr('Deployment is final. Power cannot be withdrawn after deployment.')}</div>
-    <button class="btn btn-primary" onclick="confirmDeploy('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}], ${amount})" ${inFlightDeploy?'disabled':''}>${inFlightDeploy?tr('SUBMITTING…'):tr('CONFIRM DEPLOYMENT')}</button>
-  </div>`;
+/* ---------- SINGLE TILE DEPLOYMENT ---------- */
+let deployState = {main:null,amount:null,runId:null,day:null,request:null};
+let deployError = '';
+let deployNotice = '';
+function powerText(n){ return Number(n||0).toLocaleString(LANG==='en'?'en-US':LANG,{maximumFractionDigits:2}); }
+function freshTeamData(){ return teamDeployment && world && teamDeployment.runId===world.runId && teamDeployment.day===world.currentDay && teamDeployment.faction===profile.faction; }
+function tileTeamRows(t){ return freshTeamData() ? teamDeployment.entries.filter(e=>e.tile===t) : []; }
+function tileTeamTotal(t){ return round2(tileTeamRows(t).reduce((sum,e)=>sum+Number(e.power),0)); }
+function teamTileDetails(t){
+  if (!freshTeamData()) return `<div class="muted team-sync">${tr(teamDeploymentError?'Team data unavailable. Retrying…':'Loading team deployments…')}</div>`;
+  const rows=tileTeamRows(t);
+  return `${teamDeploymentError?`<p class="muted team-sync">${tr('Team data may be out of date. Retrying…')}</p>`:''}<details class="team-tile-details" id="tile-team-${t}"><summary><span>${tr('Your team here')}</span><strong>${powerText(tileTeamTotal(t))} Power <span class="muted">· ${rows.length} ${tr('players')}</span></strong></summary>
+    <div class="team-tile-members">${rows.map(e=>`<div class="row-between"><span>${escapeHTML(e.name)}${e.playerId===LOCAL_PLAYER_ID?' · '+tr('You'):''}</span><b>${powerText(e.power)}</b></div>`).join('')||`<p class="muted">${tr('No teammate has deployed here yet.')}</p>`}</div>
+  </details>`;
 }
-function modalDeploy(){ return `<div class="modal-backdrop" onclick="closeModalIfBackdrop(event)"><div class="modal-sheet deploy-sheet"><span class="close-x" onclick="closeModal()">✕</span>${screenDeploy()}</div></div>`; }
-function setDeployMain(t){
-  deployState.main = t;
-  // If the new main was the secondary, the secondary is gone — reset the split
-  // to 100/0 too. Leaving splitIdx at 75/25 or 50/50 with no secondary hides
-  // the split UI while still arming a partial deploy.
-  if (deployState.secondary===t){ deployState.secondary=null; deployState.splitIdx=0; }
-  render();
+function selectedDeployAmount(){ return round2(Math.max(0,Number(deployState.amount)||0)); }
+function modalDeploy(){
+  const t=deployState.main;
+  if (!TERRITORIES.includes(t)) return '';
+  const stale=deployState.runId!==world.runId || deployState.day!==world.currentDay;
+  const amount=deployState.request?deployState.request.p_amount:selectedDeployAmount();
+  const available=remainingPower();
+  const canSubmit=!stale && !inFlightDeploy && (deployState.request || (eligibleDeployTiles().includes(t) && amount>0 && amount<=available));
+  return `<div class="modal-backdrop" onclick="closeModalIfBackdrop(event)"><section class="modal-sheet tile-deploy-sheet" role="dialog" aria-modal="true" aria-label="${tr('Deploy to this tile')}">
+    <button class="sheet-close" onclick="closeModal()" aria-label="${tr('Close')}">✕</button>
+    <div class="card-title">${tr('DEPLOY')} · ${tr('Day {n}',{n:deployState.day})}</div>
+    <h2 class="tile-deploy-title"><span>${t}</span>${territoryLabel(t)}</h2>
+    ${stale?`<div class="tile-deploy-message">${tr('The day changed. Close this panel and choose a tile again.')}</div>`:`
+      <div class="row-between tile-balance"><span>${tr('Available Power')}</span><b>${powerText(available)}</b></div>
+      <label class="amount-label" for="tile-amount">${tr('Power to deploy here')}</label>
+      <div class="tile-amount-box"><input id="tile-amount" inputmode="decimal" type="number" min="0" max="${available}" step="0.01" value="${amount||''}" placeholder="0" oninput="setTileAmount(this.value)" ${inFlightDeploy||deployState.request?'disabled':''}><span>Power</span></div>
+      <div class="tile-presets">${[25,50,75,100].map(p=>`<button class="split-opt ${amount>0&&amount===round2(available*p/100)?'selected':''}" onclick="chooseTileAmount(${p})" ${inFlightDeploy||deployState.request?'disabled':''}>${p===100?tr('MAX'):p+'%'}</button>`).join('')}</div>
+      <div class="row-between tile-remainder"><span>${tr('Power left after this')}</span><b id="tile-remaining">${powerText(Math.max(0,round2(available-amount)))}</b></div>
+      ${deployError?`<p class="tile-deploy-error" role="alert">${escapeHTML(deployError)}</p>`:''}
+      <button id="tile-confirm" class="btn btn-primary" onclick="confirmTileDeploy()" ${canSubmit?'':'disabled'}>${inFlightDeploy?tr('SUBMITTING…'):deployState.request?tr('RETRY'):tr('Deploy {n} Power',{n:powerText(amount)})}</button>
+      <p class="tile-deploy-note">${tr('This amount goes only to this tile. Deployed Power cannot be withdrawn.')}</p>`}
+    ${teamTileDetails(t)}
+  </section></div>`;
 }
-function setDeploySecondary(t){ deployState.secondary = t; if(!t) deployState.splitIdx = 0; else if(deployState.splitIdx===0) deployState.splitIdx=1; render(); }
-function setSplit(i){ deployState.splitIdx = i; render(); }
-function setDeployAmount(v){ deployState.amount=Math.max(.1,Math.min(remainingPower(),Number(v)||.1)); render(); }
-function setDeployAmountPct(pct){ deployState.amount=round2(remainingPower()*pct/100); render(); }
-function confirmDeploy(main, sec, split, amount){ deployPower(main, sec, split, amount); }
-
-/* ---------- RALLY ---------- */
-let rallyPublishState = { main:null, secondary:null, splitIdx:1 };
-let commanderMsgInput = '';
-function screenRally(){
-  const head = `<div class="screen-head"><div><h1>${tr('RALLY')}</h1></div><span class="phase-chip">${tr('ROUND {n}', {n:world.round})}</span></div>`;
-  if (world.rallyEnabled === false){
-    return `${head}<div class="card season-progress" style="text-align:center; padding:24px 18px;">
-      <div class="card-title">${tr('RALLY IS OFF')}</div>
-      <div class="muted">${tr('The Commander/Rally feature is disabled for this round (an admin turned it off in the debug panel — handy when a faction only has one player, since Rally has no one to coordinate). Deploy your power directly from the Deploy tab instead.')}</div>
-      <button class="btn btn-primary" style="margin-top:16px;" onclick="goScreen('deploy')">${tr('GO TO DEPLOY')}</button>
-    </div>`;
+function setTileAmount(v){
+  if(inFlightDeploy||deployState.request)return;
+  deployState.amount=Number(v)||0; deployError='';
+  const amount=selectedDeployAmount(),button=document.getElementById('tile-confirm');
+  if(button){button.textContent=tr('Deploy {n} Power',{n:powerText(amount)});button.disabled=amount<=0||amount>remainingPower()||!eligibleDeployTiles().includes(deployState.main);}
+  const left=document.getElementById('tile-remaining');if(left)left.textContent=powerText(Math.max(0,round2(remainingPower()-amount)));
+  document.querySelectorAll('.tile-presets .selected').forEach(e=>e.classList.remove('selected'));
+}
+function chooseTileAmount(pct){ if(inFlightDeploy||deployState.request)return;deployState.amount=round2(remainingPower()*pct/100);deployError='';render(); }
+async function confirmTileDeploy(){
+  if(inFlightDeploy || deployState.runId!==world.runId || deployState.day!==world.currentDay)return;
+  if(!deployState.request){
+    if(!eligibleDeployTiles().includes(deployState.main)||selectedDeployAmount()<=0||selectedDeployAmount()>remainingPower())return;
+    deployState.request={p_room:roomCode,p_tile:deployState.main,p_amount:selectedDeployAmount(),p_energy:mystate.energyToday,p_boost:mystate.gstBoostPercent,p_run:world.runId,p_day:world.currentDay,p_request_id:crypto.randomUUID()};
   }
-  const m = FACTION_META[profile.faction];
-  const commander = (world.commanders || {})[profile.faction];
-  const battles = battlesDoc.activeBattles.filter(t => effectiveEligibleFactions(t, world.ownership, battlesDoc.activeBattles, world.currentDay).includes(profile.faction));
-  const msg = (world.commanderMessages || {})[profile.faction];
-
-  // --- No commander elected for this round yet: show the nomination stand ---
-  if (!commander){
-    const nominees = (world.commanderNominees || {})[profile.faction] || [];
-    const mine = myNomination();
-    const eligible = isEligibleToNominate();
-    const threshold = commanderEnergyThreshold();
-    const streak = (seasonProgress && seasonProgress.commanderStreak) || 0;
-    return `${head}
-    <div class="card">
-      <div class="card-title">${tr('👑 COMMANDER ELECTION — ROUND {n}', {n: world.round})}</div>
-      <div class="muted" style="line-height:1.6;">${tr('Commanders serve for the <b>whole round (7 days)</b>. Anyone in the top {p}% of {faction} by recent energy can stand. Highest recent energy among those who stand wins.', {p: Math.round(CONFIG.commanderTopPercent*100), faction: m.name})}</div>
-    </div>
-    <div class="card">
-      <div class="card-title">${tr('STANDING FOR ELECTION ({n})', {n: nominees.length})}</div>
-      ${nominees.length ? nominees.slice().sort((a,b)=>b.energy-a.energy).map(n => `
-        <div class="row-between" style="padding:5px 0;">
-          <span>${n.name}${n.playerId===LOCAL_PLAYER_ID?' '+tr('(you)'):''}</span>
-          <span class="mono">${tr('{n} energy', {n: fmt1(n.energy)})}</span>
-        </div>`).join('') : `<div class="empty-note">${tr('Nobody has stood yet.')}</div>`}
-      <div class="divider"></div>
-      <div class="muted" style="font-size:12px; margin-bottom:8px;">${tr('Your recent energy: <b class="mono">{mine}</b> · Needed to stand: <b class="mono">{need}</b>', {mine: fmt1(profile.recentEnergy||0), need: fmt1(threshold)})}</div>
-      ${streak >= CONFIG.commanderMaxConsecutiveRounds ? `<div class="muted" style="font-size:12px; color:var(--gold);">${tr("You've served {n} rounds in a row — sit this one out (max {max}).", {n: streak, max: CONFIG.commanderMaxConsecutiveRounds})}</div>` : ''}
-      ${mine ? `<div class="muted" style="text-align:center;">${tr("✅ You're standing. The winner is decided once elections resolve.")}</div>`
-             : `<button class="btn btn-primary" onclick="nominateSelf()" ${!eligible?'disabled':''}>${tr('STAND FOR COMMANDER')}</button>`}
-    </div>`;
-  }
-
-  const isMe = commander.playerId === LOCAL_PLAYER_ID;
-  const rally = activityDoc.rally[profile.faction];
-
-  const commanderCard = `${head}
-  <div class="rally-card" style="border-color:${m.color};">
-    <div class="row-between" style="margin-bottom:6px;">
-      <span class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px;">👑 ${commander.name}${isMe?' '+tr('(you)'):''}</span>
-      <span class="chip-small">${tr('ROUND {n}', {n: world.round})}</span>
-    </div>
-    <div class="muted" style="font-size:12px;">${tr('Record this round: {w}W – {l}L', {w: world.commanderRecord[profile.faction].wins, l: world.commanderRecord[profile.faction].losses})}</div>
-    ${msg && msg.text ? `<div class="divider"></div><div style="font-size:13px; line-height:1.5;">💬 ${msg.text}</div><div class="muted" style="font-size:11px; margin-top:4px;">${tr('— posted day {n}', {n: msg.day})}</div>` : ''}
-  </div>`;
-
-  // --- Commander's own view: message board + rally publishing ---
-  if (isMe){
-    const remaining = CONFIG.commanderMessageMaxChars - commanderMsgInput.length;
-    const msgCard = `
-    <div class="card">
-      <div class="card-title">${tr('BROADCAST TO YOUR TEAM')}</div>
-      <div class="muted" style="font-size:12px; margin-bottom:6px;">${tr('One short message your whole team sees. Update it any day of the round.')}</div>
-      <input id="cmd-msg-input" class="name-input" maxlength="${CONFIG.commanderMessageMaxChars}" placeholder="e.g. Day 3: Blue left Find Satoshi thin — hit it tomorrow" value="${commanderMsgInput}" oninput="commanderMsgInput=this.value; updateCmdMsgCount();" />
-      <div class="row-between" style="margin-top:6px;">
-        <span class="muted" id="cmd-msg-count" style="font-size:11px;">${tr('{n} characters left', {n: remaining})}</span>
-        <button class="btn btn-primary btn-small" onclick="publishCommanderMessage(commanderMsgInput)" ${!commanderMsgInput.trim()?'disabled':''}>${tr('POST')}</button>
-      </div>
-    </div>`;
-
-    if (!rally){
-      if (!battles.length) return commanderCard + msgCard + `<div class="card"><div class="empty-note">${tr('No eligible battles to rally today.')}</div></div>`;
-      const main = rallyPublishState.main && battles.includes(rallyPublishState.main) ? rallyPublishState.main : battles[0];
-      const secOpts = battles.filter(t=>t!==main);
-      const secondary = rallyPublishState.secondary && secOpts.includes(rallyPublishState.secondary) ? rallyPublishState.secondary : null;
-      const split = secondary ? CONFIG.splitPresets[rallyPublishState.splitIdx] : [100, 0];
-      return commanderCard + msgCard + `
-      <div class="card"><div class="card-title">${tr("TODAY'S RALLY — MAIN TERRITORY")}</div>
-        ${battles.map(t => `<div class="terr-select ${main===t?'selected':''}" onclick="rMain('${t}')"><div><b class="display">${territoryLabel(t)}</b> ${ownerBadge(world.ownership[t])}</div><div class="muted">${vpValueOf(t, world.currentDay)} VP</div></div>`).join('')}
-      </div>
-      <div class="card"><div class="card-title">${tr('SECONDARY (OPTIONAL)')}</div>
-        <div class="terr-select ${!secondary?'selected':''}" onclick="rSec(null)">${tr('None')}</div>
-        ${secOpts.map(t => `<div class="terr-select ${secondary===t?'selected':''}" onclick="rSec('${t}')"><div><b class="display">${territoryLabel(t)}</b></div></div>`).join('')}
-      </div>
-      ${secondary ? `<div class="card"><div class="card-title">${tr('ALLOCATION SPLIT')}</div>
-        <div class="debug-grid" style="grid-template-columns:1fr 1fr 1fr;">
-          ${CONFIG.splitPresets.map((p,i)=>`<div class="split-opt ${rallyPublishState.splitIdx===i?'selected':''}" onclick="rSplit(${i})">${p[0]}/${p[1]}</div>`).join('')}
-        </div></div>` : ''}
-      <button class="btn btn-primary" onclick="doPublish('${main}', ${secondary?`'${secondary}'`:null}, [${split[0]},${split[1]}])">${tr('PUBLISH RALLY')}</button>`;
+  const request=deployState.request;
+  inFlightDeploy=true;deployError='';render();
+  try{
+    const {data,error}=await sbClient.rpc('rk_submit_tile_deployment',request);
+    if(error)throw error;
+    if(data.runId===world.runId && data.day===world.currentDay){
+      mystate.deployedPower=data.deployedPower;
+      mystate.creditedEnergy=request.p_energy;
+      if(data.activity)activityDoc=data.activity;
     }
-    return commanderCard + msgCard + `<div class="card"><div class="empty-note">${tr("Today's rally is published and locked.")}</div></div>`;
-  }
+    // Reload the canonical ledger: another device may also be using this identity.
+    await refreshOwnDayState(); await refreshTeamDeployments();
+    deployNotice=tr('Deployed {n} Power to {tile}.',{n:powerText(data.deployedAmount),tile:territoryLabel(request.p_tile)});
+    activeModal=null;uiScreen='home';deployState={main:null,amount:null,runId:null,day:null,request:null};
+  }catch(e){
+    deployError=tr(e.message)||tr('Could not confirm deployment. Retry safely.');
+    if(e.code==='P0001')deployState.request=null;
+  }finally{inFlightDeploy=false;render();}
+}
 
-  // --- Normal player's view ---
-  if (!rally){
-    return commanderCard + `<div class="card"><div class="empty-note">${tr("{name} hasn't published today's Rally yet — check back shortly.", {name: commander.name})}</div></div>`;
-  }
-  return commanderCard + `
-  <div class="rally-card" style="border-color:${m.color};">
-    <div class="display" style="color:${m.color}; font-weight:700; letter-spacing:1px; margin-bottom:8px;">${tr("TODAY'S RALLY")}</div>
-    <div class="row-between"><span class="muted">${tr('MAIN')}</span><span><b>${territoryLabel(rally.main)}</b> — ${rally.split[0]}%</span></div>
-    ${rally.secondary ? `<div class="row-between"><span class="muted">${tr('SUPPORT')}</span><span><b>${territoryLabel(rally.secondary)}</b> — ${rally.split[1]}%</span></div>` : ''}
-    ${rally.auto ? `<div class="muted" style="font-size:11px; margin-top:6px;">${tr('(auto-generated)')}</div>` : ''}
-  </div>
-  <div class="btn-row">
-    <button class="btn btn-primary" onclick="followRally()" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('FOLLOW RALLY')}</button>
-    <button class="btn btn-outline" onclick="goScreen('deploy')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('CUSTOM DEPLOY')}</button>
-  </div>
-  ${remainingPower()<=0 ? `<div class="muted" style="text-align:center; margin-top:10px;">${tr('No Power is available now. New Energy can be deployed before settlement.')}</div>` : ''}`;
+/* ---------- TEAM CHAT AND TEAM DEPLOYMENTS ---------- */
+let teamDeployment=null,teamDeploymentError=false,teamDeploymentBusy=false;
+let chatMessages=[],chatDraft='',chatRequest=null,chatSending=false,chatLoading=false,chatError='',chatLoaded=false,chatHasOlder=false;
+let chatComposing=false,chatRenderPending=false,chatTimer=null,chatForceBottom=false,chatPrepending=false,chatCursor=null;
+function teamContext(){ return `${roomCode}:${LOCAL_PLAYER_ID}:${profile&&profile.faction}`; }
+function clearTeamState(){teamDeployment=null;teamDeploymentError=false;chatMessages=[];chatDraft='';chatRequest=null;chatLoaded=false;chatError='';chatHasOlder=false;chatCursor=null;}
+async function refreshOwnDayState(){
+  if(!world||!mystate||myStateWriting||energySaveTimer)return;
+  const key=dayKey(world.runId,'mystate',world.currentDay);
+  const fresh=await safeGet(key,false);
+  if(world&&fresh&&fresh!==STORAGE_RETRY_LATER&&key===dayKey(world.runId,'mystate',world.currentDay))mystate=fresh;
 }
-// Surgical update so typing in the broadcast box doesn't re-render the whole
-// screen and yank focus out of the input after every character.
-function updateCmdMsgCount(){
-  const el = document.getElementById('cmd-msg-count');
-  if (el) el.textContent = tr('{n} characters left', {n: CONFIG.commanderMessageMaxChars - commanderMsgInput.length});
+async function refreshTeamDeployments(){
+  if(!roomCode||!profile||!world||teamDeploymentBusy)return;
+  const context=teamContext();teamDeploymentBusy=true;
+  try{
+    const {data,error}=await sbClient.rpc('rk_team_deployments',{p_room:roomCode});if(error)throw error;
+    if(context===teamContext()&&data.runId===world.runId&&data.day===world.currentDay&&data.faction===profile.faction){teamDeployment=data;teamDeploymentError=false;}
+  }catch(e){if(e.message==='Not a team member')clearTeamState();teamDeploymentError=true;}finally{teamDeploymentBusy=false;}
 }
-function rMain(t){
-  rallyPublishState.main=t;
-  // Same reset as setDeployMain — a rally published with a split but no
-  // secondary would waste that share for every player who follows it.
-  if (rallyPublishState.secondary===t){ rallyPublishState.secondary=null; rallyPublishState.splitIdx=0; }
-  render();
+function mergeChatMessages(messages){
+  const byId=new Map(chatMessages.map(m=>[m.id,m]));messages.forEach(m=>byId.set(m.id,m));
+  chatMessages=[...byId.values()].sort((a,b)=>BigInt(a.id)<BigInt(b.id)?-1:1);
 }
-function rSec(t){ rallyPublishState.secondary=t; if(!t) rallyPublishState.splitIdx=0; else if(rallyPublishState.splitIdx===0) rallyPublishState.splitIdx=1; render(); }
-function rSplit(i){ rallyPublishState.splitIdx=i; render(); }
-function doPublish(main, sec, split){ publishRally(main, sec, split); rallyPublishState={main:null,secondary:null,splitIdx:1}; }
+async function refreshTeamChat(older=false){
+  if(!roomCode||!profile||chatLoading)return;
+  const context=teamContext();chatLoading=true;
+  if(older)render();
+  try{
+    const before=older&&chatMessages.length?chatMessages[0].id:null;
+    const {data,error}=await sbClient.rpc('rk_get_team_chat',{p_room:roomCode,p_before:before,p_after:older?null:chatCursor});if(error)throw error;
+    if(context!==teamContext()||data.faction!==profile.faction)return;
+    if(older||!chatCursor)chatHasOlder=data.messages.length===50;
+    if(!older&&data.messages.length)chatCursor=data.messages[data.messages.length-1].id;
+    chatPrepending=older;mergeChatMessages(data.messages);chatLoaded=true;chatError='';
+  }catch(e){chatError=tr('Chat could not sync. Your draft is kept.');}
+  finally{chatLoading=false;if(uiScreen==='team')render();}
+}
+function editChatDraft(value){
+  chatDraft=value;
+  if(chatRequest&&chatRequest.p_body!==value.trim())chatRequest=null;
+  const b=document.getElementById('chat-send');if(b)b.disabled=chatSending||!chatDraft.trim();
+  const count=document.getElementById('chat-count');if(count)count.textContent=Array.from(value).length+'/500';
+}
+async function sendTeamChat(){
+  if(chatSending||!chatDraft.trim()||Array.from(chatDraft.trim()).length>500)return;
+  if(!chatRequest)chatRequest={p_room:roomCode,p_body:chatDraft.trim(),p_request_id:crypto.randomUUID()};
+  const context=teamContext(),request=chatRequest;chatSending=true;chatError='';render();
+  try{
+    const {data,error}=await sbClient.rpc('rk_send_team_message',request);if(error)throw error;
+    if(context!==teamContext())return;
+    mergeChatMessages([data]);chatDraft='';chatRequest=null;chatLoaded=true;chatForceBottom=true;
+  }catch(e){chatError=e.message==='Please wait a moment before sending again'?tr('Please wait a moment before sending again'):tr('Message not confirmed. Retry sends the same message once.');}
+  finally{chatSending=false;render();}
+}
+function screenTeamChat(){
+  const fm=FACTION_META[profile.faction];
+  return `<div class="screen-head"><div><h1>${tr('Team chat')}</h1><p style="color:${fm.color}">${fm.name}</p></div><span class="chat-private">${uiIcon('chat')} ${tr('Team only')}</span></div>
+    <p class="muted chat-intro">${tr('Plan your next move together. Your name appears on every message.')}</p>
+    <section class="team-chat-card">
+      <div id="team-chat-log" class="team-chat-log" role="log" aria-label="${tr('Team messages')}">
+        ${chatHasOlder?`<button class="chat-older" onclick="refreshTeamChat(true)" ${chatLoading?'disabled':''}>${tr('Load earlier messages')}</button>`:''}
+        ${chatMessages.map(m=>`<article class="chat-message ${m.playerId===LOCAL_PLAYER_ID?'mine':''}" data-message-id="${m.id}"><div class="chat-meta"><b>${escapeHTML(m.name)}</b><time>${new Date(m.sentAt).toLocaleString(LANG,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</time></div><div class="chat-bubble">${escapeHTML(m.body)}</div></article>`).join('')||`<div class="chat-empty">${uiIcon('chat')}<b>${tr(chatLoaded?'Start your team conversation':'Loading messages…')}</b><span>${tr('Discuss a tile, share your plan, or say hello.')}</span></div>`}
+      </div>
+      <div class="chat-composer">
+        ${chatError?`<div class="chat-error" role="alert">${escapeHTML(chatError)}</div>`:''}
+        <label for="team-chat-input">${tr('Message as')} <b>${escapeHTML(profile.name)}</b></label>
+        <textarea id="team-chat-input" maxlength="500" rows="3" placeholder="${tr('Write to your team…')}" oninput="editChatDraft(this.value)" oncompositionstart="chatComposing=true" oncompositionend="chatComposing=false;editChatDraft(this.value);if(chatRenderPending){chatRenderPending=false;render();}" ${chatSending?'disabled':''}>${escapeHTML(chatDraft)}</textarea>
+        <div class="row-between"><span class="muted" id="chat-count">${Array.from(chatDraft).length}/500</span><button id="chat-send" class="btn btn-primary btn-small" onclick="sendTeamChat()" ${chatSending||!chatDraft.trim()?'disabled':''}>${tr(chatSending?'Sending…':'Send')}</button></div>
+      </div>
+    </section>`;
+}
+function startChatLoop(){
+  if(chatTimer)return;
+  const tick=async()=>{try{if(uiScreen==='team'&&bootPhase==='ready'&&!document.hidden)await refreshTeamChat();}finally{chatTimer=setTimeout(tick,4000);}};
+  chatTimer=setTimeout(tick,4000);
+}
 
 /* ---------- PLAYERS (who's playing) ---------- */
 /* NOTE: a detailed per-player roster screen (names, per-faction breakdown,
@@ -3655,20 +3405,21 @@ function eligibleDeployTiles(){
 }
 function openDeployForTile(t){
   if (!eligibleDeployTiles().includes(t)) return openTerritoryInfo(t);
-  deployState={main:t,secondary:null,splitIdx:1,amount:null};
-  activeModal='deploy'; render();
+  deployState={main:t,amount:null,runId:world.runId,day:world.currentDay,request:null};
+  deployError='';activeModal='deploy';render();
+  refreshTeamDeployments().then(render);
 }
 function goScreen(id){
-  if (id==='deploy') { uiScreen='home'; activeModal=null; render();
-    const target=eligibleDeployTiles()[0]; if (target) openDeployForTile(target); return; }
-  uiScreen = id; activeModal = null; render();
+  if(id==='deploy'){
+    uiScreen='home';activeModal=null;render();
+    document.getElementById('home-territory-map')?.scrollIntoView({behavior:'smooth',block:'center'});return;
+  }
+  uiScreen=id;activeModal=null;if(id==='team')chatForceBottom=true;render();
+  if(id==='team'){refreshTeamChat();startChatLoop();}
 }
-function openTerritoryInfo(t){ activeModal=t; render(); }
-function openTerritory(t){
-  if (eligibleDeployTiles().includes(t)) openDeployForTile(t);
-  else openTerritoryInfo(t);
-}
-function closeModal(){ activeModal = null; render(); }
+function openTerritoryInfo(t){activeModal=t;render();refreshTeamDeployments().then(render);}
+function openTerritory(t){if(eligibleDeployTiles().includes(t))openDeployForTile(t);else openTerritoryInfo(t);}
+function closeModal(){if(inFlightDeploy)return;activeModal=null;render();}
 function closeModalIfBackdrop(e){ if (e.target.classList.contains('modal-backdrop')) closeModal(); }
 
 /* =========================================================
@@ -3753,11 +3504,6 @@ function renderDebug(){
       <div class="muted" style="margin-top:4px; font-size:11px;">Fog and Resolve Day are on the Home screen for room admins only.</div>
     </div>
     <div class="debug-section">
-      <h4>Rally (affects all players)</h4>
-      <div class="muted" style="margin-bottom:6px;">Currently: ${world.rallyEnabled === false ? 'OFF' : 'ON'}. Useful to turn off while testing with only one player per faction.</div>
-      <button class="btn btn-outline btn-small" onclick="dbgToggleRally()">${world.rallyEnabled === false ? 'Turn Rally ON' : 'Turn Rally OFF'}</button>
-    </div>
-    <div class="debug-section">
       <h4>Background NPC Power (affects all players)</h4>
       <div class="muted" style="margin-bottom:6px;">Currently: ${world.npcPowerEnabled === false ? 'OFF' : 'ON'}. When ON, every eligible faction gets randomized "background" power on top of any real deployed power — this is what makes territories flip even when nobody touched them. Turn OFF so outcomes depend only on real deployed power (only affects days not yet generated).</div>
       <button class="btn btn-outline btn-small" onclick="dbgToggleNpcPower()">${world.npcPowerEnabled === false ? 'Turn NPC Power ON' : 'Turn NPC Power OFF'}</button>
@@ -3792,7 +3538,22 @@ function renderDebug(){
    ROOT RENDER
 ========================================================= */
 function render(){
-  try{ renderInner(); }
+  if(chatComposing&&uiScreen==='team'){chatRenderPending=true;return;}
+  const focused=document.activeElement;
+  const focusId=focused&&['team-chat-input','tile-amount'].includes(focused.id)?focused.id:null;
+  const selection=focusId==='team-chat-input'?[focused.selectionStart,focused.selectionEnd]:null;
+  const log=document.getElementById('team-chat-log');
+  const logState=log?{top:log.scrollTop,height:log.scrollHeight,bottom:log.scrollHeight-log.scrollTop-log.clientHeight<60}:null;
+  const sheet=document.querySelector('.modal-sheet');const sheetTop=sheet?sheet.scrollTop:0;
+  const details=[...document.querySelectorAll('details[id][open]')].map(e=>e.id);
+  try{renderInner();
+    const newLog=document.getElementById('team-chat-log');
+    if(newLog){if(chatForceBottom||!logState||logState.bottom&&!chatPrepending)newLog.scrollTop=newLog.scrollHeight;else newLog.scrollTop=logState.top+(chatPrepending?newLog.scrollHeight-logState.height:0);}
+    chatForceBottom=false;chatPrepending=false;
+    const newSheet=document.querySelector('.modal-sheet');if(newSheet)newSheet.scrollTop=sheetTop;
+    details.forEach(id=>{const el=document.getElementById(id);if(el)el.open=true;});
+    if(focusId){const input=document.getElementById(focusId);if(input&&!input.disabled){input.focus({preventScroll:true});if(selection)input.setSelectionRange(...selection);}}
+  }
   catch(e){
     // A last-resort safety net: if literally anything else in render()
     // throws (a screen function, a modal, etc.), show that clearly instead
@@ -3908,7 +3669,7 @@ function renderInner(){
   let body = '';
   if (uiScreen === 'home') body = screenHome();
   else if (uiScreen === 'run') body = screenRun();
-  else if (uiScreen === 'rally') body = screenRally();
+  else if (uiScreen === 'team') body = screenTeamChat();
   else if (uiScreen === 'report') body = screenReport();
   else if (uiScreen === 'season') body = screenSeason();
   else if (uiScreen === 'history') body = screenHistory();
