@@ -384,7 +384,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-app-v0.8.4-markers-v11-2026-09-29';
+const APP_BUILD = 'rk-app-v0.8.5-lifecycle-v12-2026-09-29';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -397,12 +397,7 @@ function getSavedLang(){
   try { return localStorage.getItem('rk_lang') || 'en'; } catch(e){ return 'en'; }
 }
 let LANG = getSavedLang();
-function setLang(l){
-  LANG = l;
-  try { localStorage.setItem('rk_lang', l); } catch(e){}
-  render();
-}
-function toggleLang(){ setLang(LANG === 'en' ? 'zh' : 'en'); }
+
 
 const ZH = {
   // --- topbar / nav ---
@@ -1535,7 +1530,7 @@ function isFinalDay(day){ return day >= CONFIG.roundDays; }
 // (rounds 1-5, next round still to come) and 'seasonEnd' (after round 6).
 function roundIsOver(){ return world && (world.phase === 'roundEnd' || world.phase === 'seasonEnd'); }
 // One value for map, modal and settlement on every day of the test round.
-function vpValueOf(t, day){ return baseVPof(t); }
+function vpValueOf(t, day){ return baseVPof(t)*(t==='E'&&Number(day)===7?3:1); }
 function calculateDailyVP(ownership, day){
   const totals = { cinder:0, surge:0, bloom:0 };
   TERRITORIES.forEach(t => {
@@ -1634,7 +1629,7 @@ function normalizeSupabaseProjectUrl(raw){
 }
 
 function readSupabaseConfig(){
-  if (SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
+  if (localStorage.getItem('rk_manual_connection')!=='1' && SUPABASE_URL_HARDCODED && SUPABASE_ANON_KEY_HARDCODED
       && !SUPABASE_URL_HARDCODED.startsWith('YOUR_') && !SUPABASE_ANON_KEY_HARDCODED.startsWith('YOUR_')){
     const hardcodedUrl = normalizeSupabaseProjectUrl(SUPABASE_URL_HARDCODED);
     const hardcodedKey = SUPABASE_ANON_KEY_HARDCODED.trim();
@@ -1700,6 +1695,7 @@ function buildInviteLink(){
   return `${base}#${parts.join('&')}`;
 }
 function forgetSupabaseConfig(){
+  localStorage.setItem('rk_manual_connection','1');
   localStorage.removeItem('rk_supabase_url');
   localStorage.removeItem('rk_supabase_key');
   location.reload();
@@ -1911,8 +1907,8 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    analyticsSchemaVersion=data;analyticsSupported=['0.8.3','0.8.4'].includes(data);
-    if (!['0.8.2','0.8.3','0.8.4'].includes(data)) return { ok:false, why:'missing_functions', detail:'Community schema v0.8.2 is required.' };
+    analyticsSchemaVersion=data;analyticsSupported=['0.8.3','0.8.4','0.8.5'].includes(data);
+    if (!['0.8.2','0.8.3','0.8.4','0.8.5'].includes(data)) return { ok:false, why:'missing_functions', detail:'Community schema v0.8.2 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -1945,8 +1941,9 @@ async function boot(){
   // falling back to onboarding, same as we already do for 'world' in enterWorld().
   if (p === STORAGE_RETRY_LATER){
     let retried = p;
-    for (let i = 0; i < 3 && retried === STORAGE_RETRY_LATER; i++){ await sleep(600); retried = await safeGet('profile', false); }
-    profile = (retried && retried !== STORAGE_RETRY_LATER) ? retried : null;
+    for (let i = 0; i < 3 && retried === STORAGE_RETRY_LATER; i++){ await sleep(600); retried = await safeGet(profileKey(), false); }
+    if(retried===STORAGE_RETRY_LATER){bootPhase='load_failed';lastSyncError={message:'Could not load your profile. Please retry.',retry:()=>boot()};render();return;}
+    profile = retried || null;
   } else {
     profile = p;
   }
@@ -2032,6 +2029,7 @@ function submitSetupForm(){
     alert('That Project URL is not valid. Paste the Supabase Project URL, for example: https://abcdefgh.supabase.co');
     return;
   }
+  localStorage.setItem('rk_manual_connection','1');
   localStorage.setItem('rk_supabase_url', url);
   localStorage.setItem('rk_supabase_key', key);
   location.reload(); // simplest, safest way to cleanly re-init everything with the new config
@@ -2197,9 +2195,9 @@ async function ensureMyState(day){
     return doc;
   }
   if (doc === STORAGE_RETRY_LATER){
-    return mystate || { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
+    return mystate || { energyToday: round2(rngFor('energy', roomCode, world.runId, day, LOCAL_PLAYER_ID)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
   }
-  doc = { energyToday: round2(rngFor('energy', day, profile.name)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
+  doc = { energyToday: round2(rngFor('energy', roomCode, world.runId, day, LOCAL_PLAYER_ID)()*60 + 6), gstBoostPercent: 0, locked: false, deployedPower: {}, creditedEnergy: 0, followedRally: null };
   await safeSet(key, doc, false);
   return doc;
 }
@@ -2307,7 +2305,8 @@ async function ensureWorldLoaded(){
   // If this was just a transient read failure, wait and re-check before
   // concluding the world doesn't exist — otherwise we'd spin up a duplicate world.
   for (let i = 0; i < 3 && w === STORAGE_RETRY_LATER; i++){ await sleep(700); w = await safeGet(worldKey(), true); }
-  if (!w || w === STORAGE_RETRY_LATER){
+  if(w===STORAGE_RETRY_LATER)return null;
+  if (!w){
     const candidate = makeInitialWorld();
     const created = await mutateShared(worldKey(), (cur) => cur || candidate);
     if (!created.ok) return null;
@@ -2320,7 +2319,7 @@ async function enterWorld(){
   const loaded = await ensureWorldLoaded();
   if (!loaded){
     lastSyncError = { message: 'Could not reach the game world. Please retry.', retry: () => { lastSyncError = null; enterWorld(); } };
-    bootPhase = 'ready'; analyticsPulse(); render(); return;
+    bootPhase = 'load_failed'; render(); return;
   }
   if (profile && profile.seasonId && profile.seasonId !== world.seasonId){
     profile = null;
@@ -2330,6 +2329,7 @@ async function enterWorld(){
     return;
   }
   await syncAll();
+  if(!profile)return;
   await joinRoster(); // announce ourselves once so we show up for others right away
   bootPhase = 'ready'; analyticsPulse();
   render();
@@ -2353,7 +2353,7 @@ function startRealtime(){
   if (!sbClient || realtimeChannel) return;
   realtimeChannel = sbClient
     .channel('kv-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'kv_store' }, handleRealtimeChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'kv_store', filter:'room_code=eq.'+roomCode }, handleRealtimeChange)
     .subscribe();
 }
 function handleRealtimeChange(payload){
@@ -2375,14 +2375,14 @@ function handleRealtimeChange(payload){
     // day's data — a brief but real "new world + stale UI" state where the map
     // and the deploy screen disagree with the day counter. Re-sync those
     // documents before showing anything from the new day.
-    const rolledOver = value.currentDay !== world.currentDay
+    const rolledOver = value.seasonId !== world.seasonId || value.currentDay !== world.currentDay
       || value.round !== world.round
       || value.runId !== world.runId;
     world = value;
     if (rolledOver){
       dataStale = true;teamDeployment=null;deployNotice='';
       render();
-      syncAll().then(() => { dataStale = false; render(); });
+      syncAll().then(() => {if(dataStale)setTimeout(()=>syncAll().then(render),0);render();});
     } else {
       render();
     }
@@ -2409,11 +2409,23 @@ let cachedDocsForDay = null; // day number that battlesDoc/mystate were last loa
 let settlementFetchedForDay = null; // reportDay we last fetched settlementDoc for
 let progressLoaded = false;
 
+let loadedGameContext='',syncPromise=null;
+function clearRoundCache(){
+ roundResult=null;progress=null;progressLoaded=false;settlementDoc=null;settlementFetchedForDay=null;cachedDocsForDay=null;
+ battlesDoc=null;mystate=null;activityDoc=null;teamDeployment=null;deployNotice='';activeModal=null;
+ clearTimeout(energySaveTimer);energySaveTimer=null;energyDragging=false;
+ deployState={main:null,amount:null,runId:null,day:null,request:null};
+}
 async function syncAll(){
+ if(syncPromise)return syncPromise;
+ syncPromise=syncAllImpl().finally(()=>{syncPromise=null;});return syncPromise;
+}
+async function syncAllImpl(){
   if (!roomCode || !profile) return;
   const {data:member,error:memberError}=await sbClient.rpc('rk_is_member',{p_room:roomCode});
   if (memberError) return; // Network failure must not be treated as removal.
   if (member === false){
+    stopLoops();loadedGameContext='';clearRoundCache();
     if (realtimeChannel){ await sbClient.removeChannel(realtimeChannel); realtimeChannel=null; }
     clearTeamState();
     profile=null; world=null; mystate=null; battlesDoc=null; activityDoc=null;
@@ -2425,17 +2437,26 @@ async function syncAll(){
     render(); return;
   }
   const fresh = await safeGet(worldKey(), true);
-  if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+  if(fresh===STORAGE_RETRY_LATER||!fresh){dataStale=true;return;}
+  world=fresh;
+  if(profile.seasonId&&profile.seasonId!==world.seasonId){
+    stopLoops();clearRoundCache();loadedGameContext='';
+    if(realtimeChannel){await sbClient.removeChannel(realtimeChannel);realtimeChannel=null;}
+    profile=null;await safeSet(profileKey(),null,false);bootPhase='onboarding';dataStale=false;render();return;
+  }
+  const context=roomCode+'|'+world.runId;
+  if(loadedGameContext!==context){clearRoundCache();loadedGameContext=context;}
   const day = world.currentDay;
+  const syncRun=world.runId;
 
   // battlesDoc and mystate only change when the day itself changes (both are
   // written once per day by this client's own actions or the settlement
   // flow), so there's no need to re-fetch them from storage on every poll —
   // that was a large, mostly-wasted share of our storage call volume.
-  const dayChanged = cachedDocsForDay !== day;
+  const dayChanged = cachedDocsForDay !== context+'|'+day;
   if (dayChanged || !battlesDoc) battlesDoc = await ensureBattlesDoc(day);
   if (dayChanged || !mystate) mystate = await ensureMyState(day);
-  cachedDocsForDay = day;
+  cachedDocsForDay = context+'|'+day;
 
   // activityDoc is the one thing other players actively write to throughout
   // the day, so it's the one worth polling every cycle.
@@ -2457,32 +2478,17 @@ async function syncAll(){
   await refreshRoster();
   await refreshTeamDeployments();
   if(!inFlightDeploy) await refreshOwnDayState();
-  await reconcileProgress();
+  if(await reconcileProgress()===false){dataStale=true;return;}
+  dataStale=world.runId!==syncRun||world.currentDay!==day;
+  if(dataStale)clearRoundCache();
 }
 
 async function reconcileProgress(){
-  const doneUpTo = roundIsOver() ? world.currentDay : world.currentDay - 1;
-  if (doneUpTo <= progress.lastCountedDay) return;
-  let changed = false;
-  for (let d = progress.lastCountedDay+1; d <= doneUpTo; d++){
-    const m = await safeGet(dayKey(world.runId, 'mystate', d), false);
-    if (m === STORAGE_RETRY_LATER){
-      // Don't know yet whether day d counted — stop here rather than guessing.
-      // Advancing lastCountedDay past an unconfirmed day would permanently
-      // lose that day's participation credit if it turns out we WERE locked
-      // in; leaving it unadvanced just means we retry this same day (and any
-      // after it) on the next reconcile pass instead.
-      break;
-    }
-    if (m && m.locked){
-      progress.participationDays += 1;
-      progress.seasonContributionPower = round2(progress.seasonContributionPower + Object.values(m.deployedPower||{}).reduce((a,b)=>a+b,0));
-      changed = true;
-    }
-    progress.lastCountedDay = d;
-    changed = true;
-  }
-  if (changed) await safeSet(roundProgressKey(), progress, false);
+ const run=world.runId;
+ const current=await safeGet(roundProgressKey(),false);
+ if(current===STORAGE_RETRY_LATER){dataStale=true;return false;}
+ if(world.runId!==run)return;
+ if(current){progress=current;progressLoaded=true;roundResult=null;}
 }
 
 /* =========================================================
@@ -2512,7 +2518,8 @@ async function resolveDayManually(){
     if (lockError) throw lockError;
     if (locked) world=locked;
     const fresh = await safeGet(worldKey(), true);
-    if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
+    if(!fresh||fresh===STORAGE_RETRY_LATER)throw new Error('Could not confirm the locked world. Retry settlement.');
+    world=fresh;
     if (roundIsOver()) return;
     await settleCurrentDay();
     // The round (or season) just ended — take the player straight to the
@@ -2527,15 +2534,18 @@ async function resolveDayManually(){
 
 async function settleCurrentDay(){
   const day = world.currentDay;
+  const resolvingRun=world.runId;
+  if(world.phase!=='resolving')throw new Error('Resolve must be locked first.');
   const sKey = dayKey(world.runId, 'settlement', day);
   let sDoc = await safeGet(sKey, true);
-  if (sDoc === STORAGE_RETRY_LATER) return; // Can't confirm whether this day was already settled — skip this cycle, try again next tick
+  if (sDoc === STORAGE_RETRY_LATER) throw new Error('Could not verify the settlement. Please retry.'); // Can't confirm whether this day was already settled — skip this cycle, try again next tick
   if (sDoc){ settlementDoc = sDoc; await advanceAfterExternalSettlement(); return; }
 
   let bDoc = await safeGet(dayKey(world.runId, 'battles', day), true);
-  if (!bDoc || bDoc === STORAGE_RETRY_LATER) bDoc = battlesDoc;
+  if (!bDoc || bDoc === STORAGE_RETRY_LATER) throw new Error('Could not read current battles. Please retry.');
   let aDoc = await safeGet(dayKey(world.runId, 'activity', day), true);
-  if (!aDoc || aDoc === STORAGE_RETRY_LATER) aDoc = activityDoc;
+  if (!aDoc || aDoc === STORAGE_RETRY_LATER) throw new Error('Could not read current deployments. Please retry.');
+  if(world.runId!==resolvingRun||world.currentDay!==day)throw new Error('The game changed. Reload before resolving.');
 
   const results = []; const newOwnership = {...world.ownership}; const rallyResults = {};
   bDoc.activeBattles.forEach(t => {
@@ -2593,7 +2603,7 @@ async function settleCurrentDay(){
   FACTIONS.forEach(f => newVp[f] = round2(newVp[f] + vpGained[f]));
   results.forEach(r => { if (r.bonusVP > 0 && r.winner) newVp[r.winner] = round2(newVp[r.winner] + r.bonusVP); });
 
-  const rng = rngFor('economy', day);
+  const rng = rngFor('economy', roomCode, world.runId, day);
   const spend = Math.round(800 + rng()*2600);
   const prizeAdd = Math.round(spend*CONFIG.gmtSplit.prize), burnAdd = Math.round(spend*CONFIG.gmtSplit.burn), protoAdd = Math.round(spend*CONFIG.gmtSplit.protocol);
 
@@ -2697,7 +2707,7 @@ async function settleCurrentDay(){
 
   flashTiles = {}; results.forEach(r => { if (r.winner !== r.prevOwner) flashTiles[r.t] = true; });
 
-  if (!roundDone){ await syncAll(); } else { computeRoundResult(); }
+  await syncAll();if(roundDone&&!dataStale)computeRoundResult();
 }
 
 // Starts the next ROUND: fresh map, fresh VP, fresh prize pool, fresh
@@ -2725,7 +2735,7 @@ async function advanceAfterExternalSettlement(){
   const fresh = await safeGet(worldKey(), true);
   if (fresh && fresh !== STORAGE_RETRY_LATER) world = fresh;
   await syncAll();
-  if (world.phase === 'roundEnd' || world.phase === 'seasonEnd') computeRoundResult();
+  if (!dataStale&&(world.phase === 'roundEnd' || world.phase === 'seasonEnd')) computeRoundResult();
 }
 
 const RANK_TITLES = { 1: 'Champion', 2: 'Runner-Up', 3: 'Second Runner-Up' };
@@ -2847,7 +2857,7 @@ function renderSyncError(){
   if (!lastSyncError) return '';
   return `<div class="sync-error">
     <div class="se-title">⚠ ${tr('SYNC FAILED')}</div>
-    <div class="muted">${lastSyncError.message}</div>
+    <div class="muted">${escapeHTML(lastSyncError.message)}</div>
     <div class="se-row">
       <button class="btn btn-primary btn-small" onclick="retryLastSync()">${tr('RETRY')}</button>
       <button class="btn btn-outline btn-small" onclick="dismissSyncError()">${tr('DISMISS')}</button>
@@ -2918,7 +2928,7 @@ function kingdomSelection(){
 }
 
 function renderTopbar(){
-  const standings = FACTIONS.map(f=>({f, vp: world.vp[f]})).sort((a,b)=>b.vp-a.vp);
+  const standings = rankFactions(world.vp,world.ownership);
   const rs = rosterStats();
   return `
   <div class="topbar">
@@ -2955,7 +2965,7 @@ function renderMap(){
     const owner=world.ownership[t],active=battlesDoc.activeBattles.includes(t),canDeploy=eligible.includes(t);
     const [x,y]=POS[t],cap=['A','C','G'].includes(t);
     const label=`${t} · ${territoryLabel(t)} · ${vpValueOf(t,world.currentDay)} VP · ${owner?FACTION_META[owner].short:kingdomText('neutral')} · ${active?kingdomText('active')+' · ':''}${canDeploy?tr('Tap to deploy'):tr('View battle')}`;
-    return `<button type="button" class="tile kingdom-tile ${owner?'owner-'+owner:'owner-neutral'} ${active?'active-battle':''} ${canDeploy?'deployable':''} ${kingdomSelected===t?'is-selected':''} ${flashTiles[t]?'flash':''}" style="grid-column:${x+1};grid-row:${y+1};--art-x:${x*50}%;--art-y:${y*50}%" aria-label="${escapeHTML(label)}" onclick="kingdomSelect('${t}')"><span class="kingdom-art" aria-hidden="true"></span><span class="kingdom-faction-art" aria-hidden="true"></span><span class="kingdom-owner-wash" aria-hidden="true"></span><span class="tid">${t}</span><span class="kingdom-flag" title="${escapeHTML(owner?FACTION_META[owner].short:kingdomText('neutral'))}" aria-hidden="true">${kingdomCrest(owner||'neutral')}</span><span class="kingdom-boundary" aria-hidden="true"></span>${active?`<span class="battle-swords" title="${kingdomText('active')}" aria-hidden="true">${kingdomSwords()}</span>`:''}<span class="tname">${territoryLabel(t)}</span><span class="tvp">${vpValueOf(t,world.currentDay)} VP</span>${active?`<span class="tile-team-line">⚡ ${freshTeamData()?powerText(tileTeamTotal(t)):'—'}</span>`:''}</button>`;
+    return `<button type="button" class="tile kingdom-tile ${owner?'owner-'+owner:'owner-neutral'} ${active?'active-battle':''} ${canDeploy?'deployable':''} ${kingdomSelected===t?'is-selected':''} ${flashTiles[t]?'flash':''}" style="grid-column:${x+1};grid-row:${y+1};--art-x:${x*50}%;--art-y:${y*50}%" aria-label="${escapeHTML(label)}" onclick="kingdomSelect('${t}')"><span class="kingdom-art" aria-hidden="true"></span><span class="kingdom-faction-art" aria-hidden="true"></span><span class="kingdom-owner-wash" aria-hidden="true"></span><span class="tid">${t}</span><span class="kingdom-flag" title="${escapeHTML(owner?FACTION_META[owner].short:kingdomText('neutral'))}" aria-hidden="true">${kingdomCrest(owner||'neutral')}</span><span class="kingdom-boundary" aria-hidden="true"></span>${active?`<span class="battle-swords" title="${kingdomText('active')}" aria-hidden="true">${kingdomSwords()}</span>`:''}<span class="tname">${territoryLabel(t)}</span><span class="tvp">${t==='E'&&world.currentDay===7?'<small>×3 </small>':''}${vpValueOf(t,world.currentDay)} VP</span>${active?`<span class="tile-team-line">⚡ ${freshTeamData()?powerText(tileTeamTotal(t)):'—'}</span>`:''}</button>`;
   }).join('');
   return `<div class="map-wrap kingdom-world-map"><div class="map-grid">${tiles}</div></div>`;
 }
@@ -2985,10 +2995,10 @@ function phaseBanner(){
   }
   if (world.phase === 'fog'){
     return `<div class="fog-banner"><div class="fogtitle">${tr('🌫 BATTLE FOG')}</div>
-      <div class="muted" style="margin-top:4px;">${tr('Final troop movements are hidden. You can still deploy remaining power.')}</div>
+      <div class="muted" style="margin-top:4px;">${tr('Deployment is closed. Waiting for settlement.')}</div>
       ${isRoomAdmin ? `<div class="btn-row" style="margin-top:10px;">
         <button class="btn btn-primary btn-small" onclick="resolveDayManually()" ${inFlightResolve?'disabled':''}>${inFlightResolve?tr('RESOLVING…'):tr('RESOLVE DAY')}</button>
-      </div>` : `<div class="muted" style="margin-top:10px;">Waiting for the room admin to resolve the day.</div>`}</div>`;
+      </div>` : `<div class="muted" style="margin-top:10px;">${tr('Waiting for the room admin to resolve the day.')}</div>`}</div>`;
   }
   if (!isRoomAdmin) return `<div class="card" style="text-align:center; padding:12px;"><div class="muted">${tr('Deployment is open until the admin enters Fog or resolves the day.')}</div></div>`;
   return `<div class="card" style="text-align:center; padding:12px;">
@@ -3078,7 +3088,7 @@ function modalTerritory(t){
           const m = FACTION_META[f]; const st = world.phase==='fog' ? null : statusMap[f];
           const notOwner = !factionOwnsAny(f, world.ownership);
           return `<div class="row-between" style="padding:6px 0;">
-            <span><span class="dot" style="background:${m.color}"></span>${m.name}${notOwner?' <span class="chip-small">COMEBACK</span>':''}</span>
+            <span><span class="dot" style="background:${m.color}"></span>${m.name}${notOwner?` <span class="chip-small">${tr('COMEBACK')}</span>`:''}</span>
             ${world.phase==='fog' ? `<span class="chip-small">${tr('HIDDEN')}</span>` : statusPill(st)}
           </div>`;
         }).join('')}
@@ -3380,7 +3390,7 @@ function screenSeason(){
   </div>`;
 
   if (!roundIsOver()){
-    return `${head}${seasonCard}<div class="prize-box row-between"><div><div class="prize-label">${tr('🏆 ROUND PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div><span class="chip-small">MOCK</span></div><div class="card"><div class="card-title">${tr('ROUND {n} — IN PROGRESS', {n: world.round})}</div>
+    return `${head}${seasonCard}<div class="prize-box row-between"><div><div class="prize-label">${tr('🏆 ROUND PRIZE POOL')}</div><div class="prize-num">${fmt(world.prizePool)} GMT</div></div><span class="chip-small">${tr('MOCK')}</span></div><div class="card"><div class="card-title">${tr('ROUND {n} — IN PROGRESS', {n: world.round})}</div>
       <div class="muted" style="margin-bottom:8px;">${tr('Live VP · settles after Day {n}.', {n: CONFIG.roundDays})}</div>
       ${rankFactions(world.vp, world.ownership).map((s,idx)=>{const m=FACTION_META[s.f]; return `<div class="row-between season-rank-row"><span>${idx+1}. <span class="dot" style="background:${m.color}"></span>${m.name}${s.f===profile.faction?' '+tr('(you)'):''}</span><span class="mono">${fmt1(s.vp)} VP</span></div>`}).join('')}
     </div>${walletCard}`;
@@ -3420,7 +3430,7 @@ function screenSeason(){
     <div class="muted">👟 <b style="color:var(--text);">${tr('Polygon Locked Sneaker — {t} Design', {t: tr(r.sneakerDesign)})}</b></div>
   </div>` : `<div class="card"><div class="empty-note">${tr('Season rewards need {n}+ active days in the final round.', {n: CONFIG.participationThreshold})}</div></div>`}
   ` : `
-  ${isRoomAdmin ? `<button class="btn btn-primary" onclick="startNextRound()">${tr('START ROUND {n}', {n: world.round + 1})}</button>` : `<div class="card"><div class="empty-note">Waiting for the room admin to start the next round.</div></div>`}
+  ${isRoomAdmin ? `<button class="btn btn-primary" onclick="startNextRound()">${tr('START ROUND {n}', {n: world.round + 1})}</button>` : `<div class="card"><div class="empty-note">${tr('Waiting for the room admin to start the next round.')}</div></div>`}
   <div class="muted" style="text-align:center; margin-top:8px; font-size:12px;">${tr('New map, new prize pool, new commander election — same teams.')}</div>
   `}
   ${walletCard}`;
@@ -3534,7 +3544,7 @@ function modalAdminPlayers(){
     <button class="btn btn-outline btn-small" onclick="openAnalytics('invites')">${at('Invitation history','邀请码历史')}</button>
     ${issuedInvites.filter(i=>!i.redeemed).map(i=>`<div class="row-between" style="gap:10px;padding:9px 0;"><span>${escapeHTML(i.name)} · ${tr('Pending')}</span><button class="btn btn-outline btn-small" onclick="issuePlayerInvite('${escapeHTML(i.playerId)}')">${tr('Rotate code')}</button></div>`).join('')}
     ${issuedInvite?`<div class="card invite-result"><div class="card-title">${tr('PERSONAL INVITATION')} · ${escapeHTML(issuedInvite.name)}</div><div class="mono" style="font-size:15px;word-break:break-all;letter-spacing:1px;margin:10px 0;">${escapeHTML(issuedInvite.invite_code)}</div><div class="muted" style="font-size:12px;margin-bottom:10px;">${tr('Give this player the room code and their own invitation code. Save this code now; generating another one for this player invalidates the old code.')}</div><button class="btn btn-outline btn-small" onclick="copyIssuedInvite()">${tr('COPY INVITATION')}</button></div>`:''}
-    ${adminPlayersError?`<div class="sync-error">${adminPlayersError}</div>`:''}
+    ${adminPlayersError?`<div class="sync-error">${escapeHTML(adminPlayersError)}</div>`:''}
     ${adminPlayersLoading && !adminPlayers?`<div class="empty-note">${tr('SYNCING')}</div>`:(rows||`<div class="empty-note">${tr('No players found.')}</div>`)}
   </div></div>`;
 }
@@ -3588,15 +3598,8 @@ async function dbgToggleNpcPower(){
   render();
 }
 async function dbgSimulateTeammate(){
-  if (!isRoomAdmin) return;
-  if (!battlesDoc.activeBattles.length) return;
-  const t = battlesDoc.activeBattles[Math.floor(Math.random()*battlesDoc.activeBattles.length)];
-  const key = dayKey(world.runId, 'activity', world.currentDay);
-  let fresh = await safeGet(key, true); if (!fresh || fresh === STORAGE_RETRY_LATER) fresh = activityDoc;
-  fresh.deployed[t] = fresh.deployed[t] || {};
-  const amount = Math.round(400 + Math.random()*2200);
-  fresh.deployed[t][profile.faction] = round2((fresh.deployed[t][profile.faction]||0) + amount);
-  await safeSet(key, fresh, true); activityDoc = fresh; render();
+ // Disabled in multiplayer: simulated deployments must not contaminate real ledgers.
+ if(isRoomAdmin)alert(tr('Simulated teammates are disabled in multiplayer rooms.'));
 }
 function dbgCopyInviteLink(){
   const link = buildInviteLink();
@@ -3610,8 +3613,9 @@ function dbgCopyInviteLink(){
 async function dbgResetSeason(){
   if (!isRoomAdmin) return;
   const fresh = makeInitialWorld();
-  await safeSet(worldKey(), fresh, true);
-  world = fresh;
+  const res=await mutateShared(worldKey(),w=>w&&w.phase!=='resolving'?fresh:null);
+  if(!res.ok){lastSyncError={message:'Reset failed or settlement is in progress. Retry after settlement.',retry:()=>dbgResetSeason()};render();return;}
+  world = res.value;
   roundResult = null;
   progress = null;
   progressLoaded = false; // force a re-fetch under the new runId (was a pre-existing gap — otherwise progress stayed null forever after reset)
@@ -3621,6 +3625,7 @@ async function dbgResetSeason(){
   roster = null;
   lastHeartbeatAt = 0;
   await syncAll();
+  if(!profile)return;
   await joinRoster();
   uiScreen = 'home';
   render();
@@ -3717,6 +3722,10 @@ function render(){
   }
 }
 function renderInner(){
+  if(bootPhase==='load_failed'){
+    document.getElementById('root').innerHTML=`<div class="onboard-wrap"><div class="card"><p>${escapeHTML(lastSyncError?.message||'Could not load the game.')}</p><button class="btn btn-primary" onclick="lastSyncError?.retry()">${tr('Retry')}</button></div></div>`;return;
+  }
+
   if (bootPhase === 'schema_outdated'){
     const why = schemaProblem && schemaProblem.why;
     const isSchema = why === 'missing_version_column' || why === 'missing_functions';
@@ -3932,7 +3941,7 @@ function screenAnalytics(){
   body+=`<p class="analytics-note">${at('Daily time average includes zero-visit days since joining or tracking began, within the selected UTC range.','日均时长按所选日期范围内、加入且开始采集后的天数计算，包含未访问的日子。')}</p>`;
  }else body=screenInviteHistory();
  }
- return `<div class="analytics-page"><button class="btn btn-outline btn-small" onclick="goScreen('home')">← ${at('Home','首页')}</button><h2>${at('Admin Statistics','管理员统计')}</h2><p class="analytics-note">App 0.8.4 · Schema ${escapeHTML(analyticsSchemaVersion||'unknown')}</p>${tabs}${analyticsTab!=='invites'?controls:''}${analyticsError?`<div class="analytics-error">${escapeHTML(analyticsError)}</div>`:''}${!d&&!analyticsError?`<p>${at('Loading…','加载中…')}</p>`:''}${body}</div>`;
+ return `<div class="analytics-page"><button class="btn btn-outline btn-small" onclick="goScreen('home')">← ${at('Home','首页')}</button><h2>${at('Admin Statistics','管理员统计')}</h2><p class="analytics-note">App 0.8.5 · Schema ${escapeHTML(analyticsSchemaVersion||'unknown')}</p>${tabs}${analyticsTab!=='invites'?controls:''}${analyticsError?`<div class="analytics-error">${escapeHTML(analyticsError)}</div>`:''}${!d&&!analyticsError?`<p>${at('Loading…','加载中…')}</p>`:''}${body}</div>`;
 }
 function screenInviteHistory(){return `<p class="analytics-note">${at('Used codes remain valid for the same player on another device until rotated. Older code plaintext cannot be recovered.','已使用的邀请码在换码前仍可用于同一玩家换设备登录。旧邀请码原文无法还原。')}</p><button class="btn btn-outline btn-small" onclick="refreshAnalytics()">${at('Refresh','刷新')}</button>${analyticsInvites.map(i=>`<div class="card analytics-invite"><b>${escapeHTML(i.name)}</b><span class="chip-small">${i.status==='revoked'?at('Replaced / invalid','已替换／失效'):i.status==='used'?at('Used · still valid','已使用 · 仍有效'):i.status==='unknown'?at('Legacy · use unknown','旧码 · 使用状态未知'):at('Not yet used','未使用')}</span><code>${i.code?escapeHTML(i.code):at('Legacy code — plaintext unavailable','旧记录—原码不可恢复')}</code><small>${at('Created','创建')}: ${analyticsDate(i.createdAt)}<br>${at('First used','首次使用')}: ${analyticsDate(i.usedAt)}${i.faction?' · '+analyticsFaction(i.faction):''}${i.revokedAt?'<br>'+at('Replaced','失效')+': '+analyticsDate(i.revokedAt):''}</small>${i.code&&i.status!=='revoked'?`<button class="btn btn-outline btn-small" onclick="copyHistoryInvite('${i.id}')">${at('Copy code','复制邀请码')}</button>`:''}</div>`).join('')||`<p>${at('No invitation records','暂无邀请码记录')}</p>`}`;}
 async function copyHistoryInvite(id){if(!isRoomAdmin)return;const i=analyticsInvites.find(x=>String(x.id)===String(id));if(!i?.code||i.status==='revoked')return;try{await navigator.clipboard.writeText(roomCode+' · '+i.code);}catch{prompt(at('Copy invitation','复制邀请码'),roomCode+' · '+i.code);}}
@@ -3972,21 +3981,45 @@ function safeRenderDebug(){
 /* =========================================================
    LOOPS + INIT
 ========================================================= */
-function startLoops(){
-  // No more real-time countdown to track locally — battle resolution is a
-  // manual action now, so we only need the background poll to pick up
-  // other players' moves (deploys, rallies, someone else resolving the day).
-  scheduleNextPoll();
+let pollTimer=null,pollGeneration=0,pollRunning=false;
+function stopLoops(){pollRunning=false;pollGeneration++;clearTimeout(pollTimer);pollTimer=null;}
+function startLoops(){if(pollRunning)return;pollRunning=true;scheduleNextPoll(pollGeneration);}
+function scheduleNextPoll(generation=pollGeneration){
+ if(!pollRunning||generation!==pollGeneration)return;
+ pollTimer=setTimeout(async()=>{try{await syncAll();render();}catch(e){console.warn('Sync retry',e);}finally{if(pollRunning&&generation===pollGeneration)scheduleNextPoll(generation);}},CONFIG.pollMs+Math.random()*2000);
 }
-// Self-rescheduling (rather than setInterval) so a slow sync never overlaps
-// with the next one, plus a random jitter per client so many people opening
-// this at once don't all hit the storage backend in the same instant.
-function scheduleNextPoll(){
-  const jitter = Math.random() * 2000;
-  setTimeout(async () => {
-    try{ await syncAll(); render(); } finally { scheduleNextPoll(); }
-  }, CONFIG.pollMs + jitter);
-}
+
+ZH["Deployment is closed. Waiting for settlement."]="部署已关闭，等待结算。";
+JA["Deployment is closed. Waiting for settlement."]="配置は終了しました。決着を待っています。";
+KO["Deployment is closed. Waiting for settlement."]="배치가 종료되었습니다. 정산 대기 중입니다.";
+TR["Deployment is closed. Waiting for settlement."]="Yerleştirme kapandı. Sonuç bekleniyor.";
+RU["Deployment is closed. Waiting for settlement."]="Размещение закрыто. Ожидается подведение итогов.";
+ZH["COMEBACK"]="反攻";
+JA["COMEBACK"]="再起";
+KO["COMEBACK"]="반격";
+TR["COMEBACK"]="Geri dönüş";
+RU["COMEBACK"]="Возвращение";
+ZH["Could not create invitation."]="无法创建邀请码。";
+JA["Could not create invitation."]="招待を作成できませんでした。";
+KO["Could not create invitation."]="초대 코드를 만들 수 없습니다.";
+TR["Could not create invitation."]="Davet oluşturulamadı.";
+RU["Could not create invitation."]="Не удалось создать приглашение.";
+ZH["Copy invitation:"]="复制邀请码：";
+JA["Copy invitation:"]="招待をコピー：";
+KO["Copy invitation:"]="초대 복사:";
+TR["Copy invitation:"]="Daveti kopyala:";
+RU["Copy invitation:"]="Скопировать приглашение:";
+ZH["Waiting for the room admin to resolve the day."]="等待房间管理员结算。";
+JA["Waiting for the room admin to resolve the day."]="管理者の決着操作を待っています。";
+KO["Waiting for the room admin to resolve the day."]="관리자의 정산을 기다리는 중입니다.";
+TR["Waiting for the room admin to resolve the day."]="Yöneticinin günü sonuçlandırması bekleniyor.";
+RU["Waiting for the room admin to resolve the day."]="Ожидается подведение итогов администратором.";
+ZH["Waiting for the room admin to start the next round."]="等待房间管理员开启下一轮。";
+JA["Waiting for the room admin to start the next round."]="管理者の次ラウンド開始を待っています。";
+KO["Waiting for the room admin to start the next round."]="관리자의 다음 라운드 시작을 기다리는 중입니다.";
+TR["Waiting for the room admin to start the next round."]="Yöneticinin sonraki turu başlatması bekleniyor.";
+RU["Waiting for the room admin to start the next round."]="Ожидается начало следующего раунда администратором.";
+ZH['MOCK']='模拟';JA['MOCK']='模擬';KO['MOCK']='모의';TR['MOCK']='SİMÜLASYON';RU['MOCK']='СИМУЛЯЦИЯ';
 render();
 boot();
 </script>
