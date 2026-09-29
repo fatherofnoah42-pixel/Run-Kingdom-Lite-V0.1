@@ -384,7 +384,7 @@ const SUPABASE_ANON_KEY_HARDCODED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 // blank enough that you can't even see this stamp, the file most likely
 // isn't the one you think it is — try a completely fresh download instead
 // of reusing/renaming any previously-edited copy.
-const APP_BUILD = 'rk-v0.7.2-kingdom-markers-v10-2026-09-29';
+const APP_BUILD = 'rk-app-v0.8.4-markers-v11-2026-09-29';
 
 /* =========================================================
    I18N — in-app EN / 中文 switch
@@ -1270,7 +1270,7 @@ const CONFIG = {
   pollMs: 20000,             // base polling interval (jitter added per-client below)
   heartbeatMs: 45000,        // how often we refresh our own "last seen" in the roster
   onlineWindowMs: 100000,    // someone counts as "online now" if seen within this window
-  energy: { min: 0, max: 90, step: 0.2 }, // slider UI range; the power curve itself has no upper cap (see energyToPower)
+  energy: { min: 0, max: 90, step: 0.2 }, // test-build range; matches server energy validation
   splitPresets: [[100,0],[75,25],[50,50]],
   maxActiveBattlesPerDay: 3,
   vpBase: { normal: 1, center: 2 },
@@ -1355,12 +1355,8 @@ function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 function round2(n){ return Math.round(n*100)/100; }
 
 function energyToPower(energy){
-  // Only the lower bound is clamped — negative energy makes no sense. There's
-  // deliberately no upper clamp: if a real day's Energy sync ever reports
-  // more than the slider's 90 max (e.g. an unusually long run), we keep
-  // applying the same 75-90 tier rate (1 Power per 6 Energy) rather than
-  // freezing the reward at the Energy=90 value.
-  const e = Math.max(CONFIG.energy.min, energy);
+  // Test build uses the same 0–90 Energy limit as the server.
+  const e = Math.min(90,Math.max(0,Number(energy)||0));
   let p;
   if (e <= 20) p = e/2;
   else if (e <= 40) p = 10 + (e-20)/3;
@@ -1915,7 +1911,8 @@ async function checkSchema(){
   try{
     const { data, error } = await sbClient.rpc('rk_schema_version');
     if (error) return { ok:false, why:'missing_functions', detail:error.message };
-    if (!['0.8.2','0.8.3'].includes(data)) return { ok:false, why:'missing_functions', detail:'Community schema v0.8.2 is required.' };
+    analyticsSchemaVersion=data;analyticsSupported=['0.8.3','0.8.4'].includes(data);
+    if (!['0.8.2','0.8.3','0.8.4'].includes(data)) return { ok:false, why:'missing_functions', detail:'Community schema v0.8.2 is required.' };
   } catch(e){ return { ok:false, why:'unreachable', detail:(e && e.message)||String(e) }; }
   return { ok:true };
 }
@@ -2793,18 +2790,32 @@ function iAmEliminated(){ return !factionOwnsAny(profile.faction, world.ownershi
 // nothing is lost if the tab closes right after.
 let energySaveTimer = null;
 let myStateWriting = 0;
+let energyDragging=false,energyRenderPending=false,energyDragDay='';
+function boundedEnergy(v){return Math.min(90,Math.max(0,Number(mystate.creditedEnergy)||0,Math.round((Number(v)||0)*5)/5));}
+function startEnergyDrag(){energyDragging=true;energyDragDay=world.runId+'|'+world.currentDay;}
+function paintEnergyReadout(){
+ const base=energyToPower(mystate.energyToday),boosted=computeAvailablePower();
+ for(const [id,text] of Object.entries({'energy-readout':fmt1(mystate.energyToday),'power-base':fmt1(base),'power-boost':mystate.gstBoostPercent>0?'+'+fmt1(boosted-base):'—','power-total':fmt1(boosted)})){
+ const el=document.getElementById(id);if(el)el.textContent=text;
+ }
+ const btn=document.getElementById('energy-deploy');if(btn)btn.disabled=!deploymentOpen()||remainingPower()<=0;
+}
 function setEnergy(v){
-  mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
-  render();
-  clearTimeout(energySaveTimer);
-  energySaveTimer = setTimeout(()=>{energySaveTimer=null;persistMyState();}, 500);
+ if(!energyDragging)startEnergyDrag();
+ mystate.energyToday=boundedEnergy(v);paintEnergyReadout();
+ clearTimeout(energySaveTimer);
+ energySaveTimer=setTimeout(()=>{energySaveTimer=null;persistMyState();},500);
 }
-function commitEnergy(v){
-  mystate.energyToday = Math.max(Number(mystate.creditedEnergy||0), parseFloat(v)||0);
-  clearTimeout(energySaveTimer);energySaveTimer=null;
-  persistMyState();
-  render();
+function endEnergyDrag(){
+ if(!energyDragging)return;energyDragging=false;
+ clearTimeout(energySaveTimer);energySaveTimer=null;
+ if(energyDragDay===world.runId+'|'+world.currentDay)persistMyState();
+ energyRenderPending=false;render();
 }
+function commitEnergy(v){mystate.energyToday=boundedEnergy(v);if(!energyDragging)startEnergyDrag();endEnergyDrag();}
+for(const event of ['pointerup','pointercancel','touchend','touchcancel'])window.addEventListener(event,()=>{if(energyDragging)setTimeout(endEnergyDrag,0);},{passive:true});
+window.addEventListener('blur',endEnergyDrag);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)endEnergyDrag();});
 async function persistMyState(){
   if(!world||!mystate)return;
   myStateWriting++;try{await safeSet(dayKey(world.runId,'mystate',world.currentDay),mystate,false);}finally{myStateWriting--;}
@@ -3089,9 +3100,9 @@ function screenRun(){
   ${totalDeployedMine()>0 ? `<div class="card" style="border-color:var(--mint);"><div class="muted">${tr('Already deployed Power stays in place. Increase today’s Energy to create more Power before settlement.')}</div></div>` : ''}
   <div class="card run-energy">
     <div class="card-title">${tr('ENERGY TODAY')}</div>
-    <div class="energy-readout"><div class="muted">${tr('ENERGY TODAY')}</div><div class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
-    <input type="range" min="${Number(mystate.creditedEnergy||CONFIG.energy.min)}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
-      value="${mystate.energyToday}" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)">
+    <div class="energy-readout"><div class="muted">${tr('ENERGY TODAY')}</div><div id="energy-readout" class="big-num mono">${fmt1(mystate.energyToday)}</div></div>
+    <input type="range" min="${Math.min(90,Math.max(0,Number(mystate.creditedEnergy)||0))}" max="${CONFIG.energy.max}" step="${CONFIG.energy.step}"
+      value="${mystate.energyToday}" onpointerdown="startEnergyDrag()" oninput="setEnergy(this.value)" onchange="commitEnergy(this.value)" onblur="endEnergyDrag()" style="touch-action:none">
     <div class="row-between muted" style="margin-top:4px; font-size:11px;"><span>${fmt1(Number(mystate.creditedEnergy||0))}</span><span>${tr('90 Energy')}</span></div>
   </div>
   <div class="card boost-card">
@@ -3102,11 +3113,11 @@ function screenRun(){
     </div>${gstCostNote()}
   </div>
   <div class="card">
-    <div class="row-between"><span class="muted">${tr('Base Power')}</span><span class="mono">${fmt1(base)}</span></div>
-    <div class="row-between" style="margin-top:8px;"><span class="muted">${tr('GST Boost')}</span><span class="mono" style="color:var(--purple)">${mystate.gstBoostPercent>0?'+'+fmt1(boosted-base):'—'}</span></div>
-    <div class="row-between power-total"><span><b>${tr('POWER EARNED')}</b></span><span class="big-num mono">${fmt1(boosted)}</span></div>
+    <div class="row-between"><span class="muted">${tr('Base Power')}</span><span id="power-base" class="mono">${fmt1(base)}</span></div>
+    <div class="row-between" style="margin-top:8px;"><span class="muted">${tr('GST Boost')}</span><span id="power-boost" class="mono" style="color:var(--purple)">${mystate.gstBoostPercent>0?'+'+fmt1(boosted-base):'—'}</span></div>
+    <div class="row-between power-total"><span><b>${tr('POWER EARNED')}</b></span><span id="power-total" class="big-num mono">${fmt1(boosted)}</span></div>
     <div class="muted" style="margin-top:6px; font-size:12px;">${tr('Unused Power expires at settlement.')}</div>
-    <button class="btn btn-primary" style="margin-top:12px;" onclick="goScreen('deploy')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('GO TO DEPLOY')}</button>
+    <button class="btn btn-primary" style="margin-top:12px;" id="energy-deploy" onclick="goScreen('deploy')" ${!deploymentOpen()||remainingPower()<=0?'disabled':''}>${tr('GO TO DEPLOY')}</button>
   </div>`;
 }
 
@@ -3669,6 +3680,8 @@ function renderDebug(){
    ROOT RENDER
 ========================================================= */
 function render(){
+  if(energyDragging){if(uiScreen==='run'&&energyDragDay===world.runId+'|'+world.currentDay){energyRenderPending=true;return;}energyDragging=false;clearTimeout(energySaveTimer);energySaveTimer=null;}
+
   if(chatComposing&&uiScreen==='team'){chatRenderPending=true;return;}
   const focused=document.activeElement;
   const focusId=focused&&['team-chat-input','tile-amount'].includes(focused.id)?focused.id:null;
@@ -3817,23 +3830,35 @@ function renderInner(){
   `;
 }
 // Admin analytics: dates use UTC; gameplay is selected by run/day.
+let analyticsSchemaVersion='',analyticsSupported=false,analyticsInviteError='',analyticsInvitesBusy=false,analyticsLastCurrentRun='';
 let analyticsData=null,analyticsBusy=false,analyticsError='',analyticsInvites=[],analyticsTab='overview';
 let analyticsFrom=new Date(Date.now()-6*86400000).toISOString().slice(0,10),analyticsTo=new Date().toISOString().slice(0,10),analyticsIncludeAdmin=false,analyticsRun='',analyticsDay='all',analyticsTeam='all';
 function at(en,zh){return LANG==='zh'?zh:en;}
 function gstCost(pct){return Math.max(0,Number(pct)||0)*5;}
 function gstCostNote(){return `<div class="analytics-note">${at('Simulated cost: 20% = 100 GST. Counted once on your first successful deployment each game day; selecting a tier alone costs nothing.','模拟费用：20%＝100 GST。每天首次成功部署时记一次；只选择档位不计费。')}<br><b>${at('Selected cost','所选费用')}: ${gstCost(mystate.gstBoostPercent)} GST</b></div>`;}
 function openAnalytics(tab='overview'){if(!isRoomAdmin)return;analyticsTab=tab;uiScreen='statistics';activeModal=null;render();refreshAnalytics();}
+async function refreshInvites(){
+ if(!isRoomAdmin||analyticsInvitesBusy)return;
+ const room=roomCode;analyticsInvitesBusy=true;analyticsInviteError='';
+ try{const r=await sbClient.rpc('rk_admin_invite_history',{p_room:room});if(r.error)throw r.error;if(room===roomCode&&isRoomAdmin)analyticsInvites=r.data||[];}
+ catch(e){if(room===roomCode)analyticsInviteError=e.message||String(e);}
+ finally{analyticsInvitesBusy=false;if(uiScreen==='statistics')render();}
+}
 async function refreshAnalytics(){
  if(!isRoomAdmin||analyticsBusy)return;
- if(!analyticsFrom||!analyticsTo||analyticsFrom>analyticsTo){analyticsError=at('Select a valid date range.','请选择有效日期范围。');render();return;}
- analyticsBusy=true;analyticsError='';render();
- const requestedRoom=roomCode;
+ refreshInvites();
+ if(analyticsTab==='invites')return;
+ const today=new Date().toISOString().slice(0,10);
+ if(!analyticsFrom||!analyticsTo||analyticsFrom>analyticsTo||analyticsTo>today||analyticsFrom>today){analyticsError=at('Use a valid UTC date range, ending no later than today (UTC).','请选择有效的 UTC 日期范围，结束日期不能晚于 UTC 今天。');render();return;}
+ if((Date.parse(analyticsTo)-Date.parse(analyticsFrom))/86400000>366){analyticsError=at('Select up to 367 days.','最多选择 367 天。');render();return;}
+ analyticsBusy=true;analyticsError='';render();const requestedRoom=roomCode;
  try{
-  const results=await Promise.all([sbClient.rpc('rk_admin_analytics',{p_room:requestedRoom,p_from:analyticsFrom,p_to:analyticsTo,p_include_admin:analyticsIncludeAdmin}),sbClient.rpc('rk_admin_invite_history',{p_room:requestedRoom})]);
-  for(const r of results)if(r.error)throw r.error;
-  if(roomCode!==requestedRoom||!isRoomAdmin)return;
-  analyticsData=results[0].data;analyticsInvites=results[1].data||[];if(!analyticsRun)analyticsRun=analyticsData.currentRun||'';
- }catch(e){analyticsError=at('Statistics unavailable. Apply the v0.8.3 SQL update, then retry. Details: ','统计暂不可用。请先执行 v0.8.3 SQL 更新，再重试。详情：')+(e.message||String(e));}
+ const r=await sbClient.rpc('rk_admin_analytics',{p_room:requestedRoom,p_from:analyticsFrom,p_to:analyticsTo,p_include_admin:analyticsIncludeAdmin});if(r.error)throw r.error;
+ if(roomCode!==requestedRoom||!isRoomAdmin)return;
+ analyticsData=r.data;
+ if(!analyticsRun||analyticsRun===analyticsLastCurrentRun){analyticsRun=analyticsData.currentRun||'';analyticsDay='all';}
+ analyticsLastCurrentRun=analyticsData.currentRun||'';
+ }catch(e){analyticsError=at('Statistics unavailable. Check the analytics SQL installation. Details: ','统计暂不可用，请检查统计 SQL 是否已安装。详情：')+(e.message||String(e));}
  finally{analyticsBusy=false;if(uiScreen==='statistics')render();}
 }
 function analyticsFilter(k,v){if(k==='from')analyticsFrom=v;if(k==='to')analyticsTo=v;if(k==='admin')analyticsIncludeAdmin=v;analyticsData=null;refreshAnalytics();}
@@ -3866,7 +3891,12 @@ function analyticsPlayers(s){
  return s.members.map(m=>{
   const v=s.visits.filter(x=>x.user_id===m.id),c=s.chat.filter(x=>x.user_id===m.id),r=s.deps.filter(x=>x.user_id===m.id);
   const start=[analyticsFrom,m.joined.slice(0,10),d.startedAt.slice(0,10)].sort().at(-1);
-  const eligibleDays=Math.max(0,Math.floor((end-new Date(start+'T00:00:00Z'))/86400000)+1);
+  const periods=(d.membershipPeriods||[]).filter(p=>p.user_id===m.id);
+  const activeDates=new Set();
+  const windows=periods.length?periods:[{started_at:m.joined,ended_at:m.left}];
+  for(const p of windows){const lo=[start,p.started_at.slice(0,10)].sort().at(-1),hi=[analyticsTo,(p.ended_at||analyticsTo).slice(0,10)].sort()[0];
+   for(let t=Date.parse(lo+'T00:00:00Z');t<=Date.parse(hi+'T00:00:00Z');t+=86400000)activeDates.add(t);}
+  const eligibleDays=activeDates.size;
   const seconds=v.reduce((n,x)=>n+analyticsNum(x.active_seconds),0);
   return [m.name,analyticsFaction(m.faction),v.reduce((n,x)=>n+analyticsNum(x.visits),0),analyticsDuration(seconds),eligibleDays?analyticsDuration(seconds/eligibleDays):'—',new Set(r.map(x=>x.game_day)).size,c.reduce((n,x)=>n+analyticsNum(x.messages),0),r.filter(x=>x.boost>0).length,r.reduce((n,x)=>n+analyticsNum(x.gst),0),r.filter(x=>x.boost>0&&x.gst==null).length];
  });
@@ -3874,19 +3904,22 @@ function analyticsPlayers(s){
 function screenAnalytics(){
  if(!isRoomAdmin)return `<div class="card">${at('Admin access only','仅管理员可查看')}</div>`;
  const s=analyticsSummary(),d=analyticsData;
- const controls=`<div class="analytics-controls"><label>${at('From (UTC)','开始日期（UTC）')}<input type="date" ${analyticsBusy?'disabled':''} value="${analyticsFrom}" onchange="analyticsFilter('from',this.value)"></label><label>${at('To (UTC)','结束日期（UTC）')}<input type="date" ${analyticsBusy?'disabled':''} value="${analyticsTo}" onchange="analyticsFilter('to',this.value)"></label><label class="analytics-check"><input type="checkbox" ${analyticsBusy?'disabled':''} ${analyticsIncludeAdmin?'checked':''} onchange="analyticsFilter('admin',this.checked)">${at('Include admins','包含管理员')}</label><button class="btn btn-outline btn-small" onclick="refreshAnalytics()" ${analyticsBusy?'disabled':''}>${analyticsBusy?at('Loading…','加载中…'):at('Refresh','刷新')}</button></div>`;
- const tabs=`<div class="analytics-tabs">${[['overview',at('Overview','总览')],['daily',at('Daily','每日')],['players',at('Players','玩家')],['invites',at('Invitations','邀请码历史')]].map(([k,t])=>`<button class="btn btn-small ${analyticsTab===k?'btn-primary':'btn-outline'}" onclick="analyticsTab='${k}';render()">${t}</button>`).join('')}</div>`;
+ const controls=`<div class="analytics-controls"><label>${at('From (UTC)','开始日期（UTC）')}<input type="date" max="${new Date().toISOString().slice(0,10)}" ${analyticsBusy?'disabled':''} value="${analyticsFrom}" onchange="analyticsFilter('from',this.value)"></label><label>${at('To (UTC)','结束日期（UTC）')}<input type="date" max="${new Date().toISOString().slice(0,10)}" ${analyticsBusy?'disabled':''} value="${analyticsTo}" onchange="analyticsFilter('to',this.value)"></label><label class="analytics-check"><input type="checkbox" ${analyticsBusy?'disabled':''} ${analyticsIncludeAdmin?'checked':''} onchange="analyticsFilter('admin',this.checked)">${at('Include admins','包含管理员')}</label><button class="btn btn-outline btn-small" onclick="refreshAnalytics()" ${analyticsBusy?'disabled':''}>${analyticsBusy?at('Loading…','加载中…'):at('Refresh','刷新')}</button></div>`;
+ const tabs=`<div class="analytics-tabs">${[['overview',at('Overview','总览')],['daily',at('Daily','每日')],['players',at('Players','玩家')],['invites',at('Invitations','邀请码历史')]].map(([k,t])=>`<button class="btn btn-small ${analyticsTab===k?'btn-primary':'btn-outline'}" onclick="analyticsTab='${k}';render();refreshAnalytics()">${t}</button>`).join('')}</div>`;
  let body='';
+ if(analyticsTab==='invites')return `<div class="analytics-page"><button class="btn btn-outline" onclick="goScreen('home')">← ${at('Home','首页')}</button><h2>${at('Invitation history','邀请码历史')}</h2>${tabs}${analyticsInviteError?`<p class="analytics-error">${escapeHTML(analyticsInviteError)}</p>`:''}${analyticsInvitesBusy?at('Loading…','加载中…'):screenInviteHistory()}</div>`;
  if(d&&s){
  const runs=[...new Set([d.currentRun,...d.gameDays.map(x=>x.run_id),...d.deployments.map(x=>x.run_id)])].filter(Boolean);
  const selectors=`<div class="analytics-controls"><label>${at('Gameplay round','游戏轮次')}<select onchange="analyticsSelect('run',this.value)">${runs.map(r=>{const n=d.gameDays.find(x=>x.run_id===r)?.round_number;return `<option value="${escapeHTML(r)}" ${r===analyticsRun?'selected':''}>${n?'R'+n+' · ':''}${escapeHTML(r)}</option>`;}).join('')}</select></label><label>${at('Game day','游戏日')}<select onchange="analyticsSelect('day',this.value)"><option value="all">${at('All days','全部')}</option>${[1,2,3,4,5,6,7].map(n=>`<option ${analyticsDay===String(n)?'selected':''}>${n}</option>`).join('')}</select></label><label>${at('Team','队伍')}<select onchange="analyticsSelect('team',this.value)">${['all','cinder','surge','bloom'].map(f=>`<option value="${f}" ${analyticsTeam===f?'selected':''}>${f==='all'?at('All teams','全部队伍'):analyticsFaction(f)}</option>`).join('')}</select></label></div>`;
  const visits=s.visits.reduce((n,x)=>n+analyticsNum(x.visits),0),seconds=s.visits.reduce((n,x)=>n+analyticsNum(x.active_seconds),0),messages=s.chat.reduce((n,x)=>n+analyticsNum(x.messages),0);
+ const snapshotIssue=s.days.some(x=>x.snapshot_error);
+ if(snapshotIssue)body+=`<p class="analytics-error">${at('Some participation snapshots are incomplete. Deployment rates may be unavailable.','部分参与快照采集失败，部署率可能不可用。')}</p>`;
  const boosted=s.deps.filter(x=>x.boost>0),gst=boosted.reduce((n,x)=>n+analyticsNum(x.gst),0),unpriced=boosted.filter(x=>x.gst==null).length;
  const coverage=s.days.length&&s.days.every(x=>!x.partial)&&s.deps.every(x=>s.parts.some(y=>s.key(y)===s.key(x)));
  const deployedEligible=s.eligible.filter(x=>s.deployed.has(s.key(x))).length;
  body=selectors+`<p class="analytics-note">${at('Visits / time / chat follow the UTC date range. Deployment / Boost follow the selected game round and day. Time tracking started:','访问／时长／聊天按 UTC 日期筛选；部署／Boost 按游戏轮次和 Day 筛选。时长采集开始于：')} ${analyticsDate(d.startedAt)}</p>`;
  if(analyticsTab==='overview'){
-  body+=`<div class="analytics-grid">${analyticsMetric(at('Current members','当前人数'),s.members.filter(m=>m.current).length)}${analyticsMetric(at('Recorded members','累计记录人数'),s.members.length)}${analyticsMetric(at('Unique visitors','访问人数'),new Set(s.visits.map(x=>x.user_id)).size)}${analyticsMetric(at('Visits','访问次数'),visits)}${analyticsMetric(at('Active time','有效时长'),analyticsDuration(seconds))}${analyticsMetric(at('Messages','聊天条数'),messages)}</div><h3>${at('Deployment & simulated GST','部署与模拟 GST')}</h3><div class="analytics-grid">${analyticsMetric(at('Deployment rate (player-days)','部署率（人次）'),coverage?analyticsPct(deployedEligible,s.eligible.length):'—',`${deployedEligible} / ${s.eligible.length} ${at('observed eligible player-days','已记录可参与人次')}`)}${analyticsMetric(at('Power use (known balances)','Power 使用率（已知额度）'),analyticsPct(s.knownPower,s.available),`${s.known.length} / ${s.eligible.length} ${at('balances known','额度已知')}`)}${analyticsMetric(at('Boost users','Boost 人数'),new Set(boosted.map(x=>x.user_id)).size)}${analyticsMetric(at('Boost use rate','Boost 使用率'),analyticsPct(new Set(boosted.map(x=>x.user_id)).size,new Set(s.eligible.map(x=>x.user_id)).size))}${analyticsMetric(at('Additional Power','额外 Power'),boosted.reduce((n,x)=>n+analyticsNum(x.extra_power),0).toFixed(2))}${analyticsMetric(at('Boost uses (player-days)','Boost 使用人次'),boosted.length)}${analyticsMetric(at('Simulated GST','模拟 GST 用量'),gst)}${analyticsMetric(at('GST per priced Boost user','有费用记录用户人均 GST'),new Set(boosted.filter(x=>x.gst!=null).map(x=>x.user_id)).size?(gst/new Set(boosted.filter(x=>x.gst!=null).map(x=>x.user_id)).size).toFixed(1):'—')}</div>`;
+  body+=`<div class="analytics-grid">${analyticsMetric(at('Current members','当前人数'),s.members.filter(m=>m.current).length)}${analyticsMetric(at('Recorded members','累计记录人数'),s.members.length)}${analyticsMetric(at('Unique visitors','访问人数'),new Set(s.visits.map(x=>x.user_id)).size)}${analyticsMetric(at('Visits','访问次数'),visits)}${analyticsMetric(at('Active time','有效时长'),analyticsDuration(seconds))}${analyticsMetric(at('Messages','聊天条数'),messages)}</div><h3>${at('Deployment & simulated GST','部署与模拟 GST')}</h3><div class="analytics-grid">${analyticsMetric(at('Deployment rate (player-days)','部署率（人次）'),coverage?analyticsPct(deployedEligible,s.eligible.length):'—',`${deployedEligible} / ${s.eligible.length} ${at('observed eligible player-days','已记录可参与人次')}`)}${analyticsMetric(at('Power use (known balances)','Power 使用率（已知额度）'),analyticsPct(s.knownPower,s.available),`${s.known.length} / ${s.eligible.length} ${at('balances known','额度已知')}`)}${analyticsMetric(at('Boost users','Boost 人数'),new Set(boosted.map(x=>x.user_id)).size)}${analyticsMetric(at('Boost use rate','Boost 使用率'),analyticsPct(new Set(boosted.map(x=>x.user_id)).size,new Set(s.eligible.map(x=>x.user_id)).size))}${analyticsMetric(at('Generated bonus Power','生成的加成 Power'),boosted.reduce((n,x)=>n+analyticsNum(x.extra_power),0).toFixed(2))}${analyticsMetric(at('Boost uses (player-days)','Boost 使用人次'),boosted.length)}${analyticsMetric(at('Simulated GST','模拟 GST 用量'),gst)}${analyticsMetric(at('GST per priced Boost user','有费用记录用户人均 GST'),new Set(boosted.filter(x=>x.gst!=null).map(x=>x.user_id)).size?(gst/new Set(boosted.filter(x=>x.gst!=null).map(x=>x.user_id)).size).toFixed(1):'—')}</div>`;
   body+=`<p class="analytics-note">${at('Boost cost is counted once per player/game day on first successful deployment. No real token payment.','Boost 费用按每人每游戏日首次成功部署计一次，不发生真实代币支付。')}${unpriced?' '+unpriced+' '+at('older Boost uses have no recorded GST price and are excluded from cost totals.','次旧 Boost 没有费用记录，未计入 GST 总量。'):''}${!coverage?' '+at('Historical/partial-day deployment denominators are incomplete; rates are not inferred.','历史或更新当天的参与人数不完整，不推算部署率。'):''}</p>`;
   body+=`<h3>${at('Team chat','队伍聊天')}</h3>`+analyticsTable([at('Team','队伍'),at('Messages','消息'),at('Speakers','发言人数'),at('Messages / member','人均条数'),at('Speaking rate','发言率')],['cinder','surge','bloom'].filter(f=>analyticsTeam==='all'||analyticsTeam===f).map(f=>{const c=s.chat.filter(x=>x.faction===f),n=c.reduce((a,x)=>a+analyticsNum(x.messages),0),people=new Set(c.map(x=>x.user_id));const cohort=new Set((d.membershipPeriods||[]).filter(m=>m.faction===f&&m.started_at.slice(0,10)<=analyticsTo&&(!m.ended_at||m.ended_at.slice(0,10)>=analyticsFrom)).map(m=>m.user_id));people.forEach(x=>cohort.add(x));return [analyticsFaction(f),n,people.size,cohort.size?(n/cohort.size).toFixed(2):'—',analyticsPct(people.size,cohort.size)];}));
   body+=`<p class="analytics-note">${at('Chat averages include silent members. Older membership/team changes before tracking may be incomplete.','聊天人均包含未发言成员；采集前的成员进出、换队历史可能不完整。')}</p>`;
@@ -3899,7 +3932,7 @@ function screenAnalytics(){
   body+=`<p class="analytics-note">${at('Daily time average includes zero-visit days since joining or tracking began, within the selected UTC range.','日均时长按所选日期范围内、加入且开始采集后的天数计算，包含未访问的日子。')}</p>`;
  }else body=screenInviteHistory();
  }
- return `<div class="analytics-page"><button class="btn btn-outline btn-small" onclick="goScreen('home')">← ${at('Home','首页')}</button><h2>${at('Admin Statistics','管理员统计')}</h2>${tabs}${analyticsTab!=='invites'?controls:''}${analyticsError?`<div class="analytics-error">${escapeHTML(analyticsError)}</div>`:''}${!d&&!analyticsError?`<p>${at('Loading…','加载中…')}</p>`:''}${body}</div>`;
+ return `<div class="analytics-page"><button class="btn btn-outline btn-small" onclick="goScreen('home')">← ${at('Home','首页')}</button><h2>${at('Admin Statistics','管理员统计')}</h2><p class="analytics-note">App 0.8.4 · Schema ${escapeHTML(analyticsSchemaVersion||'unknown')}</p>${tabs}${analyticsTab!=='invites'?controls:''}${analyticsError?`<div class="analytics-error">${escapeHTML(analyticsError)}</div>`:''}${!d&&!analyticsError?`<p>${at('Loading…','加载中…')}</p>`:''}${body}</div>`;
 }
 function screenInviteHistory(){return `<p class="analytics-note">${at('Used codes remain valid for the same player on another device until rotated. Older code plaintext cannot be recovered.','已使用的邀请码在换码前仍可用于同一玩家换设备登录。旧邀请码原文无法还原。')}</p><button class="btn btn-outline btn-small" onclick="refreshAnalytics()">${at('Refresh','刷新')}</button>${analyticsInvites.map(i=>`<div class="card analytics-invite"><b>${escapeHTML(i.name)}</b><span class="chip-small">${i.status==='revoked'?at('Replaced / invalid','已替换／失效'):i.status==='used'?at('Used · still valid','已使用 · 仍有效'):i.status==='unknown'?at('Legacy · use unknown','旧码 · 使用状态未知'):at('Not yet used','未使用')}</span><code>${i.code?escapeHTML(i.code):at('Legacy code — plaintext unavailable','旧记录—原码不可恢复')}</code><small>${at('Created','创建')}: ${analyticsDate(i.createdAt)}<br>${at('First used','首次使用')}: ${analyticsDate(i.usedAt)}${i.faction?' · '+analyticsFaction(i.faction):''}${i.revokedAt?'<br>'+at('Replaced','失效')+': '+analyticsDate(i.revokedAt):''}</small>${i.code&&i.status!=='revoked'?`<button class="btn btn-outline btn-small" onclick="copyHistoryInvite('${i.id}')">${at('Copy code','复制邀请码')}</button>`:''}</div>`).join('')||`<p>${at('No invitation records','暂无邀请码记录')}</p>`}`;}
 async function copyHistoryInvite(id){if(!isRoomAdmin)return;const i=analyticsInvites.find(x=>String(x.id)===String(id));if(!i?.code||i.status==='revoked')return;try{await navigator.clipboard.writeText(roomCode+' · '+i.code);}catch{prompt(at('Copy invitation','复制邀请码'),roomCode+' · '+i.code);}}
@@ -3907,14 +3940,14 @@ function exportAnalyticsCSV(){if(!isRoomAdmin||!analyticsData)return;const rows=
 // Passive, foreground-only timing. Idle after 60 sec; visits separated by 30 min.
 let analyticsLastInput=Date.now(),analyticsPulseBusy=false,analyticsLastSent=0,analyticsWasActive=false;
 async function analyticsPulse(forceInactive=false){
- if(analyticsPulseBusy||!roomCode||!profile||bootPhase!=='ready'||!sbClient)return;
+ if(!analyticsSupported||analyticsPulseBusy||!roomCode||!profile||bootPhase!=='ready'||!sbClient)return;
  const active=!forceInactive&&!document.hidden&&Date.now()-analyticsLastInput<60000;
  if(!active&&!analyticsWasActive)return;
  if(!forceInactive&&Date.now()-analyticsLastSent<15000)return;
  analyticsPulseBusy=true;analyticsLastSent=Date.now();
- try{const r=await sbClient.rpc('rk_analytics_pulse',{p_room:roomCode,p_active:active});if(!r.error)analyticsWasActive=active;}catch{}finally{analyticsPulseBusy=false;}
+ try{const r=await sbClient.rpc('rk_analytics_pulse',{p_room:roomCode,p_active:active});if(!r.error)analyticsWasActive=active;else if(['PGRST202','42883'].includes(r.error.code))analyticsSupported=false;}catch{}finally{analyticsPulseBusy=false;}
 }
-for(const event of ['pointerdown','keydown','scroll','touchstart'])document.addEventListener(event,()=>{analyticsLastInput=Date.now();},{passive:true});
+for(const event of ['pointerdown','keydown','scroll','touchstart','wheel'])document.addEventListener(event,()=>{analyticsLastInput=Date.now();},{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)analyticsPulse(true);else{analyticsLastInput=Date.now();analyticsLastSent=0;analyticsPulse();}});
 setInterval(()=>analyticsPulse(),20000);
 
